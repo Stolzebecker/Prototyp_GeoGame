@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EO Visual Complexity Experiment</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+ --bg:#0b0f14;
+ --panel:#121820;
+ --border:#1e2d3d;
+ --accent:#00d4ff;
+ --accent2:#00ff9d;
+ --warn:#ff4d6d;
+ --text:#cdd9e5;
+ --muted:#4a6080;
+ --label-bg:#162030;
+ --radius:4px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+ font-family:'Syne',sans-serif;
+ background:var(--bg);
+ color:var(--text);
+ min-height:100vh;
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+}
+
+body.prestart #main,
+body.prestart #topbar{
+ visibility:hidden;
+}
+
+/* START SCREEN */
+#start-screen{
+ position:fixed;
+ inset:0;
+ z-index:1000;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ background:var(--bg);
+}
+
+.start-panel{
+ width:min(760px,90vw);
+ padding:60px;
+ background:var(--panel);
+ border:1px solid var(--border);
+ box-shadow:0 20px 60px rgba(0,0,0,.55);
+ text-align:center;
+}
+
+.start-kicker{
+ font-family:'JetBrains Mono',monospace;
+ color:var(--accent);
+ letter-spacing:.2em;
+ margin-bottom:18px;
+ font-size:12px;
+}
+
+.start-panel h1{
+ font-size:46px;
+ margin-bottom:20px;
+}
+
+.start-panel p{
+ line-height:1.7;
+ margin-bottom:28px;
+}
+
+.briefing-box{
+ text-align:left;
+ padding:24px;
+ border:1px solid var(--border);
+ background:#0d141d;
+ font-family:'JetBrains Mono',monospace;
+ margin-bottom:30px;
+ display:grid;
+ gap:12px;
+}
+
+#btn-start{
+ padding:16px 42px;
+ border:none;
+ background:var(--accent2);
+ font-weight:700;
+ cursor:pointer;
+ animation:pulse 1.8s infinite;
+}
+
+#btn-start:hover{
+ transform:translateY(-2px)
+}
+
+/* TOPBAR */
+#topbar{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:12px 24px;
+ background:var(--panel);
+ border-bottom:1px solid var(--border);
+}
+
+.brand{
+ font-family:'JetBrains Mono',monospace;
+ color:var(--accent);
+ font-size:12px;
+}
+
+#progress-wrap{
+ width:420px;
+}
+
+#progress-label{
+ display:flex;
+ justify-content:space-between;
+ font-size:11px;
+ color:var(--muted);
+ margin-bottom:4px;
+}
+
+#progress-bar{
+ height:4px;
+ background:var(--border);
+}
+
+#progress-fill{
+ height:100%;
+ width:0%;
+ background:linear-gradient(90deg,var(--accent),var(--accent2));
+}
+
+#stats{
+ display:flex;
+ gap:25px;
+}
+
+.stat{
+ text-align:center;
+}
+
+.stat-val{
+ color:var(--accent);
+ font-family:'JetBrains Mono';
+ font-size:20px;
+}
+
+#stat-errors .stat-val{
+ color:var(--warn)
+}
+
+.stat-label{
+ font-size:9px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+
+#main{
+ flex:1;
+ display:grid;
+ grid-template-rows:1fr auto;
+ padding:18px 24px;
+ gap:14px;
+}
+
+#image-container{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ position:relative;
+}
+
+#image-wrap{
+ position:relative;
+ border:1px solid var(--border);
+ display:inline-block; /* Verhindert, dass das Wrap größer als das Bild wird */
+}
+
+#satellite-img{
+ display:block;
+ max-height:calc(100vh - 260px);
+ max-width:100%;
+}
+
+/* SVG Hitbox Layer */
+#hitbox-svg {
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ pointer-events: none; /* Lässt Klicks auf den leeren Bereich durch */
+ z-index: 10;
+}
+
+.drop-zone-poly {
+ pointer-events: all; /* Hitboxes abgreifen */
+ fill: transparent;
+ stroke: rgba(0, 212, 255, 0.0); /* Leicht sichtbar machen falls gewünscht, aktuell unsichtbar */
+ stroke-width: 2px;
+ transition: all 0.2s ease;
+ cursor: crosshair;
+}
+
+.drop-zone-poly.drag-over {
+ fill: rgba(0, 212, 255, 0.25);
+ stroke: rgba(0, 212, 255, 0.8);
+}
+
+.drop-zone-poly.correct {
+ fill: rgba(0, 255, 157, 0.35);
+ stroke: var(--accent2);
+}
+
+.placed-label {
+ position: absolute;
+ background: var(--panel);
+ border: 1px solid var(--accent2);
+ color: var(--accent2);
+ font-size: 10px;
+ padding: 3px 6px;
+ pointer-events: none;
+ transform: translate(-50%, -50%);
+ z-index: 20;
+}
+
+#coords-overlay{
+ position:absolute;
+ bottom:8px;
+ left:8px;
+ font-size:10px;
+ color:#7d8ea3;
+ z-index: 20;
+}
+
+#level-tag{
+ position:absolute;
+ top:8px;
+ left:8px;
+ font-size:10px;
+ color:var(--accent);
+ z-index: 20;
+}
+
+#bottom{
+ display:grid;
+ grid-template-columns:1fr auto;
+ gap:12px;
+}
+
+#label-bar{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+ background:var(--panel);
+ padding:12px;
+ border:1px solid var(--border);
+}
+
+#label-bar-title{
+ width:100%;
+ font-size:10px;
+ color:var(--muted);
+ margin-bottom:4px;
+}
+
+.label-chip{
+ padding:6px 12px;
+ background:var(--label-bg);
+ border:1px solid var(--border);
+ cursor:grab;
+}
+
+.label-chip.used{
+ opacity:.25;
+ pointer-events:none;
+}
+
+#trash{
+ width:90px;
+ height:72px;
+ border:2px dashed var(--border);
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+}
+
+#trash.drag-over{
+ border-color:var(--warn)
+}
+
+#trash.correct{
+ border-color:var(--accent2)
+}
+
+#btn-next{
+ display:none;
+ position:fixed;
+ right:30px;
+ bottom:95px;
+ padding:12px 26px;
+ background:var(--accent2);
+ border:none;
+ font-weight:700;
+ cursor:pointer;
+ z-index: 100;
+}
+
+#feedback{
+ position:fixed;
+ top:70px;
+ left:50%;
+ transform:translateX(-50%);
+ opacity:0;
+ padding:8px 18px;
+ z-index: 100;
+ transition: opacity 0.2s;
+}
+
+#feedback.show{
+ opacity:1;
+}
+
+#feedback.ok{
+ color:var(--accent2)
+}
+
+#feedback.err{
+ color:var(--warn)
+}
+
+#results-screen{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:var(--bg);
+ z-index:900;
+ justify-content:center;
+ align-items:center;
+ flex-direction:column;
+ gap:30px;
+}
+
+#results-screen.active{
+ display:flex;
+}
+
+table{
+ border-collapse:collapse;
+}
+
+td,th{
+ padding:10px 16px;
+ border-bottom:1px solid var(--border);
+}
+
+.results-actions{
+ display:flex;
+ gap:12px;
+}
+
+.results-actions button{
+ padding:12px 20px;
+ border:none;
+ cursor:pointer;
+}
+
+@keyframes pulse{
+50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}
+}
+</style>
+</head>
+<body class="prestart">
+
+<div id="start-screen">
+<div class="start-panel">
+<div class="start-kicker">EO·EXPERIMENT</div>
+<h1>Visual Complexity Experiment</h1>
+<p>Ordne die Labels den passenden Bildbereichen zu oder ziehe nicht vorhandene Elemente in den Papierkorb.</p>
+<div class="briefing-box">
+<div>• Arbeite möglichst korrekt</div>
+<div>• Zeit und Fehler werden gemessen</div>
+<div>• Timer startet erst nach Klick auf Start</div>
+</div>
+<button id="btn-start" onclick="startExperiment()">Experiment starten</button>
+</div>
+</div>
+
+<div id="topbar">
+<div class="brand">EO·EXPERIMENT</div>
+<div id="progress-wrap">
+<div id="progress-label">
+<span id="prog-text">LEVEL 1 / 4</span>
+<span id="prog-pct">0%</span>
+</div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+<div id="stats">
+<div class="stat">
+<div class="stat-val" id="stat-time">0.00</div>
+<div class="stat-label">Sekunden</div>
+</div>
+<div class="stat" id="stat-errors">
+<div class="stat-val" id="stat-err-val">0</div>
+<div class="stat-label">Fehler</div>
+</div>
+</div>
+</div>
+
+<div id="main">
+<div id="image-container">
+<div id="image-wrap">
+<img id="satellite-img" src="">
+<!-- SVG Container für Hitboxes wird per JS hier injiziert -->
+<div id="coords-overlay"></div>
+<div id="level-tag">IMG_<span id="img-id-tag"></span></div>
+</div>
+</div>
+
+<div id="bottom">
+<div id="label-bar">
+<div id="label-bar-title">Labels ziehen</div>
+</div>
+<div id="trash"
+ondragover="onTrashDragOver(event)"
+ondragleave="onTrashDragLeave(event)"
+ondrop="onTrashDrop(event)">
+<div>🗑</div>
+<div>Nicht vorhanden</div>
+</div>
+</div>
+</div>
+
+<button id="btn-next" onclick="nextLevel()">WEITER</button>
+<div id="feedback"></div>
+
+<div id="results-screen">
+<h1>Experiment abgeschlossen</h1>
+<table>
+<thead>
+<tr>
+<th>Bild</th>
+<th>Zeit</th>
+<th>Fehler</th>
+</tr>
+</thead>
+<tbody id="results-body"></tbody>
+</table>
+<div class="results-actions">
+<button onclick="exportCSV()">CSV</button>
+<button onclick="exportJSON()">JSON</button>
+<button onclick="location.reload()">Neustart</button>
+</div>
+</div>
+
+<script>
+const ALL_LABELS=[
+{id:'wald',text:'Wald',icon:'🌲'},
+{id:'fluss',text:'Fluss',icon:'🌊'},
+{id:'siedlung',text:'Siedlung',icon:'🏘️'},
+{id:'acker',text:'Acker',icon:'🌾'},
+{id:'strasse',text:'Straße',icon:'🛣️'},
+{id:'see',text:'See',icon:'💧'}
+];
+
+// Die Pfade sind relativ definiert. Vorraussetzung: Die index.html liegt im Ordner 'Prototyp_OnlineGame'
+const BASE_IMG_PATH = './Bilder/EO_Bilder/';
+const BASE_GEO_PATH = './Bilder/Hitboxes/';
+
+// Du brauchst hier keine manuellen "zones" oder "absent" Listen mehr! 
+// Das Skript berechnet das nun dynamisch aus der jeweiligen GeoJSON.
+const LEVELS=[
+{ id:'B1', img: BASE_IMG_PATH + 'B1norm.jpg', geojson: BASE_GEO_PATH + 'B1puf.geojson' },
+{ id:'B2', img: BASE_IMG_PATH + 'B2norm.jpg', geojson: BASE_GEO_PATH + 'B2puf.geojson' }
+// Füge hier weitere Level nach dem gleichen Muster hinzu...
+];
+
+let experimentStarted=false;
+let currentLevel=0;
+let currentErrors=0;
+let draggingId=null;
+let levelStartTime=null;
+let timerInterval=null;
+let results=[];
+
+// Dynamisch generierte Listen pro Level
+let requiredClasses = []; 
+let absentClasses = [];
+
+let zoneFilled={};
+let trashFilled={};
+
+function startExperiment(){
+    if(experimentStarted) return;
+    experimentStarted=true;
+    document.body.classList.remove('prestart');
+    const s=document.getElementById('start-screen');
+    s.style.opacity='0';
+    setTimeout(()=>{
+        s.remove();
+        initLevel(0);
+    },400);
+}
+
+async function initLevel(i){
+    currentLevel=i;
+    currentErrors=0;
+    zoneFilled={};
+    trashFilled={};
+
+    const lv=LEVELS[i];
+    document.getElementById('stat-err-val').textContent=0;
+
+    const pct=Math.round((i/LEVELS.length)*100);
+    document.getElementById('progress-fill').style.width=pct+'%';
+    document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${LEVELS.length}`;
+
+    // Alte SVGs und gesetzte Labels bereinigen
+    const oldSvg = document.getElementById('hitbox-svg');
+    if(oldSvg) oldSvg.remove();
+    document.querySelectorAll('.placed-label').forEach(e => e.remove());
+
+    let geoData = null;
+    try {
+        const response = await fetch(lv.geojson);
+        if(!response.ok) throw new Error("Netzwerkantwort war nicht ok");
+        geoData = await response.json();
+    } catch(err) {
+        alert("Fehler beim Laden der GeoJSON ("+lv.geojson+"). \nBitte stelle sicher, dass du einen lokalen Webserver nutzt (CORS-Richtlinien!).");
+        console.error(err);
+        return; // Abbruch, wenn GeoJSON nicht geladen werden kann
+    }
+
+    // Bestimme dynamisch welche Klassen vorhanden sind und welche fehlen
+    const foundClasses = new Set();
+    geoData.features.forEach(f => {
+        if(f.properties && f.properties.klasse){
+            foundClasses.add(f.properties.klasse.toLowerCase());
+        }
+    });
+    
+    requiredClasses = Array.from(foundClasses);
+    absentClasses = ALL_LABELS.map(l => l.id).filter(id => !requiredClasses.includes(id));
+
+    const img=document.getElementById('satellite-img');
+    img.onload=()=>{
+        renderGeoJSONOverlay(geoData, img);
+        startTimer();
+    };
+    img.src=lv.img;
+
+    document.getElementById('coords-overlay').textContent=lv.id + " (WGS84 -> Screen)";
+    document.getElementById('img-id-tag').textContent=lv.id;
+
+    renderLabels();
+    document.getElementById('btn-next').style.display='none';
+}
+
+function renderLabels(){
+    const bar=document.getElementById('label-bar');
+    bar.innerHTML='<div id="label-bar-title">Labels ziehen</div>';
+    ALL_LABELS.forEach(lb=>{
+        const c=document.createElement('div');
+        c.className='label-chip';
+        c.id='chip-'+lb.id;
+        c.draggable=true;
+        c.dataset.id=lb.id;
+        c.innerHTML=lb.icon+' '+lb.text;
+        c.addEventListener('dragstart',onChipDragStart);
+        bar.appendChild(c);
+    });
+}
+
+function renderGeoJSONOverlay(geojson, img) {
+    const w = img.offsetWidth;
+    const h = img.offsetHeight;
+    const wrap = document.getElementById('image-wrap');
+
+    // 1. Min/Max der GeoJSON Bounding Box berechnen (zur automatischen WGS84 Umrechnung)
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    
+    function extractBounds(coords) {
+        if (typeof coords[0] === 'number') {
+            minX = Math.min(minX, coords[0]);
+            maxX = Math.max(maxX, coords[0]);
+            minY = Math.min(minY, coords[1]);
+            maxY = Math.max(maxY, coords[1]);
+        } else {
+            coords.forEach(extractBounds);
+        }
+    }
+    
+    geojson.features.forEach(f => extractBounds(f.geometry.coordinates));
+
+    // 2. SVG Element erstellen
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.id = "hitbox-svg";
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    
+    // 3. Rekursive Funktion zum Umwandeln der WGS84-Koordinaten in SVG-Pfade
+    function buildSVGPath(coords) {
+        if (typeof coords[0][0] === 'number') {
+            return "M " + coords.map(c => {
+                let px = ((c[0] - minX) / (maxX - minX)) * w;
+                // Y-Achse invertieren (WGS84 Lat geht nach oben, Bildschirm Y geht nach unten)
+                let py = h - ((c[1] - minY) / (maxY - minY)) * h;
+                return `${px},${py}`;
+            }).join(" L ") + " Z";
+        } else {
+            return coords.map(buildSVGPath).join(" ");
+        }
+    }
+
+    // 4. Polygone rendern
+    geojson.features.forEach(feat => {
+        let klasse = feat.properties.klasse ? feat.properties.klasse.toLowerCase() : 'unknown';
+        let pathStr = buildSVGPath(feat.geometry.coordinates);
+
+        let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathStr);
+        path.setAttribute("class", "drop-zone-poly");
+        path.dataset.expected = klasse;
+
+        path.addEventListener('dragover', onZoneDragOver);
+        path.addEventListener('dragleave', onZoneDragLeave);
+        path.addEventListener('drop', onZoneDrop);
+        
+        svg.appendChild(path);
+    });
+
+    wrap.appendChild(svg);
+}
+
+function onChipDragStart(e){
+    draggingId=e.target.dataset.id;
+}
+
+function onZoneDragOver(e){
+    e.preventDefault();
+    this.classList.add('drag-over');
+}
+
+function onZoneDragLeave(){
+    this.classList.remove('drag-over');
+}
+
+function onZoneDrop(e){
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    let expectedKlasse = this.dataset.expected;
+
+    if(draggingId === expectedKlasse){
+        // Alle Polygone dieser Klasse einfärben, um Erfolg visuell zu verdeutlichen
+        document.querySelectorAll(`.drop-zone-poly[data-expected="${expectedKlasse}"]`).forEach(p => {
+            p.classList.add('correct');
+        });
+
+        // Ein kleines Label in der Nähe des Drop-Ortes platzieren
+        const wrap = document.getElementById('image-wrap');
+        const rect = wrap.getBoundingClientRect();
+        const dropX = e.clientX - rect.left;
+        const dropY = e.clientY - rect.top;
+
+        const label = document.createElement('div');
+        label.className = 'placed-label';
+        label.style.left = dropX + 'px';
+        label.style.top = dropY + 'px';
+        label.textContent = draggingId;
+        wrap.appendChild(label);
+
+        zoneFilled[expectedKlasse]=true;
+        markChipUsed(draggingId);
+        showFeedback('✓ korrekt','ok');
+        checkLevelComplete();
+    }
+    else{
+        currentErrors++;
+        document.getElementById('stat-err-val').textContent=currentErrors;
+        showFeedback('✗ falsch','err');
+    }
+}
+
+function onTrashDragOver(e){
+    e.preventDefault();
+    document.getElementById('trash').classList.add('drag-over');
+}
+
+function onTrashDragLeave(){
+    document.getElementById('trash').classList.remove('drag-over');
+}
+
+function onTrashDrop(e){
+    e.preventDefault();
+    document.getElementById('trash').classList.remove('drag-over');
+
+    if(absentClasses.includes(draggingId)){
+        trashFilled[draggingId]=true;
+        markChipUsed(draggingId);
+        checkLevelComplete();
+        showFeedback('✓ entfernt','ok');
+    }
+    else{
+        currentErrors++;
+        document.getElementById('stat-err-val').textContent=currentErrors;
+        showFeedback('✗ sichtbar im Bild','err');
+    }
+}
+
+function checkLevelComplete(){
+    let allZonesFilled = requiredClasses.every(cls => zoneFilled[cls]);
+    let allTrashFilled = absentClasses.every(cls => trashFilled[cls]);
+
+    if(allZonesFilled && allTrashFilled){
+        stopTimer();
+        results.push({
+            image: LEVELS[currentLevel].id,
+            time: (Date.now()-levelStartTime)/1000,
+            errors: currentErrors
+        });
+        document.getElementById('btn-next').style.display='block';
+    }
+}
+
+function nextLevel(){
+    if(currentLevel+1 < LEVELS.length){
+        initLevel(currentLevel+1);
+    } else {
+        showResults();
+    }
+}
+
+function startTimer(){
+    stopTimer();
+    levelStartTime=Date.now();
+    timerInterval=setInterval(()=>{
+        let s=(Date.now()-levelStartTime)/1000;
+        document.getElementById('stat-time').textContent=s.toFixed(2);
+    },50);
+}
+
+function stopTimer(){
+    clearInterval(timerInterval);
+}
+
+function showResults(){
+    let body=document.getElementById('results-body');
+    body.innerHTML='';
+    results.forEach(r=>{
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${r.image}</td><td>${r.time.toFixed(2)}</td><td>${r.errors}</td>`;
+        body.appendChild(tr);
+    });
+    document.getElementById('results-screen').classList.add('active');
+}
+
+function exportCSV(){
+    let csv='image,time,errors\n'+results.map(r=>`${r.image},${r.time},${r.errors}`).join('\n');
+    download('results.csv',csv,'text/csv');
+}
+
+function exportJSON(){
+    download('results.json',JSON.stringify(results,null,2),'application/json');
+}
+
+function download(name,content,type){
+    let a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([content],{type}));
+    a.download=name;
+    a.click();
+}
+
+function markChipUsed(id){
+    let c=document.getElementById('chip-'+id);
+    if(c) {
+        c.classList.add('used');
+        c.draggable=false; // Nach Benutzung nicht mehr ziehbar
+    }
+}
+
+function showFeedback(msg,type){
+    let f=document.getElementById('feedback');
+    f.textContent=msg;
+    f.className='show '+type;
+    clearTimeout(f.t);
+    f.t=setTimeout(()=>f.className='',1200);
+}
+</script>
+</body>
+</html>
