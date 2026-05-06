@@ -7,25 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
 :root{
   --bg:#0b0f14;--panel:#121820;--border:#1e2d3d;
   --accent:#00d4ff;--accent2:#00ff9d;--warn:#ff4d6d;
   --text:#cdd9e5;--muted:#4a6080;--label-bg:#162030;
+  --loupe:250px; --zoom:3;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
-  min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
-}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* LOADING */
-#loading{
-  position:fixed;inset:0;z-index:3000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--bg);gap:20px;
-}
+#loading{position:fixed;inset:0;z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:20px}
 #loading-text{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -58,22 +51,93 @@ body{
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#map{width:100%;flex:1;background:#000;min-height:0}
+
+/* MAP */
+#map-wrap{position:relative;flex:1;overflow:hidden;min-height:0}
+#map{
+  width:100%;height:100%;background:#000;
+  cursor:none!important;
+}
+.leaflet-container{cursor:none!important}
+/* Disable all leaflet interaction visuals */
+.leaflet-grab{cursor:none!important}
+.leaflet-interactive{cursor:none!important}
+
+/* LOUPE */
+#loupe{
+  position:absolute;
+  width:var(--loupe);height:var(--loupe);
+  border-radius:50%;
+  border:2px solid var(--accent);
+  box-shadow:0 0 0 1px rgba(0,212,255,.25), 0 8px 32px rgba(0,0,0,.8);
+  overflow:hidden;
+  pointer-events:none;
+  display:none;
+  z-index:600;
+  /* offset so center of loupe = mouse pos */
+  transform:translate(-50%,-50%);
+}
+/* crosshair */
+#loupe::before,#loupe::after{
+  content:'';position:absolute;z-index:2;pointer-events:none;
+}
+#loupe::before{width:1px;height:100%;left:50%;top:0;background:rgba(0,212,255,.55)}
+#loupe::after{height:1px;width:100%;top:50%;left:0;background:rgba(0,212,255,.55)}
+/* The zoomed image inside the loupe */
+#loupe-canvas{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  image-rendering:pixelated;
+}
+/* tiny "3×" badge */
+#loupe-badge{
+  position:absolute;bottom:6px;right:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:rgba(0,212,255,.7);z-index:3;pointer-events:none;
+}
+
+/* PIN cursor – tip is at (50%, 100%) of element, so we offset by (-50%,-100%) */
+#pin{
+  position:absolute;
+  pointer-events:none;
+  z-index:700;
+  display:none;
+  transform:translate(-50%,-100%);
+  width:22px;
+}
+
+/* FLOATING CHIP */
+#float-chip{
+  position:fixed;
+  pointer-events:none;
+  z-index:9000;
+  display:none;
+  padding:6px 13px;
+  background:var(--label-bg);
+  border:1px solid var(--accent);
+  color:var(--accent);
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
+  white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  /* offset slightly so pin tip is "below" chip label */
+  transform:translate(-50%, calc(-100% - 36px));
+}
 
 /* BOTTOM */
 #bottom{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 20px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0}
 #label-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #label-bar-title{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.12em;margin-right:6px}
-.label-chip{padding:6px 13px;background:var(--label-bg);border:1px solid var(--border);cursor:grab;font-size:13px;font-weight:600;user-select:none;transition:border-color .15s,opacity .2s}
+.label-chip{padding:6px 13px;background:var(--label-bg);border:1px solid var(--border);font-size:13px;font-weight:600;user-select:none;transition:border-color .15s,opacity .2s;cursor:grab}
 .label-chip:hover{border-color:var(--accent)}
 .label-chip.used{opacity:.2;pointer-events:none}
-.label-chip.dragging{opacity:.5;cursor:grabbing}
-#trash{width:110px;min-height:60px;border:2px dashed var(--border);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;font-size:11px;color:var(--muted);transition:border-color .2s,background .2s}
+.label-chip.lifting{opacity:.45;cursor:grabbing}
+
+#trash{width:110px;min-height:60px;border:2px dashed var(--border);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;font-size:11px;color:var(--muted);transition:border-color .2s,background .2s;cursor:default}
 #trash.drag-over{border-color:var(--warn);background:rgba(255,77,109,.08)}
 #trash-count{font-family:'JetBrains Mono',monospace;color:var(--warn);font-size:11px;min-height:14px}
 
 /* FEEDBACK */
-#feedback{position:fixed;top:62px;left:50%;transform:translateX(-50%);padding:7px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:500;background:var(--panel);border:1px solid var(--border)}
+#feedback{position:fixed;top:62px;left:50%;transform:translateX(-50%);padding:7px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:800;background:var(--panel);border:1px solid var(--border)}
 #feedback.show{opacity:1}
 #feedback.ok{color:var(--accent2);border-color:var(--accent2)}
 #feedback.err{color:var(--warn);border-color:var(--warn)}
@@ -95,37 +159,45 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 .results-actions button:hover{border-color:var(--accent)}
 .results-actions button.primary{background:var(--accent2);color:#0b0f14;border-color:var(--accent2)}
 
-/* LEAFLET */
-.zone-tooltip{background:var(--panel)!important;border:1px solid var(--border)!important;color:var(--text)!important;font-family:'JetBrains Mono',monospace!important;font-size:11px!important;box-shadow:none!important;padding:4px 10px!important}
+/* confirmed zone label (small, shown after correct drop) */
+.zone-ok-label{
+  background:rgba(18,24,32,.85);border:1px solid var(--accent2);
+  color:var(--accent2);font-family:'JetBrains Mono',monospace;
+  font-size:11px;padding:3px 9px;pointer-events:none;white-space:nowrap;
+}
 
 @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}}
 </style>
 </head>
 <body>
 
+<!-- LOADING -->
 <div id="loading">
   <div class="spinner"></div>
   <div id="loading-text">LADE KONFIGURATION …</div>
 </div>
 
+<!-- START -->
 <div id="start-screen" style="display:none">
   <div class="start-panel">
-    <div class="start-kicker">Institut für Geographie und Geokommunikation; Pädagogische Hochschule Heidelberg</div>
+    <div class="start-kicker">EO · EXPERIMENT</div>
     <h1>Visual Complexity<br>Experiment</h1>
-    <p>Ziehe die Landschaftsobjekte auf die passenden Bereiche im Satelliten-/Drohnenbild.<br>Nicht vorhandene Elemente kommen in den Papierkorb.</p>
+    <p>Ziehe die Labels auf die passenden Bereiche im Satellitenbild.<br>Nicht sichtbare Elemente kommen in den Papierkorb.</p>
     <div class="briefing-box">
       <div><span>01 /</span> Arbeite so korrekt wie möglich</div>
-      <div><span>02 /</span> Deine Zeit wird gemessen</div>
-      <div><span>03 /</span> Timer startet  nach Klick auf Start</div>
-      <div><span>04 /</span> Karte kann gezoomt und verschoben werden</div>
-      <div><span>05 /</span> <span id="level-count-text">–</span> Level insgesamt</div>
+      <div><span>02 /</span> Zeit und Fehler werden gemessen</div>
+      <div><span>03 /</span> Timer startet erst nach Klick auf Start</div>
+      <div><span>04 /</span> Lupe erscheint beim Überfahren der Karte</div>
+      <div><span>05 /</span> Pin-Spitze zeigt den genauen Ablageort an</div>
+      <div><span>06 /</span> <span id="level-count-text">–</span> Level insgesamt</div>
     </div>
-    <button id="btn-start" onclick="startExperiment()">Los gehts! ›</button>
+    <button id="btn-start" onclick="startExperiment()">Experiment starten ›</button>
   </div>
 </div>
 
+<!-- TOPBAR -->
 <div id="topbar">
-  <div class="brand">Institut für Geographie und Geokommunikation; Pädagogische Hochschule Heidelberg</div>
+  <div class="brand">EO · EXPERIMENT</div>
   <div id="progress-wrap">
     <div id="progress-label">
       <span id="prog-text">LEVEL 1</span>
@@ -134,25 +206,38 @@ tr:last-child td{font-weight:700;color:var(--accent)}
     <div id="progress-bar"><div id="progress-fill"></div></div>
   </div>
   <div id="stats">
-    <div class="stat">
-      <div class="stat-val" id="stat-time">0.00</div>
-      <div class="stat-label">Sekunden</div>
-    </div>
-    <div class="stat" id="stat-errors">
-      <div class="stat-val" id="stat-err-val">0</div>
-      <div class="stat-label">Fehler</div>
-    </div>
+    <div class="stat"><div class="stat-val" id="stat-time">0.00</div><div class="stat-label">Sekunden</div></div>
+    <div class="stat" id="stat-errors"><div class="stat-val" id="stat-err-val">0</div><div class="stat-label">Fehler</div></div>
   </div>
 </div>
 
+<!-- MAIN -->
 <div id="main">
-  <div id="map"></div>
+  <div id="map-wrap">
+    <div id="map"></div>
+
+    <!-- Loupe overlay -->
+    <div id="loupe">
+      <canvas id="loupe-canvas"></canvas>
+      <div id="loupe-badge">3×</div>
+    </div>
+
+    <!-- Pin cursor (shown when dragging over map) -->
+    <div id="pin">
+      <svg viewBox="0 0 22 44" xmlns="http://www.w3.org/2000/svg">
+        <!-- circle head -->
+        <circle cx="11" cy="11" r="9" fill="#00d4ff" stroke="#0b0f14" stroke-width="1.5"/>
+        <!-- needle body -->
+        <path d="M7 18 Q11 44 11 44 Q11 44 15 18 Z" fill="#00d4ff" stroke="#0b0f14" stroke-width="1"/>
+        <!-- inner dot -->
+        <circle cx="11" cy="11" r="4" fill="#0b0f14"/>
+      </svg>
+    </div>
+  </div>
+
   <div id="bottom">
     <div id="label-bar"><span id="label-bar-title">LABELS ZIEHEN ›</span></div>
-    <div id="trash"
-      ondragover="onTrashDragOver(event)"
-      ondragleave="onTrashDragLeave()"
-      ondrop="onTrashDrop(event)">
+    <div id="trash">
       <div style="font-size:20px">🗑</div>
       <div>Nicht vorhanden</div>
       <div id="trash-count"></div>
@@ -160,9 +245,13 @@ tr:last-child td{font-weight:700;color:var(--accent)}
   </div>
 </div>
 
+<!-- Floating chip that follows the mouse during drag -->
+<div id="float-chip"></div>
+
 <button id="btn-next" onclick="nextLevel()">WEITER ›</button>
 <div id="feedback"></div>
 
+<!-- RESULTS -->
 <div id="results-screen">
   <h1>Experiment abgeschlossen</h1>
   <table>
@@ -177,18 +266,45 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 </div>
 
 <script>
-// ── State ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════════════════
+const LOUPE_SIZE = 250;   // px diameter
+const ZOOM_FACTOR = 3;    // magnification
+
 let CONFIG = null, map = null, imageOverlay = null, zoneLayer = null;
 let currentLevel=0, currentErrors=0, levelStartTime=null, timerInterval=null;
-let results=[], zoneFilled={}, trashFilled={}, draggingId=null, feedbackTimer=null;
+let results=[], zoneFilled={}, trashFilled={}, feedbackTimer=null;
 
-// ── Boot: config.json laden ────────────────────────────────
-async function boot() {
-  try {
+// Drag state (custom mouse-based, not HTML5 drag API)
+let draggingId = null;
+let draggingLabel = '';
+
+// Cached DOM refs
+const elLoupe     = document.getElementById('loupe');
+const elCanvas    = document.getElementById('loupe-canvas');
+const elPin       = document.getElementById('pin');
+const elFloatChip = document.getElementById('float-chip');
+const elTrash     = document.getElementById('trash');
+
+// Canvas 2D context for loupe
+const ctx = elCanvas.getContext('2d');
+elCanvas.width  = LOUPE_SIZE;
+elCanvas.height = LOUPE_SIZE;
+
+// The current satellite image element (for loupe rendering)
+let srcImg = null;     // HTMLImageElement
+let mapWrapRect = null; // bounding rect of #map-wrap
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+async function boot(){
+  try{
     const res = await fetch('./config.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     CONFIG = await res.json();
-  } catch(e) {
+  }catch(e){
     document.getElementById('loading-text').textContent =
       '⚠ config.json nicht gefunden – bitte generate_config.py ausführen!';
     console.error(e); return;
@@ -199,23 +315,44 @@ async function boot() {
   document.getElementById('level-count-text').textContent = CONFIG.levels.length + ' Level';
 }
 
-// ── Experiment starten ─────────────────────────────────────
-function startExperiment() {
+// ═══════════════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════════════
+function startExperiment(){
   const ss = document.getElementById('start-screen');
   ss.classList.add('hidden');
-  setTimeout(() => ss.remove(), 400);
-  map = L.map('map', { crs: L.CRS.EPSG4326, zoomControl:true, attributionControl:false });
+  setTimeout(()=> ss.remove(), 400);
+
+  // Leaflet: static map (no zoom, no pan, no interaction)
+  map = L.map('map',{
+    crs: L.CRS.EPSG4326,
+    zoomControl: false,
+    attributionControl: false,
+    dragging: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    boxZoom: false,
+    keyboard: false,
+    touchZoom: false,
+  });
+
+  setupMouseEvents();
   loadLevel(0);
 }
 
-// ── Level laden ────────────────────────────────────────────
-async function loadLevel(i) {
+// ═══════════════════════════════════════════════════════════
+// LEVEL
+// ═══════════════════════════════════════════════════════════
+async function loadLevel(i){
   currentLevel=i; currentErrors=0; zoneFilled={}; trashFilled={}; draggingId=null;
   stopTimer();
   document.getElementById('stat-err-val').textContent='0';
   document.getElementById('stat-time').textContent='0.00';
   document.getElementById('btn-next').style.display='none';
   document.getElementById('trash-count').textContent='';
+  elLoupe.style.display='none';
+  elPin.style.display='none';
+  elFloatChip.style.display='none';
 
   const lv=CONFIG.levels[i], tot=CONFIG.levels.length;
   const pct=Math.round((i/tot)*100);
@@ -223,126 +360,321 @@ async function loadLevel(i) {
   document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${tot}`;
   document.getElementById('prog-pct').textContent=pct+' %';
 
-  if (imageOverlay){map.removeLayer(imageOverlay);imageOverlay=null;}
-  if (zoneLayer)   {map.removeLayer(zoneLayer);   zoneLayer=null;}
+  if(imageOverlay){map.removeLayer(imageOverlay);imageOverlay=null;}
+  if(zoneLayer){map.removeLayer(zoneLayer);zoneLayer=null;}
+
+  // Load image for loupe
+  srcImg = new Image();
+  srcImg.crossOrigin='anonymous';
+  srcImg.src = lv.imgSrc;
 
   imageOverlay = L.imageOverlay(lv.imgSrc, lv.bounds, {opacity:1}).addTo(map);
   map.fitBounds(lv.bounds);
+  mapWrapRect = document.getElementById('map-wrap').getBoundingClientRect();
 
+  // Load GeoJSON
   let geojson;
-  try {
+  try{
     const res = await fetch(lv.geojsonSrc);
-    if (!res.ok) throw new Error('HTTP '+res.status+' – '+lv.geojsonSrc);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     geojson = await res.json();
-  } catch(e) {
+  }catch(e){
     showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
     console.error(e); return;
   }
 
-  renderZones(geojson, lv);
+  renderZones(geojson);
   renderLabels(lv);
   startTimer();
 }
 
-// ── Zonen rendern (property "klasse") ──────────────────────
-function renderZones(geojson, lv) {
-  zoneLayer = L.geoJSON(geojson, {
-    style:{ fillColor:'#00d4ff', fillOpacity:0.07, color:'#00d4ff', weight:2, dashArray:'6 4' },
-    onEachFeature(feature, layer) {
+// ═══════════════════════════════════════════════════════════
+// ZONES – invisible polygons, hit-tested via Leaflet
+// ═══════════════════════════════════════════════════════════
+function renderZones(geojson){
+  zoneLayer = L.geoJSON(geojson,{
+    style:{
+      fillColor:'transparent',
+      fillOpacity:0,
+      color:'transparent',
+      weight:0,
+    },
+    onEachFeature(feature, layer){
       const klasse = feature.properties && feature.properties.klasse;
-      if (!klasse) return;
-      layer.zoneKlasse=klasse; layer.filled=false;
-      const lbl = CONFIG.labels.find(l=>l.id===klasse);
-      const txt = lbl ? lbl.icon+' '+lbl.text : klasse;
-      layer.bindTooltip(txt,{permanent:false,direction:'center',className:'zone-tooltip',opacity:1});
-      layer.on('mouseover',function(){
-        if(!this.filled) this.setStyle({fillColor:'#00d4ff',fillOpacity:.2,color:'#00d4ff',weight:2,dashArray:'6 4'});
-      });
-      layer.on('mouseout',function(){
-        if(!this.filled) this.setStyle({fillColor:'#00d4ff',fillOpacity:.07,color:'#00d4ff',weight:2,dashArray:'6 4'});
-      });
-      layer.on('mouseup',function(){
-        if(draggingId!==null) handleZoneDrop(this, klasse);
-      });
+      if(!klasse) return;
+      layer.zoneKlasse = klasse;
+      layer.filled = false;
+      // No tooltips, no hover styling – completely invisible
     }
   }).addTo(map);
 }
 
-// ── Labels rendern ─────────────────────────────────────────
-function renderLabels(lv) {
-  const bar=document.getElementById('label-bar');
-  bar.innerHTML='<span id="label-bar-title">LABELS ZIEHEN ›</span>';
+// ═══════════════════════════════════════════════════════════
+// LABELS
+// ═══════════════════════════════════════════════════════════
+function renderLabels(lv){
+  const bar = document.getElementById('label-bar');
+  bar.innerHTML = '<span id="label-bar-title">LABELS ZIEHEN ›</span>';
   CONFIG.labels.forEach(lb=>{
-    const chip=document.createElement('div');
-    chip.className='label-chip'; chip.id='chip-'+lb.id;
-    chip.draggable=true; chip.dataset.id=lb.id;
+    const chip = document.createElement('div');
+    chip.className='label-chip';
+    chip.id='chip-'+lb.id;
+    chip.dataset.id=lb.id;
     chip.textContent=lb.icon+' '+lb.text;
-    chip.addEventListener('dragstart',()=>{ draggingId=lb.id; chip.classList.add('dragging'); });
-    chip.addEventListener('dragend',()=>{ chip.classList.remove('dragging'); setTimeout(()=>{draggingId=null;},50); });
+    chip.addEventListener('mousedown', e=>{
+      if(chip.classList.contains('used')) return;
+      e.preventDefault();
+      beginDrag(lb.id, lb.icon+' '+lb.text, chip, e);
+    });
     bar.appendChild(chip);
   });
 }
 
-// ── Drop auf Zone ──────────────────────────────────────────
-function handleZoneDrop(layer, klasse) {
-  if(layer.filled||!draggingId) return;
-  if(draggingId===klasse) {
-    layer.filled=true; zoneFilled[L.stamp(layer)]=true;
-    layer.setStyle({fillColor:'#00ff9d',fillOpacity:.22,color:'#00ff9d',weight:2,dashArray:'none'});
-    layer.off('mouseover').off('mouseout').off('mouseup');
-    const lbl=CONFIG.labels.find(l=>l.id===klasse);
-    layer.bindTooltip('✓ '+(lbl?lbl.icon+' '+lbl.text:klasse),
-      {permanent:true,direction:'center',className:'zone-tooltip',opacity:1}).openTooltip();
-    markChipUsed(draggingId);
-    showFeedback('✓ Korrekt','ok');
-    draggingId=null; checkLevelComplete();
-  } else {
+// ═══════════════════════════════════════════════════════════
+// CUSTOM DRAG ENGINE
+// ═══════════════════════════════════════════════════════════
+function beginDrag(id, label, chipEl, e){
+  draggingId   = id;
+  draggingLabel= label;
+  chipEl.classList.add('lifting');
+
+  elFloatChip.textContent = label;
+  elFloatChip.style.display='block';
+  moveFloatChip(e.clientX, e.clientY);
+}
+
+function endDrag(){
+  if(draggingId){
+    const chip = document.getElementById('chip-'+draggingId);
+    if(chip) chip.classList.remove('lifting');
+  }
+  draggingId=null; draggingLabel='';
+  elFloatChip.style.display='none';
+  elPin.style.display='none';
+}
+
+function moveFloatChip(cx,cy){
+  // float chip is centered on pin tip (which is below chip)
+  elFloatChip.style.left = cx+'px';
+  elFloatChip.style.top  = cy+'px';
+}
+
+// ═══════════════════════════════════════════════════════════
+// GLOBAL MOUSE EVENTS
+// ═══════════════════════════════════════════════════════════
+function setupMouseEvents(){
+  const mapWrap = document.getElementById('map-wrap');
+
+  // Mousemove – loupe + float chip + pin
+  document.addEventListener('mousemove', e=>{
+    if(draggingId) moveFloatChip(e.clientX, e.clientY);
+
+    // Is mouse over map?
+    const rect = mapWrap.getBoundingClientRect();
+    const inMap = e.clientX>=rect.left && e.clientX<=rect.right
+               && e.clientY>=rect.top  && e.clientY<=rect.bottom;
+
+    if(inMap){
+      updateLoupe(e.clientX, e.clientY, rect);
+      elLoupe.style.left = (e.clientX - rect.left)+'px';
+      elLoupe.style.top  = (e.clientY - rect.top)+'px';
+      elLoupe.style.display='block';
+
+      if(draggingId){
+        // Show pin at mouse position (inside map-wrap)
+        elPin.style.left = (e.clientX - rect.left)+'px';
+        elPin.style.top  = (e.clientY - rect.top)+'px';
+        elPin.style.display='block';
+      } else {
+        elPin.style.display='none';
+      }
+    } else {
+      elLoupe.style.display='none';
+      if(draggingId) elPin.style.display='none';
+    }
+  });
+
+  // Mouseup – drop logic
+  document.addEventListener('mouseup', e=>{
+    if(!draggingId){ endDrag(); return; }
+
+    const rect = mapWrap.getBoundingClientRect();
+    const inMap = e.clientX>=rect.left && e.clientX<=rect.right
+               && e.clientY>=rect.top  && e.clientY<=rect.bottom;
+
+    if(inMap){
+      // Convert screen coords → Leaflet latlng
+      const mapPoint = map.mouseEventToLatLng(e);
+      handleMapDrop(mapPoint);
+    } else {
+      // Check trash
+      const trashRect = elTrash.getBoundingClientRect();
+      const inTrash = e.clientX>=trashRect.left && e.clientX<=trashRect.right
+                   && e.clientY>=trashRect.top  && e.clientY<=trashRect.bottom;
+      if(inTrash) handleTrashDrop();
+    }
+    endDrag();
+  });
+
+  // Mouseleave map → hide loupe
+  mapWrap.addEventListener('mouseleave',()=>{
+    elLoupe.style.display='none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOUPE RENDERING
+// ═══════════════════════════════════════════════════════════
+function updateLoupe(cx, cy, rect){
+  if(!srcImg || !srcImg.complete || srcImg.naturalWidth===0) return;
+
+  // map-wrap pixel position of mouse
+  const mx = cx - rect.left;
+  const my = cy - rect.top;
+
+  // Fraction 0–1 of where mouse is on map
+  const fx = mx / rect.width;
+  const fy = my / rect.height;
+
+  // Source image pixel coords under mouse
+  const sx = fx * srcImg.naturalWidth;
+  const sy = fy * srcImg.naturalHeight;
+
+  // How many source pixels fit in the loupe at this zoom
+  const srcSize = LOUPE_SIZE / ZOOM_FACTOR;
+
+  // Draw into canvas
+  ctx.clearRect(0, 0, LOUPE_SIZE, LOUPE_SIZE);
+  ctx.drawImage(
+    srcImg,
+    sx - srcSize/2, sy - srcSize/2, srcSize, srcSize,  // source rect
+    0, 0, LOUPE_SIZE, LOUPE_SIZE                        // dest rect (full canvas)
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// DROP ON MAP – hit test invisible polygons via Leaflet
+// ═══════════════════════════════════════════════════════════
+function handleMapDrop(latlng){
+  if(!zoneLayer) return;
+  let hit = false;
+
+  zoneLayer.eachLayer(layer=>{
+    if(hit || layer.filled || !layer.zoneKlasse) return;
+    // Point-in-polygon via Leaflet's contains check
+    if(isPointInLayer(latlng, layer)){
+      hit = true;
+      resolveZoneDrop(layer, layer.zoneKlasse);
+    }
+  });
+
+  if(!hit){
+    // Dropped outside any zone → count as error
     currentErrors++;
     document.getElementById('stat-err-val').textContent=currentErrors;
-    layer.setStyle({fillColor:'#ff4d6d',fillOpacity:.18,color:'#ff4d6d',weight:2});
-    setTimeout(()=>{ if(!layer.filled) layer.setStyle({fillColor:'#00d4ff',fillOpacity:.07,color:'#00d4ff',weight:2,dashArray:'6 4'}); },600);
-    showFeedback('✗ Falsch – versuche es erneut','err');
-    draggingId=null;
+    showFeedback('✗ Kein Bereich getroffen – erneut versuchen','err');
   }
 }
 
-// ── Papierkorb ─────────────────────────────────────────────
-function onTrashDragOver(e){ e.preventDefault(); document.getElementById('trash').classList.add('drag-over'); }
-function onTrashDragLeave(){ document.getElementById('trash').classList.remove('drag-over'); }
-function onTrashDrop(e){
-  e.preventDefault(); document.getElementById('trash').classList.remove('drag-over');
-  if(!draggingId) return;
+// Point-in-polygon: works for Polygon and MultiPolygon features
+function isPointInLayer(latlng, layer){
+  if(layer.getBounds && !layer.getBounds().contains(latlng)) return false;
+  // Use Leaflet's internal contains for the actual polygon
+  if(typeof layer.contains === 'function') return layer.contains(latlng);
+  // Fallback: ray casting on the layer's LatLngs
+  const lls = layer.getLatLngs ? layer.getLatLngs() : null;
+  if(!lls) return false;
+  return raycast(latlng, lls);
+}
+
+function raycast(point, rings){
+  // Flatten possible MultiPolygon nesting
+  const flat = rings.flat ? rings.flat(Infinity) : flatten(rings);
+  const px=point.lng, py=point.lat;
+  let inside=false;
+  for(let i=0,j=flat.length-1;i<flat.length;j=i++){
+    const xi=flat[i].lng, yi=flat[i].lat;
+    const xj=flat[j].lng, yj=flat[j].lat;
+    const intersect = ((yi>py)!==(yj>py)) && (px<(xj-xi)*(py-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+
+function flatten(arr){
+  const out=[];
+  function dig(a){ a.forEach(x=>Array.isArray(x)?dig(x):out.push(x)); }
+  dig(arr); return out;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ZONE RESOLVE
+// ═══════════════════════════════════════════════════════════
+function resolveZoneDrop(layer, klasse){
+  if(draggingId===klasse){
+    layer.filled=true; zoneFilled[L.stamp(layer)]=true;
+    // Small confirmation marker at centroid (invisible zone, so we need feedback)
+    const lbl=CONFIG.labels.find(l=>l.id===klasse);
+    const txt='✓ '+(lbl?lbl.icon+' '+lbl.text:klasse);
+    const center=layer.getBounds().getCenter();
+    L.marker(center,{
+      icon:L.divIcon({className:'zone-ok-label',html:txt,iconAnchor:[0,8]}),
+      interactive:false
+    }).addTo(map);
+    markChipUsed(draggingId);
+    showFeedback('✓ Korrekt','ok');
+    checkLevelComplete();
+  } else {
+    currentErrors++;
+    document.getElementById('stat-err-val').textContent=currentErrors;
+    showFeedback('✗ Falsches Label für diesen Bereich','err');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRASH DROP
+// ═══════════════════════════════════════════════════════════
+function handleTrashDrop(){
   const lv=CONFIG.levels[currentLevel];
   if(lv.absent.includes(draggingId)){
     trashFilled[draggingId]=true; markChipUsed(draggingId);
     const done=Object.keys(trashFilled).length;
     document.getElementById('trash-count').textContent=done+' / '+lv.absent.length;
-    showFeedback('✓ Korrekt entfernt','ok'); draggingId=null; checkLevelComplete();
+    showFeedback('✓ Korrekt entfernt','ok'); checkLevelComplete();
   } else {
     currentErrors++; document.getElementById('stat-err-val').textContent=currentErrors;
-    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen','err'); draggingId=null;
+    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen','err');
   }
 }
 
-// ── Level complete ─────────────────────────────────────────
+// Also light up trash on drag-over (CSS class via mouseover)
+document.addEventListener('DOMContentLoaded',()=>{
+  elTrash.addEventListener('mouseover',()=>{ if(draggingId) elTrash.classList.add('drag-over'); });
+  elTrash.addEventListener('mouseleave',()=>elTrash.classList.remove('drag-over'));
+});
+
+// ═══════════════════════════════════════════════════════════
+// LEVEL COMPLETE
+// ═══════════════════════════════════════════════════════════
 function checkLevelComplete(){
   const lv=CONFIG.levels[currentLevel];
-  let allZonesFilled=true;
-  if(zoneLayer) zoneLayer.eachLayer(l=>{ if(l.zoneKlasse&&!l.filled) allZonesFilled=false; });
-  if(allZonesFilled && lv.absent.every(a=>trashFilled[a])){
+  let allFilled=true;
+  if(zoneLayer) zoneLayer.eachLayer(l=>{ if(l.zoneKlasse&&!l.filled) allFilled=false; });
+  if(allFilled && lv.absent.every(a=>trashFilled[a])){
     stopTimer();
     results.push({image:lv.id, time:Date.now()-levelStartTime, errors:currentErrors});
     document.getElementById('btn-next').style.display='block';
   }
 }
 
-// ── Navigation ─────────────────────────────────────────────
 function nextLevel(){
   if(currentLevel+1<CONFIG.levels.length) loadLevel(currentLevel+1);
   else showResults();
 }
 
-// ── Timer ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════
 function startTimer(){
   stopTimer(); levelStartTime=Date.now();
   timerInterval=setInterval(()=>{
@@ -351,28 +683,35 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInterval); }
 
-// ── Hilfsfunktionen ────────────────────────────────────────
-function markChipUsed(id){ const c=document.getElementById('chip-'+id); if(c) c.classList.add('used'); }
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function markChipUsed(id){
+  const c=document.getElementById('chip-'+id);
+  if(c){ c.classList.remove('lifting'); c.classList.add('used'); }
+}
 function showFeedback(msg,type){
   const f=document.getElementById('feedback');
   f.textContent=msg; f.className='show '+type;
-  clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>{f.className='';},1400);
+  clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>{f.className='';},1500);
 }
 
-// ── Ergebnis ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════════════════════
 function showResults(){
   stopTimer();
   const body=document.getElementById('results-body'); body.innerHTML='';
-  let totalMs=0,totalErr=0;
+  let tm=0,te=0;
   results.forEach(r=>{
-    totalMs+=r.time; totalErr+=r.errors;
+    tm+=r.time; te+=r.errors;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
     body.appendChild(tr);
   });
-  const sum=document.createElement('tr');
-  sum.innerHTML=`<td>GESAMT</td><td>${totalMs}</td><td>${(totalMs/1000).toFixed(2)}</td><td>${totalErr}</td>`;
-  body.appendChild(sum);
+  const s=document.createElement('tr');
+  s.innerHTML=`<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td>`;
+  body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
 }
 function exportCSV(){
