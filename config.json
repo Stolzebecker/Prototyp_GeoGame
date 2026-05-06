@@ -1,32 +1,32 @@
 {
   "labels": [
     {
-      "id": "wald",
+      "id": "Wald",
       "text": "Wald",
       "icon": "🌲"
     },
     {
-      "id": "fluss",
+      "id": "Fluss",
       "text": "Fluss",
       "icon": "🌊"
     },
     {
-      "id": "siedlung",
+      "id": "Siedlung",
       "text": "Siedlung",
       "icon": "🏘️"
     },
     {
-      "id": "acker",
+      "id": "Acker",
       "text": "Acker",
       "icon": "🌾"
     },
     {
-      "id": "strasse",
+      "id": "Straße",
       "text": "Straße",
       "icon": "🛣️"
     },
     {
-      "id": "see",
+      "id": "See",
       "text": "See",
       "icon": "💧"
     }
@@ -47,12 +47,12 @@
         ]
       ],
       "absent": [
-        "acker",
-        "fluss",
-        "see",
-        "siedlung",
-        "strasse",
-        "wald"
+        "Acker",
+        "Fluss",
+        "See",
+        "Siedlung",
+        "Straße",
+        "Wald"
       ]
     },
     {
@@ -70,12 +70,12 @@
         ]
       ],
       "absent": [
-        "acker",
-        "fluss",
-        "see",
-        "siedlung",
-        "strasse",
-        "wald"
+        "Acker",
+        "Fluss",
+        "See",
+        "Siedlung",
+        "Straße",
+        "Wald"
       ]
     },
     {
@@ -93,12 +93,12 @@
         ]
       ],
       "absent": [
-        "acker",
-        "fluss",
-        "see",
-        "siedlung",
-        "strasse",
-        "wald"
+        "Acker",
+        "Fluss",
+        "See",
+        "Siedlung",
+        "Straße",
+        "Wald"
       ]
     },
     {
@@ -116,12 +116,12 @@
         ]
       ],
       "absent": [
-        "acker",
-        "fluss",
-        "see",
-        "siedlung",
-        "strasse",
-        "wald"
+        "Acker",
+        "Fluss",
+        "See",
+        "Siedlung",
+        "Straße",
+        "Wald"
       ]
     },
     {
@@ -139,12 +139,12 @@
         ]
       ],
       "absent": [
-        "acker",
-        "fluss",
-        "see",
-        "siedlung",
-        "strasse",
-        "wald"
+        "Acker",
+        "Fluss",
+        "See",
+        "Siedlung",
+        "Straße",
+        "Wald"
       ]
     }
   ]

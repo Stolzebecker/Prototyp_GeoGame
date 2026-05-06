@@ -26,12 +26,12 @@ OUTPUT_FILE = "./config.json"
 
 # ── Alle Label-Definitionen (Reihenfolge = Anzeigereihenfolge) ──────────
 ALL_LABELS = [
-    {"id": "wald",     "text": "Wald",     "icon": "🌲"},
-    {"id": "fluss",    "text": "Fluss",    "icon": "🌊"},
-    {"id": "siedlung", "text": "Siedlung", "icon": "🏘️"},
-    {"id": "acker",    "text": "Acker",    "icon": "🌾"},
-    {"id": "strasse",  "text": "Straße",   "icon": "🛣️"},
-    {"id": "see",      "text": "See",      "icon": "💧"},
+    {"id": "Wald",     "text": "Wald",     "icon": "🌲"},
+    {"id": "Fluss",    "text": "Fluss",    "icon": "🌊"},
+    {"id": "Siedlung", "text": "Siedlung", "icon": "🏘️"},
+    {"id": "Acker",    "text": "Acker",    "icon": "🌾"},
+    {"id": "Straße",  "text": "Straße",   "icon": "🛣️"},
+    {"id": "See",      "text": "See",      "icon": "💧"},
 ]
 ALL_LABEL_IDS = {l["id"] for l in ALL_LABELS}
 
