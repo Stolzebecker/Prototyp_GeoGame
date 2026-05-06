@@ -5,794 +5,389 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>EO Visual Complexity Experiment</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 :root{
- --bg:#0b0f14;
- --panel:#121820;
- --border:#1e2d3d;
- --accent:#00d4ff;
- --accent2:#00ff9d;
- --warn:#ff4d6d;
- --text:#cdd9e5;
- --muted:#4a6080;
- --label-bg:#162030;
- --radius:4px;
+  --bg:#0b0f14;--panel:#121820;--border:#1e2d3d;
+  --accent:#00d4ff;--accent2:#00ff9d;--warn:#ff4d6d;
+  --text:#cdd9e5;--muted:#4a6080;--label-bg:#162030;
 }
-
 *{box-sizing:border-box;margin:0;padding:0}
-
 body{
- font-family:'Syne',sans-serif;
- background:var(--bg);
- color:var(--text);
- min-height:100vh;
- display:flex;
- flex-direction:column;
- overflow:hidden;
+  font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
 }
 
-body.prestart #main,
-body.prestart #topbar{
- visibility:hidden;
+/* LOADING */
+#loading{
+  position:fixed;inset:0;z-index:3000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);gap:20px;
 }
+#loading-text{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* START SCREEN */
-#start-screen{
- position:fixed;
- inset:0;
- z-index:1000;
- display:flex;
- align-items:center;
- justify-content:center;
- background:var(--bg);
-}
-
-.start-panel{
- width:min(760px,90vw);
- padding:60px;
- background:var(--panel);
- border:1px solid var(--border);
- box-shadow:0 20px 60px rgba(0,0,0,.55);
- text-align:center;
-}
-
-.start-kicker{
- font-family:'JetBrains Mono',monospace;
- color:var(--accent);
- letter-spacing:.2em;
- margin-bottom:18px;
- font-size:12px;
-}
-
-.start-panel h1{
- font-size:46px;
- margin-bottom:20px;
-}
-
-.start-panel p{
- line-height:1.7;
- margin-bottom:28px;
-}
-
-.briefing-box{
- text-align:left;
- padding:24px;
- border:1px solid var(--border);
- background:#0d141d;
- font-family:'JetBrains Mono',monospace;
- margin-bottom:30px;
- display:grid;
- gap:12px;
-}
-
-#btn-start{
- padding:16px 42px;
- border:none;
- background:var(--accent2);
- font-weight:700;
- cursor:pointer;
- animation:pulse 1.8s infinite;
-}
-
-#btn-start:hover{
- transform:translateY(-2px)
-}
+/* START */
+#start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .4s}
+#start-screen.hidden{opacity:0;pointer-events:none}
+.start-panel{width:min(720px,90vw);padding:56px;background:var(--panel);border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:center}
+.start-kicker{font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.2em;font-size:11px;margin-bottom:16px}
+.start-panel h1{font-size:42px;margin-bottom:18px;line-height:1.1}
+.start-panel p{line-height:1.7;margin-bottom:24px;color:#8aa0b8}
+.briefing-box{text-align:left;padding:22px 26px;border:1px solid var(--border);background:#0d141d;font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:32px;display:grid;gap:10px}
+.briefing-box span{color:var(--accent2)}
+#btn-start{padding:15px 44px;border:none;background:var(--accent2);color:#0b0f14;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;letter-spacing:.06em;animation:pulse 1.8s infinite;transition:transform .15s}
+#btn-start:hover{transform:translateY(-2px)}
+#level-count-text{font-weight:700;color:var(--accent)}
 
 /* TOPBAR */
-#topbar{
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:12px 24px;
- background:var(--panel);
- border-bottom:1px solid var(--border);
-}
+#topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 22px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100}
+.brand{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:11px;letter-spacing:.15em}
+#progress-wrap{width:380px}
+#progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px}
+#progress-bar{height:3px;background:var(--border)}
+#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+#stats{display:flex;gap:24px}
+.stat{text-align:center}
+.stat-val{color:var(--accent);font-family:'JetBrains Mono';font-size:22px;line-height:1}
+#stat-errors .stat-val{color:var(--warn)}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
 
-.brand{
- font-family:'JetBrains Mono',monospace;
- color:var(--accent);
- font-size:12px;
-}
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#map{width:100%;flex:1;background:#000;min-height:0}
 
-#progress-wrap{
- width:420px;
-}
+/* BOTTOM */
+#bottom{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 20px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0}
+#label-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#label-bar-title{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.12em;margin-right:6px}
+.label-chip{padding:6px 13px;background:var(--label-bg);border:1px solid var(--border);cursor:grab;font-size:13px;font-weight:600;user-select:none;transition:border-color .15s,opacity .2s}
+.label-chip:hover{border-color:var(--accent)}
+.label-chip.used{opacity:.2;pointer-events:none}
+.label-chip.dragging{opacity:.5;cursor:grabbing}
+#trash{width:110px;min-height:60px;border:2px dashed var(--border);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;font-size:11px;color:var(--muted);transition:border-color .2s,background .2s}
+#trash.drag-over{border-color:var(--warn);background:rgba(255,77,109,.08)}
+#trash-count{font-family:'JetBrains Mono',monospace;color:var(--warn);font-size:11px;min-height:14px}
 
-#progress-label{
- display:flex;
- justify-content:space-between;
- font-size:11px;
- color:var(--muted);
- margin-bottom:4px;
-}
+/* FEEDBACK */
+#feedback{position:fixed;top:62px;left:50%;transform:translateX(-50%);padding:7px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:500;background:var(--panel);border:1px solid var(--border)}
+#feedback.show{opacity:1}
+#feedback.ok{color:var(--accent2);border-color:var(--accent2)}
+#feedback.err{color:var(--warn);border-color:var(--warn)}
 
-#progress-bar{
- height:4px;
- background:var(--border);
-}
+/* NEXT */
+#btn-next{display:none;position:fixed;right:28px;bottom:90px;padding:11px 28px;background:var(--accent2);color:#0b0f14;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;z-index:400;animation:pulse 1.8s infinite;transition:transform .15s}
+#btn-next:hover{transform:translateY(-2px)}
 
-#progress-fill{
- height:100%;
- width:0%;
- background:linear-gradient(90deg,var(--accent),var(--accent2));
-}
+/* RESULTS */
+#results-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1500;justify-content:center;align-items:center;flex-direction:column;gap:28px}
+#results-screen.active{display:flex}
+#results-screen h1{font-size:36px}
+table{border-collapse:collapse;min-width:460px}
+td,th{padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px}
+th{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-align:left}
+tr:last-child td{font-weight:700;color:var(--accent)}
+.results-actions{display:flex;gap:10px}
+.results-actions button{padding:11px 22px;border:1px solid var(--border);cursor:pointer;font-weight:700;font-family:'Syne',sans-serif;font-size:13px;background:var(--panel);color:var(--text);transition:border-color .15s}
+.results-actions button:hover{border-color:var(--accent)}
+.results-actions button.primary{background:var(--accent2);color:#0b0f14;border-color:var(--accent2)}
 
-#stats{
- display:flex;
- gap:25px;
-}
+/* LEAFLET */
+.zone-tooltip{background:var(--panel)!important;border:1px solid var(--border)!important;color:var(--text)!important;font-family:'JetBrains Mono',monospace!important;font-size:11px!important;box-shadow:none!important;padding:4px 10px!important}
 
-.stat{
- text-align:center;
-}
-
-.stat-val{
- color:var(--accent);
- font-family:'JetBrains Mono';
- font-size:20px;
-}
-
-#stat-errors .stat-val{
- color:var(--warn)
-}
-
-.stat-label{
- font-size:9px;
- color:var(--muted);
- text-transform:uppercase;
-}
-
-#main{
- flex:1;
- display:grid;
- grid-template-rows:1fr auto;
- padding:18px 24px;
- gap:14px;
-}
-
-#image-container{
- display:flex;
- align-items:center;
- justify-content:center;
- position:relative;
-}
-
-#image-wrap{
- position:relative;
- border:1px solid var(--border);
- display:inline-block; /* Verhindert, dass das Wrap größer als das Bild wird */
-}
-
-#satellite-img{
- display:block;
- max-height:calc(100vh - 260px);
- max-width:100%;
-}
-
-/* SVG Hitbox Layer */
-#hitbox-svg {
- position: absolute;
- top: 0;
- left: 0;
- width: 100%;
- height: 100%;
- pointer-events: none; /* Lässt Klicks auf den leeren Bereich durch */
- z-index: 10;
-}
-
-.drop-zone-poly {
- pointer-events: all; /* Hitboxes abgreifen */
- fill: transparent;
- stroke: rgba(0, 212, 255, 0.0); /* Leicht sichtbar machen falls gewünscht, aktuell unsichtbar */
- stroke-width: 2px;
- transition: all 0.2s ease;
- cursor: crosshair;
-}
-
-.drop-zone-poly.drag-over {
- fill: rgba(0, 212, 255, 0.25);
- stroke: rgba(0, 212, 255, 0.8);
-}
-
-.drop-zone-poly.correct {
- fill: rgba(0, 255, 157, 0.35);
- stroke: var(--accent2);
-}
-
-.placed-label {
- position: absolute;
- background: var(--panel);
- border: 1px solid var(--accent2);
- color: var(--accent2);
- font-size: 10px;
- padding: 3px 6px;
- pointer-events: none;
- transform: translate(-50%, -50%);
- z-index: 20;
-}
-
-#coords-overlay{
- position:absolute;
- bottom:8px;
- left:8px;
- font-size:10px;
- color:#7d8ea3;
- z-index: 20;
-}
-
-#level-tag{
- position:absolute;
- top:8px;
- left:8px;
- font-size:10px;
- color:var(--accent);
- z-index: 20;
-}
-
-#bottom{
- display:grid;
- grid-template-columns:1fr auto;
- gap:12px;
-}
-
-#label-bar{
- display:flex;
- flex-wrap:wrap;
- gap:8px;
- background:var(--panel);
- padding:12px;
- border:1px solid var(--border);
-}
-
-#label-bar-title{
- width:100%;
- font-size:10px;
- color:var(--muted);
- margin-bottom:4px;
-}
-
-.label-chip{
- padding:6px 12px;
- background:var(--label-bg);
- border:1px solid var(--border);
- cursor:grab;
-}
-
-.label-chip.used{
- opacity:.25;
- pointer-events:none;
-}
-
-#trash{
- width:90px;
- height:72px;
- border:2px dashed var(--border);
- display:flex;
- flex-direction:column;
- justify-content:center;
- align-items:center;
-}
-
-#trash.drag-over{
- border-color:var(--warn)
-}
-
-#trash.correct{
- border-color:var(--accent2)
-}
-
-#btn-next{
- display:none;
- position:fixed;
- right:30px;
- bottom:95px;
- padding:12px 26px;
- background:var(--accent2);
- border:none;
- font-weight:700;
- cursor:pointer;
- z-index: 100;
-}
-
-#feedback{
- position:fixed;
- top:70px;
- left:50%;
- transform:translateX(-50%);
- opacity:0;
- padding:8px 18px;
- z-index: 100;
- transition: opacity 0.2s;
-}
-
-#feedback.show{
- opacity:1;
-}
-
-#feedback.ok{
- color:var(--accent2)
-}
-
-#feedback.err{
- color:var(--warn)
-}
-
-#results-screen{
- display:none;
- position:fixed;
- inset:0;
- background:var(--bg);
- z-index:900;
- justify-content:center;
- align-items:center;
- flex-direction:column;
- gap:30px;
-}
-
-#results-screen.active{
- display:flex;
-}
-
-table{
- border-collapse:collapse;
-}
-
-td,th{
- padding:10px 16px;
- border-bottom:1px solid var(--border);
-}
-
-.results-actions{
- display:flex;
- gap:12px;
-}
-
-.results-actions button{
- padding:12px 20px;
- border:none;
- cursor:pointer;
-}
-
-@keyframes pulse{
-50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}
-}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}}
 </style>
 </head>
-<body class="prestart">
+<body>
 
-<div id="start-screen">
-<div class="start-panel">
-<div class="start-kicker">EO·EXPERIMENT</div>
-<h1>Visual Complexity Experiment</h1>
-<p>Ordne die Labels den passenden Bildbereichen zu oder ziehe nicht vorhandene Elemente in den Papierkorb.</p>
-<div class="briefing-box">
-<div>• Arbeite möglichst korrekt</div>
-<div>• Zeit und Fehler werden gemessen</div>
-<div>• Timer startet erst nach Klick auf Start</div>
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loading-text">LADE KONFIGURATION …</div>
 </div>
-<button id="btn-start" onclick="startExperiment()">Experiment starten</button>
-</div>
+
+<div id="start-screen" style="display:none">
+  <div class="start-panel">
+    <div class="start-kicker">EO · EXPERIMENT</div>
+    <h1>Visual Complexity<br>Experiment</h1>
+    <p>Ziehe die Labels auf die passenden Bereiche im Satellitenbild.<br>Nicht sichtbare Elemente kommen in den Papierkorb.</p>
+    <div class="briefing-box">
+      <div><span>01 /</span> Arbeite so korrekt wie möglich</div>
+      <div><span>02 /</span> Zeit und Fehler werden gemessen</div>
+      <div><span>03 /</span> Timer startet erst nach Klick auf Start</div>
+      <div><span>04 /</span> Karte kann gezoomt und verschoben werden</div>
+      <div><span>05 /</span> <span id="level-count-text">–</span> Level insgesamt</div>
+    </div>
+    <button id="btn-start" onclick="startExperiment()">Experiment starten ›</button>
+  </div>
 </div>
 
 <div id="topbar">
-<div class="brand">EO·EXPERIMENT</div>
-<div id="progress-wrap">
-<div id="progress-label">
-<span id="prog-text">LEVEL 1 / 4</span>
-<span id="prog-pct">0%</span>
-</div>
-<div id="progress-bar"><div id="progress-fill"></div></div>
-</div>
-<div id="stats">
-<div class="stat">
-<div class="stat-val" id="stat-time">0.00</div>
-<div class="stat-label">Sekunden</div>
-</div>
-<div class="stat" id="stat-errors">
-<div class="stat-val" id="stat-err-val">0</div>
-<div class="stat-label">Fehler</div>
-</div>
-</div>
+  <div class="brand">EO · EXPERIMENT</div>
+  <div id="progress-wrap">
+    <div id="progress-label">
+      <span id="prog-text">LEVEL 1</span>
+      <span id="prog-pct">0 %</span>
+    </div>
+    <div id="progress-bar"><div id="progress-fill"></div></div>
+  </div>
+  <div id="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-time">0.00</div>
+      <div class="stat-label">Sekunden</div>
+    </div>
+    <div class="stat" id="stat-errors">
+      <div class="stat-val" id="stat-err-val">0</div>
+      <div class="stat-label">Fehler</div>
+    </div>
+  </div>
 </div>
 
 <div id="main">
-<div id="image-container">
-<div id="image-wrap">
-<img id="satellite-img" src="">
-<!-- SVG Container für Hitboxes wird per JS hier injiziert -->
-<div id="coords-overlay"></div>
-<div id="level-tag">IMG_<span id="img-id-tag"></span></div>
-</div>
-</div>
-
-<div id="bottom">
-<div id="label-bar">
-<div id="label-bar-title">Labels ziehen</div>
-</div>
-<div id="trash"
-ondragover="onTrashDragOver(event)"
-ondragleave="onTrashDragLeave(event)"
-ondrop="onTrashDrop(event)">
-<div>🗑</div>
-<div>Nicht vorhanden</div>
-</div>
-</div>
+  <div id="map"></div>
+  <div id="bottom">
+    <div id="label-bar"><span id="label-bar-title">LABELS ZIEHEN ›</span></div>
+    <div id="trash"
+      ondragover="onTrashDragOver(event)"
+      ondragleave="onTrashDragLeave()"
+      ondrop="onTrashDrop(event)">
+      <div style="font-size:20px">🗑</div>
+      <div>Nicht vorhanden</div>
+      <div id="trash-count"></div>
+    </div>
+  </div>
 </div>
 
-<button id="btn-next" onclick="nextLevel()">WEITER</button>
+<button id="btn-next" onclick="nextLevel()">WEITER ›</button>
 <div id="feedback"></div>
 
 <div id="results-screen">
-<h1>Experiment abgeschlossen</h1>
-<table>
-<thead>
-<tr>
-<th>Bild</th>
-<th>Zeit</th>
-<th>Fehler</th>
-</tr>
-</thead>
-<tbody id="results-body"></tbody>
-</table>
-<div class="results-actions">
-<button onclick="exportCSV()">CSV</button>
-<button onclick="exportJSON()">JSON</button>
-<button onclick="location.reload()">Neustart</button>
-</div>
+  <h1>Experiment abgeschlossen</h1>
+  <table>
+    <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th></tr></thead>
+    <tbody id="results-body"></tbody>
+  </table>
+  <div class="results-actions">
+    <button onclick="exportCSV()">↓ CSV</button>
+    <button onclick="exportJSON()">↓ JSON</button>
+    <button class="primary" onclick="location.reload()">Neustart</button>
+  </div>
 </div>
 
 <script>
-const ALL_LABELS=[
-{id:'wald',text:'Wald',icon:'🌲'},
-{id:'fluss',text:'Fluss',icon:'🌊'},
-{id:'siedlung',text:'Siedlung',icon:'🏘️'},
-{id:'acker',text:'Acker',icon:'🌾'},
-{id:'strasse',text:'Straße',icon:'🛣️'},
-{id:'see',text:'See',icon:'💧'}
-];
+// ── State ──────────────────────────────────────────────────
+let CONFIG = null, map = null, imageOverlay = null, zoneLayer = null;
+let currentLevel=0, currentErrors=0, levelStartTime=null, timerInterval=null;
+let results=[], zoneFilled={}, trashFilled={}, draggingId=null, feedbackTimer=null;
 
-// Die Pfade sind relativ definiert. Vorraussetzung: Die index.html liegt im Ordner 'Prototyp_OnlineGame'
-const BASE_IMG_PATH = './Bilder/EO_Bilder/';
-const BASE_GEO_PATH = './Bilder/Hitboxes/';
-
-// Du brauchst hier keine manuellen "zones" oder "absent" Listen mehr! 
-// Das Skript berechnet das nun dynamisch aus der jeweiligen GeoJSON.
-const LEVELS=[
-{ id:'B1', img: BASE_IMG_PATH + 'B1norm.jpg', geojson: BASE_GEO_PATH + 'B1puf.geojson' },
-{ id:'B2', img: BASE_IMG_PATH + 'B2norm.jpg', geojson: BASE_GEO_PATH + 'B2puf.geojson' }
-// Füge hier weitere Level nach dem gleichen Muster hinzu...
-];
-
-let experimentStarted=false;
-let currentLevel=0;
-let currentErrors=0;
-let draggingId=null;
-let levelStartTime=null;
-let timerInterval=null;
-let results=[];
-
-// Dynamisch generierte Listen pro Level
-let requiredClasses = []; 
-let absentClasses = [];
-
-let zoneFilled={};
-let trashFilled={};
-
-function startExperiment(){
-    if(experimentStarted) return;
-    experimentStarted=true;
-    document.body.classList.remove('prestart');
-    const s=document.getElementById('start-screen');
-    s.style.opacity='0';
-    setTimeout(()=>{
-        s.remove();
-        initLevel(0);
-    },400);
+// ── Boot: config.json laden ────────────────────────────────
+async function boot() {
+  try {
+    const res = await fetch('./config.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    CONFIG = await res.json();
+  } catch(e) {
+    document.getElementById('loading-text').textContent =
+      '⚠ config.json nicht gefunden – bitte generate_config.py ausführen!';
+    console.error(e); return;
+  }
+  document.getElementById('loading').remove();
+  const ss = document.getElementById('start-screen');
+  ss.style.display = 'flex';
+  document.getElementById('level-count-text').textContent = CONFIG.levels.length + ' Level';
 }
 
-async function initLevel(i){
-    currentLevel=i;
-    currentErrors=0;
-    zoneFilled={};
-    trashFilled={};
+// ── Experiment starten ─────────────────────────────────────
+function startExperiment() {
+  const ss = document.getElementById('start-screen');
+  ss.classList.add('hidden');
+  setTimeout(() => ss.remove(), 400);
+  map = L.map('map', { crs: L.CRS.EPSG4326, zoomControl:true, attributionControl:false });
+  loadLevel(0);
+}
 
-    const lv=LEVELS[i];
-    document.getElementById('stat-err-val').textContent=0;
+// ── Level laden ────────────────────────────────────────────
+async function loadLevel(i) {
+  currentLevel=i; currentErrors=0; zoneFilled={}; trashFilled={}; draggingId=null;
+  stopTimer();
+  document.getElementById('stat-err-val').textContent='0';
+  document.getElementById('stat-time').textContent='0.00';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('trash-count').textContent='';
 
-    const pct=Math.round((i/LEVELS.length)*100);
-    document.getElementById('progress-fill').style.width=pct+'%';
-    document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${LEVELS.length}`;
+  const lv=CONFIG.levels[i], tot=CONFIG.levels.length;
+  const pct=Math.round((i/tot)*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${tot}`;
+  document.getElementById('prog-pct').textContent=pct+' %';
 
-    // Alte SVGs und gesetzte Labels bereinigen
-    const oldSvg = document.getElementById('hitbox-svg');
-    if(oldSvg) oldSvg.remove();
-    document.querySelectorAll('.placed-label').forEach(e => e.remove());
+  if (imageOverlay){map.removeLayer(imageOverlay);imageOverlay=null;}
+  if (zoneLayer)   {map.removeLayer(zoneLayer);   zoneLayer=null;}
 
-    let geoData = null;
-    try {
-        const response = await fetch(lv.geojson);
-        if(!response.ok) throw new Error("Netzwerkantwort war nicht ok");
-        geoData = await response.json();
-    } catch(err) {
-        alert("Fehler beim Laden der GeoJSON ("+lv.geojson+"). \nBitte stelle sicher, dass du einen lokalen Webserver nutzt (CORS-Richtlinien!).");
-        console.error(err);
-        return; // Abbruch, wenn GeoJSON nicht geladen werden kann
+  imageOverlay = L.imageOverlay(lv.imgSrc, lv.bounds, {opacity:1}).addTo(map);
+  map.fitBounds(lv.bounds);
+
+  let geojson;
+  try {
+    const res = await fetch(lv.geojsonSrc);
+    if (!res.ok) throw new Error('HTTP '+res.status+' – '+lv.geojsonSrc);
+    geojson = await res.json();
+  } catch(e) {
+    showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
+    console.error(e); return;
+  }
+
+  renderZones(geojson, lv);
+  renderLabels(lv);
+  startTimer();
+}
+
+// ── Zonen rendern (property "klasse") ──────────────────────
+function renderZones(geojson, lv) {
+  zoneLayer = L.geoJSON(geojson, {
+    style:{ fillColor:'#00d4ff', fillOpacity:0.07, color:'#00d4ff', weight:2, dashArray:'6 4' },
+    onEachFeature(feature, layer) {
+      const klasse = feature.properties && feature.properties.klasse;
+      if (!klasse) return;
+      layer.zoneKlasse=klasse; layer.filled=false;
+      const lbl = CONFIG.labels.find(l=>l.id===klasse);
+      const txt = lbl ? lbl.icon+' '+lbl.text : klasse;
+      layer.bindTooltip(txt,{permanent:false,direction:'center',className:'zone-tooltip',opacity:1});
+      layer.on('mouseover',function(){
+        if(!this.filled) this.setStyle({fillColor:'#00d4ff',fillOpacity:.2,color:'#00d4ff',weight:2,dashArray:'6 4'});
+      });
+      layer.on('mouseout',function(){
+        if(!this.filled) this.setStyle({fillColor:'#00d4ff',fillOpacity:.07,color:'#00d4ff',weight:2,dashArray:'6 4'});
+      });
+      layer.on('mouseup',function(){
+        if(draggingId!==null) handleZoneDrop(this, klasse);
+      });
     }
-
-    // Bestimme dynamisch welche Klassen vorhanden sind und welche fehlen
-    const foundClasses = new Set();
-    geoData.features.forEach(f => {
-        if(f.properties && f.properties.klasse){
-            foundClasses.add(f.properties.klasse.toLowerCase());
-        }
-    });
-    
-    requiredClasses = Array.from(foundClasses);
-    absentClasses = ALL_LABELS.map(l => l.id).filter(id => !requiredClasses.includes(id));
-
-    const img=document.getElementById('satellite-img');
-    img.onload=()=>{
-        renderGeoJSONOverlay(geoData, img);
-        startTimer();
-    };
-    img.src=lv.img;
-
-    document.getElementById('coords-overlay').textContent=lv.id + " (WGS84 -> Screen)";
-    document.getElementById('img-id-tag').textContent=lv.id;
-
-    renderLabels();
-    document.getElementById('btn-next').style.display='none';
+  }).addTo(map);
 }
 
-function renderLabels(){
-    const bar=document.getElementById('label-bar');
-    bar.innerHTML='<div id="label-bar-title">Labels ziehen</div>';
-    ALL_LABELS.forEach(lb=>{
-        const c=document.createElement('div');
-        c.className='label-chip';
-        c.id='chip-'+lb.id;
-        c.draggable=true;
-        c.dataset.id=lb.id;
-        c.innerHTML=lb.icon+' '+lb.text;
-        c.addEventListener('dragstart',onChipDragStart);
-        bar.appendChild(c);
-    });
+// ── Labels rendern ─────────────────────────────────────────
+function renderLabels(lv) {
+  const bar=document.getElementById('label-bar');
+  bar.innerHTML='<span id="label-bar-title">LABELS ZIEHEN ›</span>';
+  CONFIG.labels.forEach(lb=>{
+    const chip=document.createElement('div');
+    chip.className='label-chip'; chip.id='chip-'+lb.id;
+    chip.draggable=true; chip.dataset.id=lb.id;
+    chip.textContent=lb.icon+' '+lb.text;
+    chip.addEventListener('dragstart',()=>{ draggingId=lb.id; chip.classList.add('dragging'); });
+    chip.addEventListener('dragend',()=>{ chip.classList.remove('dragging'); setTimeout(()=>{draggingId=null;},50); });
+    bar.appendChild(chip);
+  });
 }
 
-function renderGeoJSONOverlay(geojson, img) {
-    const w = img.offsetWidth;
-    const h = img.offsetHeight;
-    const wrap = document.getElementById('image-wrap');
-
-    // 1. Min/Max der GeoJSON Bounding Box berechnen (zur automatischen WGS84 Umrechnung)
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    
-    function extractBounds(coords) {
-        if (typeof coords[0] === 'number') {
-            minX = Math.min(minX, coords[0]);
-            maxX = Math.max(maxX, coords[0]);
-            minY = Math.min(minY, coords[1]);
-            maxY = Math.max(maxY, coords[1]);
-        } else {
-            coords.forEach(extractBounds);
-        }
-    }
-    
-    geojson.features.forEach(f => extractBounds(f.geometry.coordinates));
-
-    // 2. SVG Element erstellen
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.id = "hitbox-svg";
-    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    
-    // 3. Rekursive Funktion zum Umwandeln der WGS84-Koordinaten in SVG-Pfade
-    function buildSVGPath(coords) {
-        if (typeof coords[0][0] === 'number') {
-            return "M " + coords.map(c => {
-                let px = ((c[0] - minX) / (maxX - minX)) * w;
-                // Y-Achse invertieren (WGS84 Lat geht nach oben, Bildschirm Y geht nach unten)
-                let py = h - ((c[1] - minY) / (maxY - minY)) * h;
-                return `${px},${py}`;
-            }).join(" L ") + " Z";
-        } else {
-            return coords.map(buildSVGPath).join(" ");
-        }
-    }
-
-    // 4. Polygone rendern
-    geojson.features.forEach(feat => {
-        let klasse = feat.properties.klasse ? feat.properties.klasse.toLowerCase() : 'unknown';
-        let pathStr = buildSVGPath(feat.geometry.coordinates);
-
-        let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", pathStr);
-        path.setAttribute("class", "drop-zone-poly");
-        path.dataset.expected = klasse;
-
-        path.addEventListener('dragover', onZoneDragOver);
-        path.addEventListener('dragleave', onZoneDragLeave);
-        path.addEventListener('drop', onZoneDrop);
-        
-        svg.appendChild(path);
-    });
-
-    wrap.appendChild(svg);
+// ── Drop auf Zone ──────────────────────────────────────────
+function handleZoneDrop(layer, klasse) {
+  if(layer.filled||!draggingId) return;
+  if(draggingId===klasse) {
+    layer.filled=true; zoneFilled[L.stamp(layer)]=true;
+    layer.setStyle({fillColor:'#00ff9d',fillOpacity:.22,color:'#00ff9d',weight:2,dashArray:'none'});
+    layer.off('mouseover').off('mouseout').off('mouseup');
+    const lbl=CONFIG.labels.find(l=>l.id===klasse);
+    layer.bindTooltip('✓ '+(lbl?lbl.icon+' '+lbl.text:klasse),
+      {permanent:true,direction:'center',className:'zone-tooltip',opacity:1}).openTooltip();
+    markChipUsed(draggingId);
+    showFeedback('✓ Korrekt','ok');
+    draggingId=null; checkLevelComplete();
+  } else {
+    currentErrors++;
+    document.getElementById('stat-err-val').textContent=currentErrors;
+    layer.setStyle({fillColor:'#ff4d6d',fillOpacity:.18,color:'#ff4d6d',weight:2});
+    setTimeout(()=>{ if(!layer.filled) layer.setStyle({fillColor:'#00d4ff',fillOpacity:.07,color:'#00d4ff',weight:2,dashArray:'6 4'}); },600);
+    showFeedback('✗ Falsch – versuche es erneut','err');
+    draggingId=null;
+  }
 }
 
-function onChipDragStart(e){
-    draggingId=e.target.dataset.id;
-}
-
-function onZoneDragOver(e){
-    e.preventDefault();
-    this.classList.add('drag-over');
-}
-
-function onZoneDragLeave(){
-    this.classList.remove('drag-over');
-}
-
-function onZoneDrop(e){
-    e.preventDefault();
-    this.classList.remove('drag-over');
-    let expectedKlasse = this.dataset.expected;
-
-    if(draggingId === expectedKlasse){
-        // Alle Polygone dieser Klasse einfärben, um Erfolg visuell zu verdeutlichen
-        document.querySelectorAll(`.drop-zone-poly[data-expected="${expectedKlasse}"]`).forEach(p => {
-            p.classList.add('correct');
-        });
-
-        // Ein kleines Label in der Nähe des Drop-Ortes platzieren
-        const wrap = document.getElementById('image-wrap');
-        const rect = wrap.getBoundingClientRect();
-        const dropX = e.clientX - rect.left;
-        const dropY = e.clientY - rect.top;
-
-        const label = document.createElement('div');
-        label.className = 'placed-label';
-        label.style.left = dropX + 'px';
-        label.style.top = dropY + 'px';
-        label.textContent = draggingId;
-        wrap.appendChild(label);
-
-        zoneFilled[expectedKlasse]=true;
-        markChipUsed(draggingId);
-        showFeedback('✓ korrekt','ok');
-        checkLevelComplete();
-    }
-    else{
-        currentErrors++;
-        document.getElementById('stat-err-val').textContent=currentErrors;
-        showFeedback('✗ falsch','err');
-    }
-}
-
-function onTrashDragOver(e){
-    e.preventDefault();
-    document.getElementById('trash').classList.add('drag-over');
-}
-
-function onTrashDragLeave(){
-    document.getElementById('trash').classList.remove('drag-over');
-}
-
+// ── Papierkorb ─────────────────────────────────────────────
+function onTrashDragOver(e){ e.preventDefault(); document.getElementById('trash').classList.add('drag-over'); }
+function onTrashDragLeave(){ document.getElementById('trash').classList.remove('drag-over'); }
 function onTrashDrop(e){
-    e.preventDefault();
-    document.getElementById('trash').classList.remove('drag-over');
-
-    if(absentClasses.includes(draggingId)){
-        trashFilled[draggingId]=true;
-        markChipUsed(draggingId);
-        checkLevelComplete();
-        showFeedback('✓ entfernt','ok');
-    }
-    else{
-        currentErrors++;
-        document.getElementById('stat-err-val').textContent=currentErrors;
-        showFeedback('✗ sichtbar im Bild','err');
-    }
+  e.preventDefault(); document.getElementById('trash').classList.remove('drag-over');
+  if(!draggingId) return;
+  const lv=CONFIG.levels[currentLevel];
+  if(lv.absent.includes(draggingId)){
+    trashFilled[draggingId]=true; markChipUsed(draggingId);
+    const done=Object.keys(trashFilled).length;
+    document.getElementById('trash-count').textContent=done+' / '+lv.absent.length;
+    showFeedback('✓ Korrekt entfernt','ok'); draggingId=null; checkLevelComplete();
+  } else {
+    currentErrors++; document.getElementById('stat-err-val').textContent=currentErrors;
+    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen','err'); draggingId=null;
+  }
 }
 
+// ── Level complete ─────────────────────────────────────────
 function checkLevelComplete(){
-    let allZonesFilled = requiredClasses.every(cls => zoneFilled[cls]);
-    let allTrashFilled = absentClasses.every(cls => trashFilled[cls]);
-
-    if(allZonesFilled && allTrashFilled){
-        stopTimer();
-        results.push({
-            image: LEVELS[currentLevel].id,
-            time: (Date.now()-levelStartTime)/1000,
-            errors: currentErrors
-        });
-        document.getElementById('btn-next').style.display='block';
-    }
-}
-
-function nextLevel(){
-    if(currentLevel+1 < LEVELS.length){
-        initLevel(currentLevel+1);
-    } else {
-        showResults();
-    }
-}
-
-function startTimer(){
+  const lv=CONFIG.levels[currentLevel];
+  let allZonesFilled=true;
+  if(zoneLayer) zoneLayer.eachLayer(l=>{ if(l.zoneKlasse&&!l.filled) allZonesFilled=false; });
+  if(allZonesFilled && lv.absent.every(a=>trashFilled[a])){
     stopTimer();
-    levelStartTime=Date.now();
-    timerInterval=setInterval(()=>{
-        let s=(Date.now()-levelStartTime)/1000;
-        document.getElementById('stat-time').textContent=s.toFixed(2);
-    },50);
+    results.push({image:lv.id, time:Date.now()-levelStartTime, errors:currentErrors});
+    document.getElementById('btn-next').style.display='block';
+  }
 }
 
-function stopTimer(){
-    clearInterval(timerInterval);
+// ── Navigation ─────────────────────────────────────────────
+function nextLevel(){
+  if(currentLevel+1<CONFIG.levels.length) loadLevel(currentLevel+1);
+  else showResults();
 }
 
-function showResults(){
-    let body=document.getElementById('results-body');
-    body.innerHTML='';
-    results.forEach(r=>{
-        let tr=document.createElement('tr');
-        tr.innerHTML=`<td>${r.image}</td><td>${r.time.toFixed(2)}</td><td>${r.errors}</td>`;
-        body.appendChild(tr);
-    });
-    document.getElementById('results-screen').classList.add('active');
+// ── Timer ──────────────────────────────────────────────────
+function startTimer(){
+  stopTimer(); levelStartTime=Date.now();
+  timerInterval=setInterval(()=>{
+    document.getElementById('stat-time').textContent=((Date.now()-levelStartTime)/1000).toFixed(2);
+  },50);
 }
+function stopTimer(){ clearInterval(timerInterval); }
 
-function exportCSV(){
-    let csv='image,time,errors\n'+results.map(r=>`${r.image},${r.time},${r.errors}`).join('\n');
-    download('results.csv',csv,'text/csv');
-}
-
-function exportJSON(){
-    download('results.json',JSON.stringify(results,null,2),'application/json');
-}
-
-function download(name,content,type){
-    let a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([content],{type}));
-    a.download=name;
-    a.click();
-}
-
-function markChipUsed(id){
-    let c=document.getElementById('chip-'+id);
-    if(c) {
-        c.classList.add('used');
-        c.draggable=false; // Nach Benutzung nicht mehr ziehbar
-    }
-}
-
+// ── Hilfsfunktionen ────────────────────────────────────────
+function markChipUsed(id){ const c=document.getElementById('chip-'+id); if(c) c.classList.add('used'); }
 function showFeedback(msg,type){
-    let f=document.getElementById('feedback');
-    f.textContent=msg;
-    f.className='show '+type;
-    clearTimeout(f.t);
-    f.t=setTimeout(()=>f.className='',1200);
+  const f=document.getElementById('feedback');
+  f.textContent=msg; f.className='show '+type;
+  clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>{f.className='';},1400);
 }
+
+// ── Ergebnis ───────────────────────────────────────────────
+function showResults(){
+  stopTimer();
+  const body=document.getElementById('results-body'); body.innerHTML='';
+  let totalMs=0,totalErr=0;
+  results.forEach(r=>{
+    totalMs+=r.time; totalErr+=r.errors;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
+    body.appendChild(tr);
+  });
+  const sum=document.createElement('tr');
+  sum.innerHTML=`<td>GESAMT</td><td>${totalMs}</td><td>${(totalMs/1000).toFixed(2)}</td><td>${totalErr}</td>`;
+  body.appendChild(sum);
+  document.getElementById('results-screen').classList.add('active');
+}
+function exportCSV(){
+  download('eo_results.csv',
+    ['image,time_ms,time_s,errors',...results.map(r=>`${r.image},${r.time},${(r.time/1000).toFixed(3)},${r.errors}`)].join('\n'),
+    'text/csv');
+}
+function exportJSON(){ download('eo_results.json',JSON.stringify(results,null,2),'application/json'); }
+function download(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click();
+}
+
+boot();
 </script>
 </body>
 </html>
