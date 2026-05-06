@@ -46,14 +46,7 @@
           15.077939
         ]
       ],
-      "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Siedlung",
-        "Straße",
-        "Wald"
-      ]
+      "absent": []
     },
     {
       "id": "B2",
@@ -69,14 +62,7 @@
           8.679778
         ]
       ],
-      "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Siedlung",
-        "Straße",
-        "Wald"
-      ]
+      "absent": []
     },
     {
       "id": "B4",
@@ -93,12 +79,7 @@
         ]
       ],
       "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Siedlung",
-        "Straße",
-        "Wald"
+        "Straße"
       ]
     },
     {
@@ -116,11 +97,7 @@
         ]
       ],
       "absent": [
-        "Acker",
-        "Fluss",
         "See",
-        "Siedlung",
-        "Straße",
         "Wald"
       ]
     },
@@ -138,14 +115,7 @@
           8.814067
         ]
       ],
-      "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Siedlung",
-        "Straße",
-        "Wald"
-      ]
+      "absent": []
     }
   ]
 }
