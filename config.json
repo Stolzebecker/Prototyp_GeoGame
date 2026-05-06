@@ -1,0 +1,151 @@
+{
+  "labels": [
+    {
+      "id": "wald",
+      "text": "Wald",
+      "icon": "🌲"
+    },
+    {
+      "id": "fluss",
+      "text": "Fluss",
+      "icon": "🌊"
+    },
+    {
+      "id": "siedlung",
+      "text": "Siedlung",
+      "icon": "🏘️"
+    },
+    {
+      "id": "acker",
+      "text": "Acker",
+      "icon": "🌾"
+    },
+    {
+      "id": "strasse",
+      "text": "Straße",
+      "icon": "🛣️"
+    },
+    {
+      "id": "see",
+      "text": "See",
+      "icon": "💧"
+    }
+  ],
+  "levels": [
+    {
+      "id": "B1",
+      "imgSrc": "./Bilder/EO_Bilder/B1norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B1puf.geojson",
+      "bounds": [
+        [
+          47.955712,
+          14.968597
+        ],
+        [
+          48.010572,
+          15.077939
+        ]
+      ],
+      "absent": [
+        "acker",
+        "fluss",
+        "see",
+        "siedlung",
+        "strasse",
+        "wald"
+      ]
+    },
+    {
+      "id": "B2",
+      "imgSrc": "./Bilder/EO_Bilder/B2norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B2puf.geojson",
+      "bounds": [
+        [
+          49.402391,
+          8.64291
+        ],
+        [
+          49.42048,
+          8.679778
+        ]
+      ],
+      "absent": [
+        "acker",
+        "fluss",
+        "see",
+        "siedlung",
+        "strasse",
+        "wald"
+      ]
+    },
+    {
+      "id": "B4",
+      "imgSrc": "./Bilder/EO_Bilder/B4norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B4puf.geojson",
+      "bounds": [
+        [
+          46.67481,
+          7.869288
+        ],
+        [
+          46.786753,
+          8.089795
+        ]
+      ],
+      "absent": [
+        "acker",
+        "fluss",
+        "see",
+        "siedlung",
+        "strasse",
+        "wald"
+      ]
+    },
+    {
+      "id": "B5",
+      "imgSrc": "./Bilder/EO_Bilder/B5norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B5puf.geojson",
+      "bounds": [
+        [
+          25.994553,
+          32.216663
+        ],
+        [
+          26.141504,
+          32.435871
+        ]
+      ],
+      "absent": [
+        "acker",
+        "fluss",
+        "see",
+        "siedlung",
+        "strasse",
+        "wald"
+      ]
+    },
+    {
+      "id": "B6",
+      "imgSrc": "./Bilder/EO_Bilder/B6norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B6puf.geojson",
+      "bounds": [
+        [
+          49.364995,
+          8.594956
+        ],
+        [
+          49.471445,
+          8.814067
+        ]
+      ],
+      "absent": [
+        "acker",
+        "fluss",
+        "see",
+        "siedlung",
+        "strasse",
+        "wald"
+      ]
+    }
+  ]
+}
