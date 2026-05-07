@@ -263,6 +263,12 @@ tr:last-child td{font-weight:700;color:var(--accent)}
     <!-- Satellite image – fills stage completely -->
     <img id="sat-img" src="" alt="" draggable="false">
 
+    <!-- Debug overlay: press D to toggle zone polygons -->
+    <canvas id="debug-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:490"></canvas>
+    <div id="debug-label" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:491;font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,77,109,.85);color:#fff;padding:4px 12px;pointer-events:none;letter-spacing:.1em">
+      DEBUG: ZONEN SICHTBAR — D zum Ausblenden
+    </div>
+
     <!-- Loupe -->
     <div id="loupe">
       <canvas id="loupe-canvas" width="250" height="250"></canvas>
@@ -321,6 +327,16 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 const LOUPE_D    = 250;   // loupe diameter px
 const LOUPE_ZOOM = 3;     // magnification factor
 
+// Hit-test tolerance: also test points in a small cross pattern
+// around the drop point (in fraction units).
+// Helps with small zones where projection errors cause slight misalignment.
+// 0.008 ≈ ~0.8% of image width/height (a few pixels at typical zoom).
+const HIT_TOLERANCE = 0.008;
+
+// Debug mode (press D to toggle)
+let debugMode = false;
+let elDebugCanvas, elDebugLabel;
+
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
@@ -357,6 +373,8 @@ async function boot(){
   elPin        = document.getElementById('pin');
   elFloatChip  = document.getElementById('float-chip');
   elTrash      = document.getElementById('trash');
+  elDebugCanvas= document.getElementById('debug-canvas');
+  elDebugLabel = document.getElementById('debug-label');
 
   // Load config
   try{
@@ -653,6 +671,24 @@ function pointInRing(fx, fy, ring){
       inside = !inside;
   }
   return inside;
+}
+
+// Test point + a cross of tolerance offsets (helps with projection mismatch
+// and small objects). Returns true if ANY of the sample points is inside.
+function pointInRingWithTolerance(fx, fy, ring){
+  const t = HIT_TOLERANCE;
+  const samples = [
+    [fx,   fy  ],   // exact
+    [fx+t, fy  ],   // right
+    [fx-t, fy  ],   // left
+    [fx,   fy+t],   // down
+    [fx,   fy-t],   // up
+    [fx+t, fy+t],   // diagonals
+    [fx-t, fy-t],
+    [fx+t, fy-t],
+    [fx-t, fy+t],
+  ];
+  return samples.some(([sx,sy]) => pointInRing(sx, sy, ring));
 }
 
 // ═══════════════════════════════════════════════════════════
