@@ -456,6 +456,7 @@ async function loadLevel(i){
   // Convert GeoJSON geographic coords → relative fractions [0–1]
   // using the level's bounds so we can map to pixel coords at runtime
   buildZones(geojson, lv.bounds);
+  if(debugMode) drawDebugZones();
 
   renderLabels(lv);
   startTimer();
@@ -851,6 +852,81 @@ function download(name, content, type){
   a.download = name;
   a.click();
 }
+
+// ═══════════════════════════════════════════════════════════
+// DEBUG: draw zone polygons onto canvas (press D to toggle)
+// Each unique klasse gets a distinct colour so you can see
+// exactly where the hitboxes are relative to the image.
+// ═══════════════════════════════════════════════════════════
+const DEBUG_COLOURS = [
+  'rgba(255,77,109,0.55)',   // red
+  'rgba(0,212,255,0.55)',    // cyan
+  'rgba(0,255,157,0.55)',    // green
+  'rgba(255,200,0,0.55)',    // yellow
+  'rgba(200,100,255,0.55)',  // purple
+  'rgba(255,140,0,0.55)',    // orange
+];
+
+function drawDebugZones(){
+  const w = elStage.offsetWidth;
+  const h = elStage.offsetHeight;
+  elDebugCanvas.width  = w;
+  elDebugCanvas.height = h;
+  const ctx = elDebugCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+
+  // Assign a colour per unique klasse
+  const klasseList = [...new Set(zones.map(z => z.klasse))];
+  const colourMap  = {};
+  klasseList.forEach((k, i) => {
+    colourMap[k] = DEBUG_COLOURS[i % DEBUG_COLOURS.length];
+  });
+
+  zones.forEach(zone => {
+    const ring = zone.fracRing;
+    if(!ring || ring.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(ring[0][0] * w, ring[0][1] * h);
+    for(let i = 1; i < ring.length; i++){
+      ctx.lineTo(ring[i][0] * w, ring[i][1] * h);
+    }
+    ctx.closePath();
+    ctx.fillStyle   = colourMap[zone.klasse];
+    ctx.strokeStyle = colourMap[zone.klasse].replace('0.55','1');
+    ctx.lineWidth   = 2;
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw klasse label at centroid
+    const cx = ring.reduce((s,p)=>s+p[0],0)/ring.length * w;
+    const cy = ring.reduce((s,p)=>s+p[1],0)/ring.length * h;
+    ctx.font      = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.strokeStyle  = 'rgba(0,0,0,0.8)';
+    ctx.lineWidth    = 3;
+    ctx.strokeText(zone.klasse, cx, cy);
+    ctx.fillText(zone.klasse, cx, cy);
+  });
+}
+
+function toggleDebug(){
+  debugMode = !debugMode;
+  if(debugMode){
+    elDebugCanvas.style.display = 'block';
+    elDebugLabel.style.display  = 'block';
+    drawDebugZones();
+  } else {
+    elDebugCanvas.style.display = 'none';
+    elDebugLabel.style.display  = 'none';
+  }
+}
+
+// Keyboard shortcut: D = toggle debug overlay
+document.addEventListener('keydown', e => {
+  if(e.key === 'd' || e.key === 'D') toggleDebug();
+});
 
 // ── Boot ──
 document.addEventListener('DOMContentLoaded', boot);
