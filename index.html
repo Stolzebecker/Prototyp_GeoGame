@@ -55,13 +55,17 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 /* MAP */
 #map-wrap{position:relative;flex:1;overflow:hidden;min-height:0}
 #map{
-  width:100%;height:100%;background:#000;
+  width:100%;height:100%;
+  /* No black background – the satellite image fills everything */
+  background:var(--bg);
   cursor:none!important;
 }
-.leaflet-container{cursor:none!important}
+.leaflet-container{cursor:none!important;background:var(--bg)!important}
 /* Disable all leaflet interaction visuals */
 .leaflet-grab{cursor:none!important}
 .leaflet-interactive{cursor:none!important}
+/* Hide Leaflet's grey tile background */
+.leaflet-map-pane,.leaflet-tile-pane{background:transparent!important}
 
 /* LOUPE */
 #loupe{
@@ -334,6 +338,8 @@ function startExperiment(){
     boxZoom: false,
     keyboard: false,
     touchZoom: false,
+    zoomSnap: 0.01,       // allow fractional zoom so fitBounds fills perfectly
+    zoomDelta: 0.01,
   });
 
   setupMouseEvents();
@@ -369,7 +375,10 @@ async function loadLevel(i){
   srcImg.src = lv.imgSrc;
 
   imageOverlay = L.imageOverlay(lv.imgSrc, lv.bounds, {opacity:1}).addTo(map);
-  map.fitBounds(lv.bounds);
+  // fitBounds with no padding → image fills the container exactly
+  map.fitBounds(lv.bounds, {padding:[0,0], animate:false});
+  // Lock pan/zoom so user can never scroll to black area
+  map.setMaxBounds(lv.bounds);
   mapWrapRect = document.getElementById('map-wrap').getBoundingClientRect();
 
   // Load GeoJSON
@@ -498,14 +507,16 @@ function setupMouseEvents(){
   document.addEventListener('mouseup', e=>{
     if(!draggingId){ endDrag(); return; }
 
+    // Always recalculate rect fresh (avoids stale bounding box)
     const rect = mapWrap.getBoundingClientRect();
     const inMap = e.clientX>=rect.left && e.clientX<=rect.right
                && e.clientY>=rect.top  && e.clientY<=rect.bottom;
 
     if(inMap){
-      // Convert screen coords → Leaflet latlng
-      const mapPoint = map.mouseEventToLatLng(e);
-      handleMapDrop(mapPoint);
+      // Convert screen px → LatLng manually from current bounds
+      // (map.mouseEventToLatLng fails when event target is document)
+      const latlng = screenToLatLng(e.clientX, e.clientY, rect);
+      handleMapDrop(latlng);
     } else {
       // Check trash
       const trashRect = elTrash.getBoundingClientRect();
@@ -550,6 +561,23 @@ function updateLoupe(cx, cy, rect){
     sx - srcSize/2, sy - srcSize/2, srcSize, srcSize,  // source rect
     0, 0, LOUPE_SIZE, LOUPE_SIZE                        // dest rect (full canvas)
   );
+}
+
+// ═══════════════════════════════════════════════════════════
+// COORDINATE CONVERSION
+// Maps screen px → geographic LatLng using current map bounds.
+// This works even when the mouseup event fires on `document`
+// rather than the Leaflet container.
+// ═══════════════════════════════════════════════════════════
+function screenToLatLng(clientX, clientY, rect){
+  const bounds = map.getBounds();
+  const fx = (clientX - rect.left) / rect.width;
+  const fy = (clientY - rect.top)  / rect.height;
+  const south = bounds.getSouth(), north = bounds.getNorth();
+  const west  = bounds.getWest(),  east  = bounds.getEast();
+  const lat = north - fy * (north - south);   // top→south as fy increases
+  const lng = west  + fx * (east  - west);
+  return L.latLng(lat, lng);
 }
 
 // ═══════════════════════════════════════════════════════════
