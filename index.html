@@ -581,20 +581,26 @@ function setupMouseEvents(){
   document.addEventListener('mouseup', e=>{
     if(!draggingId){ endDrag(); return; }
 
-    const rect    = elStage.getBoundingClientRect();
-    const inStage = e.clientX >= rect.left && e.clientX <= rect.right
-                 && e.clientY >= rect.top  && e.clientY <= rect.bottom;
+    const rect = elStage.getBoundingClientRect();
+
+    // The pin has CSS transform:translate(-50%,-100%) with its left/top
+    // set to the local mouse position → the SVG tip (bottom-centre of
+    // the 22×44px element) sits EXACTLY at the mouse cursor.
+    // So e.clientX/Y IS the tip coordinate – no offset needed.
+    const tipX = e.clientX;
+    const tipY = e.clientY;
+
+    const inStage = tipX >= rect.left && tipX <= rect.right
+                 && tipY >= rect.top  && tipY <= rect.bottom;
 
     if(inStage){
-      // Convert to fraction of stage
-      const fx = (e.clientX - rect.left) / rect.width;
-      const fy = (e.clientY - rect.top)  / rect.height;
-      handleStageDrop(fx, fy, e.clientX - rect.left, e.clientY - rect.top);
+      const fx = (tipX - rect.left) / rect.width;
+      const fy = (tipY - rect.top)  / rect.height;
+      handleStageDrop(fx, fy, tipX - rect.left, tipY - rect.top);
     } else {
-      // Check trash
       const tr = elTrash.getBoundingClientRect();
-      if(e.clientX>=tr.left && e.clientX<=tr.right
-      && e.clientY>=tr.top  && e.clientY<=tr.bottom){
+      if(tipX>=tr.left && tipX<=tr.right
+      && tipY>=tr.top  && tipY<=tr.bottom){
         handleTrashDrop();
       }
     }
@@ -651,32 +657,36 @@ function pointInRing(fx, fy, ring){
 
 // ═══════════════════════════════════════════════════════════
 // DROP ON STAGE
+// Collects ALL zones whose polygon contains the drop point.
+// Zones can overlap – we check every single one.
+// Priority: if draggingId matches any hit zone → correct.
+//           if hit zones exist but none match → wrong label.
+//           if no hit zones at all → missed entirely.
 // ═══════════════════════════════════════════════════════════
 function handleStageDrop(fx, fy, localX, localY){
-  // Find which zone was hit (first match wins)
-  let hitKlasse = null;
+  // Collect every zone (unfilled) whose ring contains the point
+  const hitKlassen = new Set();
   for(const zone of zones){
-    if(zoneFilled[zone.klasse]) continue;  // already filled
+    if(zoneFilled[zone.klasse]) continue;
     if(pointInRing(fx, fy, zone.fracRing)){
-      hitKlasse = zone.klasse;
-      break;
+      hitKlassen.add(zone.klasse);
     }
   }
 
-  if(hitKlasse === null){
+  if(hitKlassen.size === 0){
+    // Truly missed – no polygon at this point
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
     showFeedback('✗ Kein Bereich getroffen – erneut versuchen', 'err');
     return;
   }
 
-  if(draggingId === hitKlasse){
-    // ✓ Correct
-    zoneFilled[hitKlasse] = true;
-    const lbl = CONFIG.labels.find(l=> l.id === hitKlasse);
-    const txt = '✓ ' + (lbl ? lbl.icon+' '+lbl.text : hitKlasse);
+  if(hitKlassen.has(draggingId)){
+    // ✓ Correct – the dragged label matches one of the hit zones
+    zoneFilled[draggingId] = true;
+    const lbl = CONFIG.labels.find(l=> l.id === draggingId);
+    const txt = '✓ ' + (lbl ? lbl.icon+' '+lbl.text : draggingId);
 
-    // Place a small label at the drop point
     const ok = document.createElement('div');
     ok.className   = 'zone-ok';
     ok.textContent = txt;
@@ -688,7 +698,7 @@ function handleStageDrop(fx, fy, localX, localY){
     showFeedback('✓ Korrekt', 'ok');
     checkLevelComplete();
   } else {
-    // ✗ Wrong label for this zone
+    // ✗ Hit a zone but with the wrong label
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
     showFeedback('✗ Falsches Label für diesen Bereich', 'err');
