@@ -416,32 +416,39 @@ function buildZones(geojson, bounds){
     });
   });
 
-  // Assign stable colours to each unique klasse
-  const klassen=[...new Set(zones.map(z=>z.klasse))].sort();
+  // Assign stable colours to ALL config labels (not just those in this GeoJSON)
+  // so colours are consistent across levels.
   klasseColour={};
-  klassen.forEach((k,i)=>{ klasseColour[k]=DEBUG_COLOURS[i%DEBUG_COLOURS.length]; });
+  CONFIG.labels.forEach((l,i)=>{ klasseColour[l.id]=DEBUG_COLOURS[i%DEBUG_COLOURS.length]; });
 }
 
 // ── Debug panel ─────────────────────────────────────────────
 function buildDebugPanel(){
-  const klassen=[...new Set(zones.map(z=>z.klasse))].sort();
+  // Always show ALL labels from config, not just those present in current GeoJSON.
+  // Labels not present in this level's GeoJSON are shown greyed out.
+  const allLabels = CONFIG.labels.map(l => l.id);
+  const presentKlassen = new Set(zones.map(z => z.klasse));
 
   // Preserve existing checkbox states; default new ones to true
   const prev={...debugActive};
   debugActive={};
-  klassen.forEach(k=>{ debugActive[k]= k in prev ? prev[k] : true; });
+  allLabels.forEach(k=>{ debugActive[k]= k in prev ? prev[k] : true; });
 
   const container=document.getElementById('debug-checks');
   container.innerHTML='';
 
-  klassen.forEach(k=>{
-    const col=klasseColour[k];
+  allLabels.forEach(k=>{
+    const col = klasseColour[k] || {stroke:'#4a6080', fill:'rgba(74,96,128,0.35)'};
+    const present = presentKlassen.has(k);
+
     const row=document.createElement('label');
     row.className='debug-check-row';
+    if(!present) row.style.opacity='0.4';  // grey out absent klassen
 
     const cb=document.createElement('input');
     cb.type='checkbox';
     cb.checked=debugActive[k];
+    cb.disabled=!present;  // can't toggle if not in this level
     cb.addEventListener('change',()=>{
       debugActive[k]=cb.checked;
       if(debugMode) redrawDebug();
@@ -453,7 +460,7 @@ function buildDebugPanel(){
 
     const lbl=document.createElement('span');
     lbl.className='debug-check-label';
-    lbl.textContent=k;
+    lbl.textContent=k + (present ? '' : ' —');  // dash = not in this level
 
     row.appendChild(cb);
     row.appendChild(swatch);
