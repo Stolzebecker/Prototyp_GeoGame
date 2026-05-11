@@ -227,6 +227,14 @@ tr:last-child td{font-weight:700;color:var(--accent)}
         <button class="debug-btn" onclick="debugSelectAll(true)">Alle an</button>
         <button class="debug-btn" onclick="debugSelectAll(false)">Alle aus</button>
       </div>
+      <div style="margin-top:8px;border-top:1px solid #1e2d3d;padding-top:10px;">
+        <div style="color:#4a6080;font-size:9px;letter-spacing:.08em;margin-bottom:7px;">LEVEL NAVIGATION</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="debug-btn" onclick="debugPrevLevel()" id="debug-btn-prev" style="flex:0 0 32px;">‹</button>
+          <span id="debug-level-info" style="flex:1;text-align:center;font-size:10px;color:#cdd9e5;letter-spacing:.05em;">–</span>
+          <button class="debug-btn" onclick="debugNextLevel()" id="debug-btn-next" style="flex:0 0 32px;">›</button>
+        </div>
+      </div>
     </div>
 
     <div id="loupe">
@@ -467,14 +475,32 @@ function buildDebugPanel(){
     row.appendChild(lbl);
     container.appendChild(row);
   });
+
+  debugUpdateNav();
 }
 
 function debugSelectAll(val){
   Object.keys(debugActive).forEach(k=>{ debugActive[k]=val; });
-  // Sync checkboxes
   document.querySelectorAll('#debug-checks input[type=checkbox]')
-    .forEach(cb=>{ cb.checked=val; });
+    .forEach(cb=>{ if(!cb.disabled) cb.checked=val; });
   if(debugMode) redrawDebug();
+}
+
+function debugUpdateNav(){
+  const tot=CONFIG?CONFIG.levels.length:0;
+  const el=document.getElementById('debug-level-info');
+  if(el) el.textContent=`LEVEL ${currentLevel+1} / ${tot}`;
+  const prev=document.getElementById('debug-btn-prev');
+  const next=document.getElementById('debug-btn-next');
+  if(prev) prev.style.opacity=currentLevel===0?'0.3':'1';
+  if(next) next.style.opacity=currentLevel===tot-1?'0.3':'1';
+}
+
+function debugPrevLevel(){
+  if(currentLevel>0) loadLevel(currentLevel-1);
+}
+function debugNextLevel(){
+  if(CONFIG&&currentLevel<CONFIG.levels.length-1) loadLevel(currentLevel+1);
 }
 
 // ── Debug draw ───────────────────────────────────────────────
@@ -604,12 +630,60 @@ function setupMouseEvents(){
 }
 
 // ── Loupe ───────────────────────────────────────────────────
+// Current loupe centre in stage fractions (needed for debug overlay in loupe)
+let _loupeFx=0, _loupeFy=0;
+
 function updateLoupe(lx,ly,stageW,stageH){
   if(!elSatImg.naturalWidth) return;
+  _loupeFx=lx/stageW; _loupeFy=ly/stageH;
+
   const scaleX=elSatImg.naturalWidth/stageW, scaleY=elSatImg.naturalHeight/stageH;
   const srcW=(LOUPE_D/LOUPE_ZOOM)*scaleX, srcH=(LOUPE_D/LOUPE_ZOOM)*scaleY;
+
+  // Draw satellite image
   elLoupeCtx.clearRect(0,0,LOUPE_D,LOUPE_D);
   elLoupeCtx.drawImage(elSatImg, lx*scaleX-srcW/2, ly*scaleY-srcH/2, srcW, srcH, 0,0,LOUPE_D,LOUPE_D);
+
+  // Overlay debug zones inside loupe if debug mode is on
+  if(debugMode) drawDebugInLoupe(lx/stageW, ly/stageH, stageW, stageH);
+}
+
+// Draw the visible debug zones clipped to the loupe, at loupe zoom level.
+// We project each fracRing point into loupe-canvas pixel space.
+function drawDebugInLoupe(cfx, cfy, stageW, stageH){
+  // The loupe shows a (LOUPE_D/LOUPE_ZOOM) × (LOUPE_D/LOUPE_ZOOM) px window
+  // centred on (cfx,cfy) in stage-fraction space.
+  const halfW = (LOUPE_D/LOUPE_ZOOM) / stageW / 2;   // half-window in frac X
+  const halfH = (LOUPE_D/LOUPE_ZOOM) / stageH / 2;   // half-window in frac Y
+
+  // Convert a stage-fraction point to loupe-canvas pixel
+  function fracToLoupePx(fx, fy){
+    return [
+      ((fx - cfx) / halfW / 2 + 0.5) * LOUPE_D,
+      ((fy - cfy) / halfH / 2 + 0.5) * LOUPE_D,
+    ];
+  }
+
+  zones.forEach(zone=>{
+    if(!debugActive[zone.klasse]) return;
+    const col = klasseColour[zone.klasse] || {stroke:'#4a6080',fill:'rgba(74,96,128,0.35)'};
+    const ring = zone.fracRing;
+    if(!ring||ring.length<2) return;
+
+    elLoupeCtx.beginPath();
+    const [x0,y0]=fracToLoupePx(ring[0][0],ring[0][1]);
+    elLoupeCtx.moveTo(x0,y0);
+    for(let i=1;i<ring.length;i++){
+      const [xi,yi]=fracToLoupePx(ring[i][0],ring[i][1]);
+      elLoupeCtx.lineTo(xi,yi);
+    }
+    elLoupeCtx.closePath();
+    elLoupeCtx.fillStyle=col.fill;
+    elLoupeCtx.strokeStyle=col.stroke;
+    elLoupeCtx.lineWidth=1.5;
+    elLoupeCtx.fill();
+    elLoupeCtx.stroke();
+  });
 }
 
 // ── Hit test ─────────────────────────────────────────────────
