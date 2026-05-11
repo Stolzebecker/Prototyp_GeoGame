@@ -15,7 +15,6 @@
 body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
   height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* ── LOADING ── */
 #loading{position:fixed;inset:0;z-index:3000;display:flex;flex-direction:column;
   align-items:center;justify-content:center;background:var(--bg);gap:20px}
 #loading-text{font-family:'JetBrains Mono',monospace;font-size:13px;
@@ -24,7 +23,6 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── START ── */
 #start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;
   justify-content:center;background:var(--bg);transition:opacity .4s}
 #start-screen.hidden{opacity:0;pointer-events:none}
@@ -44,7 +42,6 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 #btn-start:hover{transform:translateY(-2px)}
 #level-count-text{font-weight:700;color:var(--accent)}
 
-/* ── TOPBAR ── */
 #topbar{display:flex;justify-content:space-between;align-items:center;
   padding:10px 22px;background:var(--panel);border-bottom:1px solid var(--border);
   flex-shrink:0;z-index:100}
@@ -63,101 +60,73 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 .stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;
   letter-spacing:.1em;margin-top:2px}
 
-/* ── MAIN ── */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-/* ── MAP STAGE ── */
-#stage{
-  position:relative;flex:1;overflow:hidden;
-  cursor:none;       /* hide default cursor everywhere on stage */
-  min-height:0;
-  background:var(--bg);
-}
-/* The satellite image fills the entire stage */
-#sat-img{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  object-fit:fill;   /* stretch to fill exactly – no letterbox */
-  display:block;
-  pointer-events:none;
-  user-select:none;
-}
-/* Invisible overlay canvas for confirmed-zone labels */
-#overlay-canvas{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  pointer-events:none;
-}
+#stage{position:relative;flex:1;overflow:hidden;cursor:none;min-height:0;background:var(--bg)}
+#sat-img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:fill;display:block;pointer-events:none;user-select:none}
 
-/* ── LOUPE ── */
-#loupe{
-  position:absolute;
-  width:250px;height:250px;
-  border-radius:50%;
+/* DEBUG PANEL */
+#debug-panel{
+  display:none;position:absolute;top:10px;right:10px;z-index:900;
+  background:rgba(11,15,20,0.96);border:1px solid #ff4d6d;
+  padding:14px 16px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:#cdd9e5;min-width:200px;
+  box-shadow:0 4px 28px rgba(0,0,0,.85);
+}
+#debug-panel-title{color:#ff4d6d;letter-spacing:.12em;margin-bottom:10px;font-size:10px}
+#debug-panel-hint{color:#4a6080;font-size:9px;letter-spacing:.06em}
+#debug-checks{display:grid;gap:8px;margin-top:2px}
+.debug-check-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+.debug-check-row input[type=checkbox]{
+  width:13px;height:13px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.debug-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+.debug-check-label{flex:1;letter-spacing:.04em}
+#debug-btns{margin-top:12px;border-top:1px solid #1e2d3d;padding-top:10px;display:flex;gap:8px}
+.debug-btn{flex:1;padding:5px 0;background:#162030;border:1px solid #1e2d3d;
+  color:#cdd9e5;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:.05em}
+.debug-btn:hover{border-color:var(--accent);color:var(--accent)}
+#debug-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:490}
+
+/* LOUPE */
+#loupe{position:absolute;width:250px;height:250px;border-radius:50%;
   border:2px solid var(--accent);
-  box-shadow:0 0 0 1px rgba(0,212,255,.2), 0 8px 32px rgba(0,0,0,.8);
-  overflow:hidden;
-  pointer-events:none;
-  display:none;
-  z-index:600;
-  transform:translate(-50%,-50%);  /* centre on mouse */
-}
-/* crosshair lines via pseudo-elements */
-#loupe::before,#loupe::after{
-  content:'';position:absolute;z-index:2;pointer-events:none;
-}
-#loupe::before{width:1px;height:100%;left:50%;top:0;
-  background:rgba(0,212,255,.6)}
-#loupe::after{height:1px;width:100%;top:50%;left:0;
-  background:rgba(0,212,255,.6)}
-#loupe-canvas{
-  position:absolute;top:0;left:0;width:250px;height:250px;
-  image-rendering:pixelated;
-}
-#loupe-badge{
-  position:absolute;bottom:6px;right:10px;
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  color:rgba(0,212,255,.7);z-index:3;pointer-events:none;
-}
+  box-shadow:0 0 0 1px rgba(0,212,255,.2),0 8px 32px rgba(0,0,0,.8);
+  overflow:hidden;pointer-events:none;display:none;z-index:600;
+  transform:translate(-50%,-50%)}
+#loupe::before,#loupe::after{content:'';position:absolute;z-index:2;pointer-events:none}
+#loupe::before{width:1px;height:100%;left:50%;top:0;background:rgba(0,212,255,.6)}
+#loupe::after{height:1px;width:100%;top:50%;left:0;background:rgba(0,212,255,.6)}
+#loupe-canvas{position:absolute;top:0;left:0;width:250px;height:250px;image-rendering:pixelated}
+#loupe-badge{position:absolute;bottom:6px;right:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(0,212,255,.7);
+  z-index:3;pointer-events:none}
 
-/* ── PIN ── */
-/* tip is at element bottom-centre → offset translate(-50%,-100%) */
-#pin{
-  position:absolute;pointer-events:none;z-index:700;
-  display:none;width:22px;
-  transform:translate(-50%,-100%);
-}
+/* PIN */
+#pin{position:absolute;pointer-events:none;z-index:700;
+  display:none;width:22px;transform:translate(-50%,-100%)}
 
-/* ── FLOAT CHIP ── */
-/* centred on mouse, shifted up so it sits above the pin */
-#float-chip{
-  position:fixed;pointer-events:none;z-index:9000;display:none;
-  padding:6px 14px;background:var(--label-bg);
-  border:1px solid var(--accent);color:var(--accent);
-  font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
+/* FLOAT CHIP */
+#float-chip{position:fixed;pointer-events:none;z-index:9000;display:none;
+  padding:6px 14px;background:var(--label-bg);border:1px solid var(--accent);
+  color:var(--accent);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;
   white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);
-  transform:translate(-50%, calc(-100% - 38px));
-}
+  transform:translate(-50%,calc(-100% - 38px))}
 
-/* ── CONFIRMED ZONE LABELS ── */
-.zone-ok{
-  position:absolute;pointer-events:none;
-  background:rgba(18,24,32,.88);border:1px solid var(--accent2);
-  color:var(--accent2);font-family:'JetBrains Mono',monospace;
-  font-size:11px;padding:3px 9px;white-space:nowrap;
-  transform:translate(-50%,-50%);
-}
+/* CONFIRMED ZONE LABELS */
+.zone-ok{position:absolute;pointer-events:none;background:rgba(18,24,32,.88);
+  border:1px solid var(--accent2);color:var(--accent2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 9px;
+  white-space:nowrap;transform:translate(-50%,-50%)}
 
-/* ── BOTTOM ── */
 #bottom{display:grid;grid-template-columns:1fr auto;gap:10px;
-  padding:12px 20px;background:var(--panel);border-top:1px solid var(--border);
-  flex-shrink:0}
+  padding:12px 20px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0}
 #label-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #label-bar-title{font-size:10px;color:var(--muted);
   font-family:'JetBrains Mono',monospace;letter-spacing:.12em;margin-right:6px}
-.label-chip{padding:6px 13px;background:var(--label-bg);
-  border:1px solid var(--border);font-size:13px;font-weight:600;
-  user-select:none;transition:border-color .15s,opacity .2s;cursor:grab}
+.label-chip{padding:6px 13px;background:var(--label-bg);border:1px solid var(--border);
+  font-size:13px;font-weight:600;user-select:none;
+  transition:border-color .15s,opacity .2s;cursor:grab}
 .label-chip:hover{border-color:var(--accent)}
 .label-chip.used{opacity:.2;pointer-events:none}
 .label-chip.lifting{opacity:.45;cursor:grabbing}
@@ -167,10 +136,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
   gap:3px;font-size:11px;color:var(--muted);
   transition:border-color .2s,background .2s;cursor:default}
 #trash.drag-over{border-color:var(--warn);background:rgba(255,77,109,.08)}
-#trash-count{font-family:'JetBrains Mono',monospace;
-  color:var(--warn);font-size:11px;min-height:14px}
+#trash-count{font-family:'JetBrains Mono',monospace;color:var(--warn);font-size:11px;min-height:14px}
 
-/* ── FEEDBACK ── */
 #feedback{position:fixed;top:62px;left:50%;transform:translateX(-50%);
   padding:7px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;
   opacity:0;pointer-events:none;transition:opacity .2s;z-index:800;
@@ -179,44 +146,37 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 #feedback.ok{color:var(--accent2);border-color:var(--accent2)}
 #feedback.err{color:var(--warn);border-color:var(--warn)}
 
-/* ── NEXT ── */
 #btn-next{display:none;position:fixed;right:28px;bottom:90px;
   padding:11px 28px;background:var(--accent2);color:#0b0f14;border:none;
   font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
   cursor:pointer;z-index:400;animation:pulse 1.8s infinite;transition:transform .15s}
 #btn-next:hover{transform:translateY(-2px)}
 
-/* ── RESULTS ── */
-#results-screen{display:none;position:fixed;inset:0;background:var(--bg);
-  z-index:1500;justify-content:center;align-items:center;
-  flex-direction:column;gap:28px}
+#results-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1500;
+  justify-content:center;align-items:center;flex-direction:column;gap:28px}
 #results-screen.active{display:flex}
 #results-screen h1{font-size:36px}
 table{border-collapse:collapse;min-width:460px}
 td,th{padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px}
-th{color:var(--muted);font-family:'JetBrains Mono',monospace;
-  font-size:10px;letter-spacing:.12em;text-align:left}
+th{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-align:left}
 tr:last-child td{font-weight:700;color:var(--accent)}
 .results-actions{display:flex;gap:10px}
-.results-actions button{padding:11px 22px;border:1px solid var(--border);
-  cursor:pointer;font-weight:700;font-family:'Syne',sans-serif;
-  font-size:13px;background:var(--panel);color:var(--text);transition:border-color .15s}
+.results-actions button{padding:11px 22px;border:1px solid var(--border);cursor:pointer;
+  font-weight:700;font-family:'Syne',sans-serif;font-size:13px;
+  background:var(--panel);color:var(--text);transition:border-color .15s}
 .results-actions button:hover{border-color:var(--accent)}
-.results-actions button.primary{background:var(--accent2);color:#0b0f14;
-  border-color:var(--accent2)}
+.results-actions button.primary{background:var(--accent2);color:#0b0f14;border-color:var(--accent2)}
 
 @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
 <div id="loading">
   <div class="spinner"></div>
   <div id="loading-text">LADE KONFIGURATION …</div>
 </div>
 
-<!-- START -->
 <div id="start-screen" style="display:none">
   <div class="start-panel">
     <div class="start-kicker">EO · EXPERIMENT</div>
@@ -235,7 +195,6 @@ tr:last-child td{font-weight:700;color:var(--accent)}
   </div>
 </div>
 
-<!-- TOPBAR -->
 <div id="topbar">
   <div class="brand">EO · EXPERIMENT</div>
   <div id="progress-wrap">
@@ -246,50 +205,46 @@ tr:last-child td{font-weight:700;color:var(--accent)}
     <div id="progress-bar"><div id="progress-fill"></div></div>
   </div>
   <div id="stats">
-    <div class="stat">
-      <div class="stat-val" id="stat-time">0.00</div>
-      <div class="stat-label">Sekunden</div>
-    </div>
-    <div class="stat" id="stat-errors">
-      <div class="stat-val" id="stat-err-val">0</div>
-      <div class="stat-label">Fehler</div>
-    </div>
+    <div class="stat"><div class="stat-val" id="stat-time">0.00</div><div class="stat-label">Sekunden</div></div>
+    <div class="stat" id="stat-errors"><div class="stat-val" id="stat-err-val">0</div><div class="stat-label">Fehler</div></div>
   </div>
 </div>
 
-<!-- MAIN -->
 <div id="main">
   <div id="stage">
-    <!-- Satellite image – fills stage completely -->
     <img id="sat-img" src="" alt="" draggable="false">
 
-    <!-- Debug overlay: press D to toggle zone polygons -->
-    <canvas id="debug-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:490"></canvas>
-    <div id="debug-label" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:491;font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,77,109,.85);color:#fff;padding:4px 12px;pointer-events:none;letter-spacing:.1em">
-      DEBUG: ZONEN SICHTBAR — D zum Ausblenden
+    <!-- Debug canvas (drawn by JS) -->
+    <canvas id="debug-canvas"></canvas>
+
+    <!-- Debug panel (D to toggle) -->
+    <div id="debug-panel">
+      <div id="debug-panel-title">◈ DEBUG — HITBOXEN
+        <span id="debug-panel-hint">&nbsp;[D = schließen]</span>
+      </div>
+      <div id="debug-checks"></div>
+      <div id="debug-btns">
+        <button class="debug-btn" onclick="debugSelectAll(true)">Alle an</button>
+        <button class="debug-btn" onclick="debugSelectAll(false)">Alle aus</button>
+      </div>
     </div>
 
-    <!-- Loupe -->
     <div id="loupe">
       <canvas id="loupe-canvas" width="250" height="250"></canvas>
       <div id="loupe-badge">3×</div>
     </div>
 
-    <!-- Pin cursor (tip at bottom-centre) -->
     <div id="pin">
       <svg viewBox="0 0 22 44" xmlns="http://www.w3.org/2000/svg">
         <circle cx="11" cy="11" r="9" fill="#00d4ff" stroke="#0b0f14" stroke-width="1.5"/>
-        <path d="M7 18 Q11 44 11 44 Q11 44 15 18 Z"
-              fill="#00d4ff" stroke="#0b0f14" stroke-width="1"/>
+        <path d="M7 18 Q11 44 11 44 Q11 44 15 18 Z" fill="#00d4ff" stroke="#0b0f14" stroke-width="1"/>
         <circle cx="11" cy="11" r="4" fill="#0b0f14"/>
       </svg>
     </div>
   </div>
 
   <div id="bottom">
-    <div id="label-bar">
-      <span id="label-bar-title">LABELS ZIEHEN ›</span>
-    </div>
+    <div id="label-bar"><span id="label-bar-title">LABELS ZIEHEN ›</span></div>
     <div id="trash">
       <div style="font-size:20px">🗑</div>
       <div>Nicht vorhanden</div>
@@ -298,19 +253,14 @@ tr:last-child td{font-weight:700;color:var(--accent)}
   </div>
 </div>
 
-<!-- Floating chip that follows the mouse during drag -->
 <div id="float-chip"></div>
-
 <button id="btn-next" onclick="nextLevel()">WEITER ›</button>
 <div id="feedback"></div>
 
-<!-- RESULTS -->
 <div id="results-screen">
   <h1>Experiment abgeschlossen</h1>
   <table>
-    <thead>
-      <tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th></tr>
-    </thead>
+    <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th></tr></thead>
     <tbody id="results-body"></tbody>
   </table>
   <div class="results-actions">
@@ -321,69 +271,59 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════
-const LOUPE_D    = 250;   // loupe diameter px
-const LOUPE_ZOOM = 3;     // magnification factor
-
-// Hit-test tolerance: also test points in a small cross pattern
-// around the drop point (in fraction units).
-// Helps with small zones where projection errors cause slight misalignment.
-// 0.008 ≈ ~0.8% of image width/height (a few pixels at typical zoom).
+// ── Constants ───────────────────────────────────────────────
+const LOUPE_D    = 250;
+const LOUPE_ZOOM = 3;
 const HIT_TOLERANCE = 0.008;
 
-// Debug mode (press D to toggle)
-let debugMode = false;
-let elDebugCanvas, elDebugLabel;
+// Distinct colours per klasse (index maps to sorted klasse list)
+const DEBUG_COLOURS = [
+  {fill:'rgba(255,77,109,0.45)',  stroke:'#ff4d6d'},
+  {fill:'rgba(0,212,255,0.45)',   stroke:'#00d4ff'},
+  {fill:'rgba(0,255,157,0.45)',   stroke:'#00ff9d'},
+  {fill:'rgba(255,200,0,0.45)',   stroke:'#ffc800'},
+  {fill:'rgba(200,100,255,0.45)', stroke:'#c864ff'},
+  {fill:'rgba(255,140,0,0.45)',   stroke:'#ff8c00'},
+  {fill:'rgba(80,220,255,0.45)',  stroke:'#50dcff'},
+  {fill:'rgba(255,80,200,0.45)',  stroke:'#ff50c8'},
+];
 
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
+// ── State ───────────────────────────────────────────────────
 let CONFIG = null;
+let zones = [], zoneFilled = {}, trashFilled = {};
+let currentErrors = 0, levelStartTime = null, timerInterval = null;
+let currentLevel = 0, results = [];
+let draggingId = null, feedbackTimer = null;
 
-// Per-level
-let zones       = [];  // [{klasse, rings}] – rings = array of [x,y] pixel arrays
-let zoneFilled  = {};  // klasse → true
-let trashFilled = {};  // labelId → true
-let currentErrors = 0;
-let levelStartTime = null;
-let timerInterval  = null;
-let currentLevel   = 0;
-let results        = [];
+// Debug state
+let debugMode   = false;
+let debugActive = {};   // klasse → boolean (checkbox state)
+let klasseColour = {};  // klasse → {fill, stroke}
 
-// Drag
-let draggingId    = null;
-let feedbackTimer = null;
-
-// DOM refs (resolved after DOMContentLoaded)
+// DOM refs
 let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
-    elPin, elFloatChip, elTrash;
+    elPin, elFloatChip, elTrash, elDebugCanvas, elDebugCtx;
 
-// ═══════════════════════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════════════════════
+// ── Boot ────────────────────────────────────────────────────
 async function boot(){
-  // Resolve DOM refs
-  elStage      = document.getElementById('stage');
-  elSatImg     = document.getElementById('sat-img');
-  elLoupe      = document.getElementById('loupe');
-  elLoupeCanvas= document.getElementById('loupe-canvas');
-  elLoupeCtx   = elLoupeCanvas.getContext('2d');
-  elPin        = document.getElementById('pin');
-  elFloatChip  = document.getElementById('float-chip');
-  elTrash      = document.getElementById('trash');
-  elDebugCanvas= document.getElementById('debug-canvas');
-  elDebugLabel = document.getElementById('debug-label');
+  elStage       = document.getElementById('stage');
+  elSatImg      = document.getElementById('sat-img');
+  elLoupe       = document.getElementById('loupe');
+  elLoupeCanvas = document.getElementById('loupe-canvas');
+  elLoupeCtx    = elLoupeCanvas.getContext('2d');
+  elPin         = document.getElementById('pin');
+  elFloatChip   = document.getElementById('float-chip');
+  elTrash       = document.getElementById('trash');
+  elDebugCanvas = document.getElementById('debug-canvas');
+  elDebugCtx    = elDebugCanvas.getContext('2d');
 
-  // Load config
   try{
     const res = await fetch('./config.json');
     if(!res.ok) throw new Error('HTTP '+res.status);
     CONFIG = await res.json();
   }catch(e){
     document.getElementById('loading-text').textContent =
-      '⚠ config.json nicht gefunden – bitte generate_config.py ausführen!';
+      '⚠ config.json nicht gefunden!';
     console.error(e); return;
   }
 
@@ -394,9 +334,7 @@ async function boot(){
     CONFIG.levels.length + ' Level';
 }
 
-// ═══════════════════════════════════════════════════════════
-// START EXPERIMENT
-// ═══════════════════════════════════════════════════════════
+// ── Start ───────────────────────────────────────────────────
 function startExperiment(){
   const ss = document.getElementById('start-screen');
   ss.classList.add('hidden');
@@ -405,118 +343,190 @@ function startExperiment(){
   loadLevel(0);
 }
 
-// ═══════════════════════════════════════════════════════════
-// LOAD LEVEL
-// ═══════════════════════════════════════════════════════════
+// ── Load level ──────────────────────────────────────────────
 async function loadLevel(i){
-  currentLevel  = i;
-  currentErrors = 0;
-  zones         = [];
-  zoneFilled    = {};
-  trashFilled   = {};
-  draggingId    = null;
-
+  currentLevel=i; currentErrors=0;
+  zones=[]; zoneFilled={}; trashFilled={}; draggingId=null;
   stopTimer();
-  document.getElementById('stat-err-val').textContent  = '0';
-  document.getElementById('stat-time').textContent     = '0.00';
-  document.getElementById('btn-next').style.display    = 'none';
-  document.getElementById('trash-count').textContent   = '';
-  elLoupe.style.display    = 'none';
-  elPin.style.display      = 'none';
-  elFloatChip.style.display= 'none';
+  document.getElementById('stat-err-val').textContent='0';
+  document.getElementById('stat-time').textContent='0.00';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('trash-count').textContent='';
+  elLoupe.style.display=elPin.style.display=elFloatChip.style.display='none';
+  elStage.querySelectorAll('.zone-ok').forEach(el=>el.remove());
 
-  // Remove old confirmed-zone labels
-  elStage.querySelectorAll('.zone-ok').forEach(el=> el.remove());
+  const lv=CONFIG.levels[i], tot=CONFIG.levels.length;
+  const pct=Math.round((i/tot)*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${tot}`;
+  document.getElementById('prog-pct').textContent=pct+' %';
 
-  const lv  = CONFIG.levels[i];
-  const tot = CONFIG.levels.length;
-  const pct = Math.round((i / tot) * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('prog-text').textContent     = `LEVEL ${i+1} / ${tot}`;
-  document.getElementById('prog-pct').textContent      = pct + ' %';
-
-  // Set satellite image – wait for it to load
-  await new Promise((resolve)=>{
-    elSatImg.onload  = resolve;
-    elSatImg.onerror = resolve;
-    elSatImg.src     = lv.imgSrc;
+  await new Promise(resolve=>{
+    elSatImg.onload=elSatImg.onerror=resolve;
+    elSatImg.src=lv.imgSrc;
   });
 
-  // Load GeoJSON
   let geojson;
   try{
-    const res = await fetch(lv.geojsonSrc);
+    const res=await fetch(lv.geojsonSrc);
     if(!res.ok) throw new Error('HTTP '+res.status);
-    geojson = await res.json();
+    geojson=await res.json();
   }catch(e){
     showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
     console.error(e); return;
   }
 
-  // Convert GeoJSON geographic coords → relative fractions [0–1]
-  // using the level's bounds so we can map to pixel coords at runtime
   buildZones(geojson, lv.bounds);
-  if(debugMode) drawDebugZones();
+  buildDebugPanel();          // rebuild checkboxes for this level's klassen
+  if(debugMode) redrawDebug();
 
   renderLabels(lv);
   startTimer();
 }
 
-// ═══════════════════════════════════════════════════════════
-// BUILD ZONES FROM GEOJSON
-// Converts each polygon's lat/lon coords into [fracX, fracY] pairs
-// (fraction of the image width/height, 0=top-left, 1=bottom-right).
-// This is independent of current screen size – we scale at hit-test time.
-// ═══════════════════════════════════════════════════════════
+// ── Build zones ─────────────────────────────────────────────
+function toMercator(lon, lat){
+  const R=6378137, x=lon*Math.PI/180*R;
+  const sinL=Math.sin(lat*Math.PI/180);
+  const y=R*Math.log((1+sinL)/(1-sinL))/2;
+  return [x,y];
+}
+
 function buildZones(geojson, bounds){
-  const south = bounds[0][0], west = bounds[0][1];
-  const north = bounds[1][0], east = bounds[1][1];
-  const latSpan = north - south;
-  const lonSpan = east  - west;
+  const [mxW,myS]=toMercator(bounds[0][1],bounds[0][0]);
+  const [mxE,myN]=toMercator(bounds[1][1],bounds[1][0]);
+  const mxSpan=mxE-mxW, mySpan=myN-myS;
 
-  function geoToFrac(lon, lat){
-    return [
-      (lon - west)  / lonSpan,                // fracX: 0=west 1=east
-      (north - lat) / latSpan,                // fracY: 0=north 1=south
-    ];
+  function geoToFrac(lon,lat){
+    const [mx,my]=toMercator(lon,lat);
+    return [(mx-mxW)/mxSpan, (myN-my)/mySpan];
+  }
+  function extractRings(geom){
+    if(geom.type==='Polygon') return [geom.coordinates[0]];
+    if(geom.type==='MultiPolygon') return geom.coordinates.map(p=>p[0]);
+    return [];
   }
 
-  // Extract all rings from Polygon / MultiPolygon features
-  function extractRings(geometry){
-    const rings = [];
-    if(geometry.type === 'Polygon'){
-      rings.push(geometry.coordinates[0]); // outer ring only
-    } else if(geometry.type === 'MultiPolygon'){
-      geometry.coordinates.forEach(poly => rings.push(poly[0]));
-    }
-    return rings;
-  }
-
-  zones = [];
+  zones=[];
   geojson.features.forEach(feat=>{
-    const klasse = feat.properties && feat.properties.klasse;
+    const klasse=feat.properties&&feat.properties.klasse;
     if(!klasse) return;
-    const geomRings = extractRings(feat.geometry);
-    geomRings.forEach(ring =>{
-      const fracRing = ring.map(([lon,lat]) => geoToFrac(lon, lat));
-      zones.push({ klasse, fracRing });
+    extractRings(feat.geometry).forEach(ring=>{
+      zones.push({klasse, fracRing:ring.map(([lon,lat])=>geoToFrac(lon,lat))});
     });
+  });
+
+  // Assign stable colours to each unique klasse
+  const klassen=[...new Set(zones.map(z=>z.klasse))].sort();
+  klasseColour={};
+  klassen.forEach((k,i)=>{ klasseColour[k]=DEBUG_COLOURS[i%DEBUG_COLOURS.length]; });
+}
+
+// ── Debug panel ─────────────────────────────────────────────
+function buildDebugPanel(){
+  const klassen=[...new Set(zones.map(z=>z.klasse))].sort();
+
+  // Preserve existing checkbox states; default new ones to true
+  const prev={...debugActive};
+  debugActive={};
+  klassen.forEach(k=>{ debugActive[k]= k in prev ? prev[k] : true; });
+
+  const container=document.getElementById('debug-checks');
+  container.innerHTML='';
+
+  klassen.forEach(k=>{
+    const col=klasseColour[k];
+    const row=document.createElement('label');
+    row.className='debug-check-row';
+
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=debugActive[k];
+    cb.addEventListener('change',()=>{
+      debugActive[k]=cb.checked;
+      if(debugMode) redrawDebug();
+    });
+
+    const swatch=document.createElement('div');
+    swatch.className='debug-swatch';
+    swatch.style.background=col.stroke;
+
+    const lbl=document.createElement('span');
+    lbl.className='debug-check-label';
+    lbl.textContent=k;
+
+    row.appendChild(cb);
+    row.appendChild(swatch);
+    row.appendChild(lbl);
+    container.appendChild(row);
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-// RENDER LABELS
-// ═══════════════════════════════════════════════════════════
+function debugSelectAll(val){
+  Object.keys(debugActive).forEach(k=>{ debugActive[k]=val; });
+  // Sync checkboxes
+  document.querySelectorAll('#debug-checks input[type=checkbox]')
+    .forEach(cb=>{ cb.checked=val; });
+  if(debugMode) redrawDebug();
+}
+
+// ── Debug draw ───────────────────────────────────────────────
+function redrawDebug(){
+  const w=elStage.offsetWidth, h=elStage.offsetHeight;
+  elDebugCanvas.width=w; elDebugCanvas.height=h;
+  elDebugCanvas.style.width='100%'; elDebugCanvas.style.height='100%';
+  elDebugCtx.clearRect(0,0,w,h);
+
+  zones.forEach(zone=>{
+    if(!debugActive[zone.klasse]) return;
+    const col=klasseColour[zone.klasse];
+    const ring=zone.fracRing;
+    if(!ring||ring.length<2) return;
+
+    elDebugCtx.beginPath();
+    elDebugCtx.moveTo(ring[0][0]*w, ring[0][1]*h);
+    for(let i=1;i<ring.length;i++) elDebugCtx.lineTo(ring[i][0]*w, ring[i][1]*h);
+    elDebugCtx.closePath();
+    elDebugCtx.fillStyle=col.fill;
+    elDebugCtx.strokeStyle=col.stroke;
+    elDebugCtx.lineWidth=2;
+    elDebugCtx.fill();
+    elDebugCtx.stroke();
+
+    // Centroid label
+    const cx=ring.reduce((s,p)=>s+p[0],0)/ring.length*w;
+    const cy=ring.reduce((s,p)=>s+p[1],0)/ring.length*h;
+    elDebugCtx.font='bold 11px JetBrains Mono,monospace';
+    elDebugCtx.textAlign='center';
+    elDebugCtx.textBaseline='middle';
+    elDebugCtx.strokeStyle='rgba(0,0,0,0.85)';
+    elDebugCtx.lineWidth=3;
+    elDebugCtx.strokeText(zone.klasse,cx,cy);
+    elDebugCtx.fillStyle='#fff';
+    elDebugCtx.fillText(zone.klasse,cx,cy);
+  });
+}
+
+function toggleDebug(){
+  debugMode=!debugMode;
+  document.getElementById('debug-panel').style.display=debugMode?'block':'none';
+  elDebugCanvas.style.display=debugMode?'block':'none';
+  if(debugMode) redrawDebug();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='d'||e.key==='D') toggleDebug();
+});
+
+// ── Render labels ───────────────────────────────────────────
 function renderLabels(lv){
-  const bar = document.getElementById('label-bar');
-  bar.innerHTML = '<span id="label-bar-title">LABELS ZIEHEN ›</span>';
+  const bar=document.getElementById('label-bar');
+  bar.innerHTML='<span id="label-bar-title">LABELS ZIEHEN ›</span>';
   CONFIG.labels.forEach(lb=>{
-    const chip = document.createElement('div');
-    chip.className   = 'label-chip';
-    chip.id          = 'chip-' + lb.id;
-    chip.dataset.id  = lb.id;
-    chip.textContent = lb.icon + ' ' + lb.text;
-    chip.addEventListener('mousedown', e=>{
+    const chip=document.createElement('div');
+    chip.className='label-chip'; chip.id='chip-'+lb.id;
+    chip.dataset.id=lb.id; chip.textContent=lb.icon+' '+lb.text;
+    chip.addEventListener('mousedown',e=>{
       if(chip.classList.contains('used')) return;
       e.preventDefault();
       beginDrag(lb.id, lb.icon+' '+lb.text, chip, e);
@@ -525,410 +535,203 @@ function renderLabels(lv){
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-// DRAG ENGINE
-// ═══════════════════════════════════════════════════════════
-function beginDrag(id, label, chipEl, e){
-  draggingId = id;
-  chipEl.classList.add('lifting');
-  elFloatChip.textContent = label;
-  elFloatChip.style.display = 'block';
-  positionFloatChip(e.clientX, e.clientY);
+// ── Drag ────────────────────────────────────────────────────
+function beginDrag(id,label,chipEl,e){
+  draggingId=id; chipEl.classList.add('lifting');
+  elFloatChip.textContent=label; elFloatChip.style.display='block';
+  positionFloatChip(e.clientX,e.clientY);
 }
-
 function endDrag(){
-  if(draggingId){
-    const chip = document.getElementById('chip-'+draggingId);
-    if(chip) chip.classList.remove('lifting');
-  }
-  draggingId = null;
-  elFloatChip.style.display = 'none';
-  elPin.style.display       = 'none';
+  if(draggingId){ const c=document.getElementById('chip-'+draggingId); if(c) c.classList.remove('lifting'); }
+  draggingId=null; elFloatChip.style.display='none'; elPin.style.display='none';
+}
+function positionFloatChip(cx,cy){
+  elFloatChip.style.left=cx+'px'; elFloatChip.style.top=cy+'px';
 }
 
-function positionFloatChip(cx, cy){
-  elFloatChip.style.left = cx + 'px';
-  elFloatChip.style.top  = cy + 'px';
-}
-
-// ═══════════════════════════════════════════════════════════
-// MOUSE EVENTS
-// ═══════════════════════════════════════════════════════════
+// ── Mouse events ─────────────────────────────────────────────
 function setupMouseEvents(){
-
-  // ── MOUSEMOVE ──────────────────────────────────────────
-  document.addEventListener('mousemove', e=>{
-    if(draggingId) positionFloatChip(e.clientX, e.clientY);
-
-    const rect  = elStage.getBoundingClientRect();
-    const inStage = e.clientX >= rect.left && e.clientX <= rect.right
-                 && e.clientY >= rect.top  && e.clientY <= rect.bottom;
-
+  document.addEventListener('mousemove',e=>{
+    if(draggingId) positionFloatChip(e.clientX,e.clientY);
+    const rect=elStage.getBoundingClientRect();
+    const inStage=e.clientX>=rect.left&&e.clientX<=rect.right
+               &&e.clientY>=rect.top&&e.clientY<=rect.bottom;
     if(inStage){
-      const lx = e.clientX - rect.left;  // local px within stage
-      const ly = e.clientY - rect.top;
-
-      // Loupe
-      updateLoupe(lx, ly, rect.width, rect.height);
-      elLoupe.style.left    = lx + 'px';
-      elLoupe.style.top     = ly + 'px';
-      elLoupe.style.display = 'block';
-
-      // Pin (only while dragging)
+      const lx=e.clientX-rect.left, ly=e.clientY-rect.top;
+      updateLoupe(lx,ly,rect.width,rect.height);
+      elLoupe.style.left=lx+'px'; elLoupe.style.top=ly+'px';
+      elLoupe.style.display='block';
       if(draggingId){
-        elPin.style.left    = lx + 'px';
-        elPin.style.top     = ly + 'px';
-        elPin.style.display = 'block';
-      } else {
-        elPin.style.display = 'none';
-      }
+        elPin.style.left=lx+'px'; elPin.style.top=ly+'px';
+        elPin.style.display='block';
+      } else { elPin.style.display='none'; }
     } else {
-      elLoupe.style.display = 'none';
-      elPin.style.display   = 'none';
+      elLoupe.style.display='none'; elPin.style.display='none';
     }
-
-    // Trash highlight
     if(draggingId){
-      const tr = elTrash.getBoundingClientRect();
-      const inTrash = e.clientX>=tr.left && e.clientX<=tr.right
-                   && e.clientY>=tr.top  && e.clientY<=tr.bottom;
-      elTrash.classList.toggle('drag-over', inTrash);
+      const tr=elTrash.getBoundingClientRect();
+      elTrash.classList.toggle('drag-over',
+        e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom);
     }
   });
 
-  // ── MOUSEUP ────────────────────────────────────────────
-  document.addEventListener('mouseup', e=>{
+  document.addEventListener('mouseup',e=>{
     if(!draggingId){ endDrag(); return; }
-
-    const rect = elStage.getBoundingClientRect();
-
-    // The pin has CSS transform:translate(-50%,-100%) with its left/top
-    // set to the local mouse position → the SVG tip (bottom-centre of
-    // the 22×44px element) sits EXACTLY at the mouse cursor.
-    // So e.clientX/Y IS the tip coordinate – no offset needed.
-    const tipX = e.clientX;
-    const tipY = e.clientY;
-
-    const inStage = tipX >= rect.left && tipX <= rect.right
-                 && tipY >= rect.top  && tipY <= rect.bottom;
-
+    const rect=elStage.getBoundingClientRect();
+    const tipX=e.clientX, tipY=e.clientY;
+    const inStage=tipX>=rect.left&&tipX<=rect.right&&tipY>=rect.top&&tipY<=rect.bottom;
     if(inStage){
-      const fx = (tipX - rect.left) / rect.width;
-      const fy = (tipY - rect.top)  / rect.height;
-      handleStageDrop(fx, fy, tipX - rect.left, tipY - rect.top);
+      const fx=(tipX-rect.left)/rect.width, fy=(tipY-rect.top)/rect.height;
+      handleStageDrop(fx,fy,tipX-rect.left,tipY-rect.top);
     } else {
-      const tr = elTrash.getBoundingClientRect();
-      if(tipX>=tr.left && tipX<=tr.right
-      && tipY>=tr.top  && tipY<=tr.bottom){
-        handleTrashDrop();
-      }
+      const tr=elTrash.getBoundingClientRect();
+      if(tipX>=tr.left&&tipX<=tr.right&&tipY>=tr.top&&tipY<=tr.bottom) handleTrashDrop();
     }
-
     elTrash.classList.remove('drag-over');
     endDrag();
   });
 
-  // Hide loupe when mouse leaves stage
   elStage.addEventListener('mouseleave',()=>{
-    elLoupe.style.display = 'none';
-    elPin.style.display   = 'none';
+    elLoupe.style.display='none'; elPin.style.display='none';
   });
 }
 
-// ═══════════════════════════════════════════════════════════
-// LOUPE
-// ═══════════════════════════════════════════════════════════
-function updateLoupe(lx, ly, stageW, stageH){
-  // The natural image is the source; the stage stretches it to stageW×stageH.
-  // We sample a srcSize×srcSize region around (lx,ly) in natural-image coords.
+// ── Loupe ───────────────────────────────────────────────────
+function updateLoupe(lx,ly,stageW,stageH){
   if(!elSatImg.naturalWidth) return;
-
-  const scaleX = elSatImg.naturalWidth  / stageW;
-  const scaleY = elSatImg.naturalHeight / stageH;
-
-  const srcW = (LOUPE_D / LOUPE_ZOOM) * scaleX;
-  const srcH = (LOUPE_D / LOUPE_ZOOM) * scaleY;
-  const srcX = lx * scaleX - srcW / 2;
-  const srcY = ly * scaleY - srcH / 2;
-
-  elLoupeCtx.clearRect(0, 0, LOUPE_D, LOUPE_D);
-  elLoupeCtx.drawImage(
-    elSatImg,
-    srcX, srcY, srcW, srcH,
-    0, 0, LOUPE_D, LOUPE_D
-  );
+  const scaleX=elSatImg.naturalWidth/stageW, scaleY=elSatImg.naturalHeight/stageH;
+  const srcW=(LOUPE_D/LOUPE_ZOOM)*scaleX, srcH=(LOUPE_D/LOUPE_ZOOM)*scaleY;
+  elLoupeCtx.clearRect(0,0,LOUPE_D,LOUPE_D);
+  elLoupeCtx.drawImage(elSatImg, lx*scaleX-srcW/2, ly*scaleY-srcH/2, srcW, srcH, 0,0,LOUPE_D,LOUPE_D);
 }
 
-// ═══════════════════════════════════════════════════════════
-// HIT TEST – ray-casting point-in-polygon on fraction coords
-// ═══════════════════════════════════════════════════════════
-function pointInRing(fx, fy, ring){
-  // ring = [[fracX,fracY], ...]
-  let inside = false;
-  for(let i=0, j=ring.length-1; i<ring.length; j=i++){
-    const xi=ring[i][0], yi=ring[i][1];
-    const xj=ring[j][0], yj=ring[j][1];
-    if(((yi>fy)!==(yj>fy)) && (fx < (xj-xi)*(fy-yi)/(yj-yi)+xi))
-      inside = !inside;
+// ── Hit test ─────────────────────────────────────────────────
+function pointInRing(fx,fy,ring){
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+    if(((yi>fy)!==(yj>fy))&&(fx<(xj-xi)*(fy-yi)/(yj-yi)+xi)) inside=!inside;
   }
   return inside;
 }
-
-// Test point + a cross of tolerance offsets (helps with projection mismatch
-// and small objects). Returns true if ANY of the sample points is inside.
-function pointInRingWithTolerance(fx, fy, ring){
-  const t = HIT_TOLERANCE;
-  const samples = [
-    [fx,   fy  ],   // exact
-    [fx+t, fy  ],   // right
-    [fx-t, fy  ],   // left
-    [fx,   fy+t],   // down
-    [fx,   fy-t],   // up
-    [fx+t, fy+t],   // diagonals
-    [fx-t, fy-t],
-    [fx+t, fy-t],
-    [fx-t, fy+t],
-  ];
-  return samples.some(([sx,sy]) => pointInRing(sx, sy, ring));
+function pointHitsZone(fx,fy,ring){
+  const t=HIT_TOLERANCE;
+  return [[fx,fy],[fx+t,fy],[fx-t,fy],[fx,fy+t],[fx,fy-t],
+          [fx+t,fy+t],[fx-t,fy-t],[fx+t,fy-t],[fx-t,fy+t]]
+    .some(([sx,sy])=>pointInRing(sx,sy,ring));
 }
 
-// ═══════════════════════════════════════════════════════════
-// DROP ON STAGE
-// Collects ALL zones whose polygon contains the drop point.
-// Zones can overlap – we check every single one.
-// Priority: if draggingId matches any hit zone → correct.
-//           if hit zones exist but none match → wrong label.
-//           if no hit zones at all → missed entirely.
-// ═══════════════════════════════════════════════════════════
-function handleStageDrop(fx, fy, localX, localY){
-  // Collect every zone (unfilled) whose ring contains the point
-  const hitKlassen = new Set();
+// ── Drop on stage ────────────────────────────────────────────
+function handleStageDrop(fx,fy,localX,localY){
+  const hitKlassen=new Set();
   for(const zone of zones){
     if(zoneFilled[zone.klasse]) continue;
-    if(pointInRing(fx, fy, zone.fracRing)){
-      hitKlassen.add(zone.klasse);
-    }
+    if(pointHitsZone(fx,fy,zone.fracRing)) hitKlassen.add(zone.klasse);
   }
-
-  if(hitKlassen.size === 0){
-    // Truly missed – no polygon at this point
+  if(hitKlassen.size===0){
     currentErrors++;
-    document.getElementById('stat-err-val').textContent = currentErrors;
-    showFeedback('✗ Kein Bereich getroffen – erneut versuchen', 'err');
+    document.getElementById('stat-err-val').textContent=currentErrors;
+    showFeedback('✗ Kein Bereich getroffen – erneut versuchen','err');
     return;
   }
-
   if(hitKlassen.has(draggingId)){
-    // ✓ Correct – the dragged label matches one of the hit zones
-    zoneFilled[draggingId] = true;
-    const lbl = CONFIG.labels.find(l=> l.id === draggingId);
-    const txt = '✓ ' + (lbl ? lbl.icon+' '+lbl.text : draggingId);
-
-    const ok = document.createElement('div');
-    ok.className   = 'zone-ok';
-    ok.textContent = txt;
-    ok.style.left  = localX + 'px';
-    ok.style.top   = localY + 'px';
+    zoneFilled[draggingId]=true;
+    const lbl=CONFIG.labels.find(l=>l.id===draggingId);
+    const txt='✓ '+(lbl?lbl.icon+' '+lbl.text:draggingId);
+    const ok=document.createElement('div');
+    ok.className='zone-ok'; ok.textContent=txt;
+    ok.style.left=localX+'px'; ok.style.top=localY+'px';
     elStage.appendChild(ok);
-
     markChipUsed(draggingId);
-    showFeedback('✓ Korrekt', 'ok');
+    showFeedback('✓ Korrekt','ok');
+    if(debugMode) redrawDebug();  // refresh so filled zones still show
     checkLevelComplete();
   } else {
-    // ✗ Hit a zone but with the wrong label
     currentErrors++;
-    document.getElementById('stat-err-val').textContent = currentErrors;
-    showFeedback('✗ Falsches Label für diesen Bereich', 'err');
+    document.getElementById('stat-err-val').textContent=currentErrors;
+    showFeedback('✗ Falsches Label für diesen Bereich','err');
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// TRASH DROP
-// ═══════════════════════════════════════════════════════════
+// ── Trash drop ───────────────────────────────────────────────
 function handleTrashDrop(){
-  const lv = CONFIG.levels[currentLevel];
+  const lv=CONFIG.levels[currentLevel];
   if(lv.absent.includes(draggingId)){
-    trashFilled[draggingId] = true;
-    markChipUsed(draggingId);
-    const done = Object.keys(trashFilled).length;
-    document.getElementById('trash-count').textContent =
-      done + ' / ' + lv.absent.length;
-    showFeedback('✓ Korrekt entfernt', 'ok');
-    checkLevelComplete();
+    trashFilled[draggingId]=true; markChipUsed(draggingId);
+    const done=Object.keys(trashFilled).length;
+    document.getElementById('trash-count').textContent=done+' / '+lv.absent.length;
+    showFeedback('✓ Korrekt entfernt','ok'); checkLevelComplete();
   } else {
     currentErrors++;
-    document.getElementById('stat-err-val').textContent = currentErrors;
-    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen', 'err');
+    document.getElementById('stat-err-val').textContent=currentErrors;
+    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen','err');
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// LEVEL COMPLETE CHECK
-// ═══════════════════════════════════════════════════════════
+// ── Level complete ───────────────────────────────────────────
 function checkLevelComplete(){
-  const lv = CONFIG.levels[currentLevel];
-
-  // All unique zone classes filled?
-  const uniqueKlassen = [...new Set(zones.map(z=> z.klasse))];
-  const allZonesFilled = uniqueKlassen.every(k=> zoneFilled[k]);
-  const trashOk        = lv.absent.every(a=> trashFilled[a]);
-
-  if(allZonesFilled && trashOk){
+  const lv=CONFIG.levels[currentLevel];
+  const uniqueKlassen=[...new Set(zones.map(z=>z.klasse))];
+  if(uniqueKlassen.every(k=>zoneFilled[k])&&lv.absent.every(a=>trashFilled[a])){
     stopTimer();
-    results.push({
-      image:  lv.id,
-      time:   Date.now() - levelStartTime,
-      errors: currentErrors,
-    });
-    document.getElementById('btn-next').style.display = 'block';
+    results.push({image:lv.id, time:Date.now()-levelStartTime, errors:currentErrors});
+    document.getElementById('btn-next').style.display='block';
   }
 }
-
 function nextLevel(){
-  if(currentLevel + 1 < CONFIG.levels.length) loadLevel(currentLevel + 1);
+  if(currentLevel+1<CONFIG.levels.length) loadLevel(currentLevel+1);
   else showResults();
 }
 
-// ═══════════════════════════════════════════════════════════
-// TIMER
-// ═══════════════════════════════════════════════════════════
+// ── Timer ────────────────────────────────────────────────────
 function startTimer(){
-  stopTimer();
-  levelStartTime = Date.now();
-  timerInterval  = setInterval(()=>{
-    const s = (Date.now() - levelStartTime) / 1000;
-    document.getElementById('stat-time').textContent = s.toFixed(2);
-  }, 50);
+  stopTimer(); levelStartTime=Date.now();
+  timerInterval=setInterval(()=>{
+    document.getElementById('stat-time').textContent=
+      ((Date.now()-levelStartTime)/1000).toFixed(2);
+  },50);
 }
 function stopTimer(){ clearInterval(timerInterval); }
 
-// ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
+// ── Helpers ──────────────────────────────────────────────────
 function markChipUsed(id){
-  const c = document.getElementById('chip-'+id);
+  const c=document.getElementById('chip-'+id);
   if(c){ c.classList.remove('lifting'); c.classList.add('used'); }
 }
-function showFeedback(msg, type){
-  const f = document.getElementById('feedback');
-  f.textContent = msg;
-  f.className   = 'show ' + type;
-  clearTimeout(feedbackTimer);
-  feedbackTimer = setTimeout(()=>{ f.className=''; }, 1500);
+function showFeedback(msg,type){
+  const f=document.getElementById('feedback');
+  f.textContent=msg; f.className='show '+type;
+  clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>f.className='',1500);
 }
 
-// ═══════════════════════════════════════════════════════════
-// RESULTS + EXPORT
-// ═══════════════════════════════════════════════════════════
+// ── Results ──────────────────────────────────────────────────
 function showResults(){
   stopTimer();
-  const body = document.getElementById('results-body');
-  body.innerHTML = '';
-  let tm=0, te=0;
+  const body=document.getElementById('results-body'); body.innerHTML='';
+  let tm=0,te=0;
   results.forEach(r=>{
-    tm += r.time; te += r.errors;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.image}</td><td>${r.time}</td>`
-                 + `<td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
+    tm+=r.time; te+=r.errors;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
     body.appendChild(tr);
   });
-  const s = document.createElement('tr');
-  s.innerHTML = `<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td>`;
+  const s=document.createElement('tr');
+  s.innerHTML=`<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td>`;
   body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
 }
 function exportCSV(){
   download('eo_results.csv',
-    ['image,time_ms,time_s,errors',
-      ...results.map(r=>`${r.image},${r.time},${(r.time/1000).toFixed(3)},${r.errors}`)
-    ].join('\n'), 'text/csv');
+    ['image,time_ms,time_s,errors',...results.map(r=>
+      `${r.image},${r.time},${(r.time/1000).toFixed(3)},${r.errors}`)].join('\n'),'text/csv');
 }
-function exportJSON(){
-  download('eo_results.json', JSON.stringify(results,null,2), 'application/json');
-}
-function download(name, content, type){
-  const a = document.createElement('a');
-  a.href     = URL.createObjectURL(new Blob([content],{type}));
-  a.download = name;
-  a.click();
+function exportJSON(){ download('eo_results.json',JSON.stringify(results,null,2),'application/json'); }
+function download(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click();
 }
 
-// ═══════════════════════════════════════════════════════════
-// DEBUG: draw zone polygons onto canvas (press D to toggle)
-// Each unique klasse gets a distinct colour so you can see
-// exactly where the hitboxes are relative to the image.
-// ═══════════════════════════════════════════════════════════
-const DEBUG_COLOURS = [
-  'rgba(255,77,109,0.55)',   // red
-  'rgba(0,212,255,0.55)',    // cyan
-  'rgba(0,255,157,0.55)',    // green
-  'rgba(255,200,0,0.55)',    // yellow
-  'rgba(200,100,255,0.55)',  // purple
-  'rgba(255,140,0,0.55)',    // orange
-];
-
-function drawDebugZones(){
-  const w = elStage.offsetWidth;
-  const h = elStage.offsetHeight;
-  elDebugCanvas.width  = w;
-  elDebugCanvas.height = h;
-  const ctx = elDebugCanvas.getContext('2d');
-  ctx.clearRect(0, 0, w, h);
-
-  // Assign a colour per unique klasse
-  const klasseList = [...new Set(zones.map(z => z.klasse))];
-  const colourMap  = {};
-  klasseList.forEach((k, i) => {
-    colourMap[k] = DEBUG_COLOURS[i % DEBUG_COLOURS.length];
-  });
-
-  zones.forEach(zone => {
-    const ring = zone.fracRing;
-    if(!ring || ring.length < 2) return;
-    ctx.beginPath();
-    ctx.moveTo(ring[0][0] * w, ring[0][1] * h);
-    for(let i = 1; i < ring.length; i++){
-      ctx.lineTo(ring[i][0] * w, ring[i][1] * h);
-    }
-    ctx.closePath();
-    ctx.fillStyle   = colourMap[zone.klasse];
-    ctx.strokeStyle = colourMap[zone.klasse].replace('0.55','1');
-    ctx.lineWidth   = 2;
-    ctx.fill();
-    ctx.stroke();
-
-    // Draw klasse label at centroid
-    const cx = ring.reduce((s,p)=>s+p[0],0)/ring.length * w;
-    const cy = ring.reduce((s,p)=>s+p[1],0)/ring.length * h;
-    ctx.font      = 'bold 12px JetBrains Mono, monospace';
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.strokeStyle  = 'rgba(0,0,0,0.8)';
-    ctx.lineWidth    = 3;
-    ctx.strokeText(zone.klasse, cx, cy);
-    ctx.fillText(zone.klasse, cx, cy);
-  });
-}
-
-function toggleDebug(){
-  debugMode = !debugMode;
-  if(debugMode){
-    elDebugCanvas.style.display = 'block';
-    elDebugLabel.style.display  = 'block';
-    drawDebugZones();
-  } else {
-    elDebugCanvas.style.display = 'none';
-    elDebugLabel.style.display  = 'none';
-  }
-}
-
-// Keyboard shortcut: D = toggle debug overlay
-document.addEventListener('keydown', e => {
-  if(e.key === 'd' || e.key === 'D') toggleDebug();
-});
-
-// ── Boot ──
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
