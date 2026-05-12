@@ -168,6 +168,42 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 .results-actions button.primary{background:var(--accent2);color:#0b0f14;border-color:var(--accent2)}
 
 @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(0,255,157,0)}}
+
+/* ── READY / COUNTDOWN OVERLAY ── */
+#ready-overlay{
+  position:absolute;inset:0;z-index:1000;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(11,15,20,0.92);
+  gap:32px;
+}
+#ready-overlay.active{display:flex}
+#ready-level-tag{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:.18em;text-transform:uppercase;
+}
+#ready-btn{
+  padding:16px 52px;border:none;background:var(--accent2);color:#0b0f14;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:17px;
+  cursor:pointer;letter-spacing:.06em;
+  animation:pulse 1.8s infinite;transition:transform .15s;
+}
+#ready-btn:hover{transform:translateY(-2px)}
+#countdown-wrap{display:none;flex-direction:column;align-items:center;gap:16px}
+#countdown-num{
+  font-family:'JetBrains Mono',monospace;font-size:96px;font-weight:600;
+  color:var(--accent);line-height:1;
+  animation:cdpulse .9s ease-in-out infinite;
+}
+#countdown-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:.2em;
+}
+@keyframes cdpulse{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.08);opacity:.7}
+  100%{transform:scale(1);opacity:1}
+}
 </style>
 </head>
 <body>
@@ -213,6 +249,20 @@ tr:last-child td{font-weight:700;color:var(--accent)}
 <div id="main">
   <div id="stage">
     <img id="sat-img" src="" alt="" draggable="false">
+
+    <!-- Ready / Countdown overlay -->
+    <div id="ready-overlay">
+      <div id="ready-level-tag"></div>
+      <!-- Ready button -->
+      <div id="ready-btn-wrap">
+        <button id="ready-btn" onclick="onReadyClick()">Bereit ›</button>
+      </div>
+      <!-- Countdown (shown after Bereit) -->
+      <div id="countdown-wrap">
+        <div id="countdown-num">3</div>
+        <div id="countdown-label">EXPERIMENT STARTET …</div>
+      </div>
+    </div>
 
     <!-- Debug canvas (drawn by JS) -->
     <canvas id="debug-canvas"></canvas>
@@ -385,11 +435,13 @@ async function loadLevel(i){
   }
 
   buildZones(geojson, lv.bounds);
-  buildDebugPanel();          // rebuild checkboxes for this level's klassen
+  buildDebugPanel();
   if(debugMode) redrawDebug();
 
   renderLabels(lv);
-  startTimer();
+
+  // Show "Bereit" overlay – timer starts only after countdown
+  showReadyOverlay(lv);
 }
 
 // ── Build zones ─────────────────────────────────────────────
@@ -855,6 +907,49 @@ function checkLevelComplete(){
 function nextLevel(){
   if(currentLevel+1<CONFIG.levels.length) loadLevel(currentLevel+1);
   else showResults();
+}
+
+// ── Ready / Countdown ───────────────────────────────────────
+function showReadyOverlay(lv){
+  // Hide image and labels until countdown ends
+  elSatImg.style.visibility    = 'hidden';
+  document.getElementById('label-bar').style.visibility = 'hidden';
+  elTrash.style.visibility     = 'hidden';
+
+  const overlay = document.getElementById('ready-overlay');
+  document.getElementById('ready-level-tag').textContent =
+    `LEVEL ${currentLevel + 1} / ${CONFIG.levels.length}  —  ${lv.id}`;
+
+  // Reset to "Bereit" state (hide countdown, show button)
+  document.getElementById('ready-btn-wrap').style.display  = 'flex';
+  document.getElementById('countdown-wrap').style.display  = 'none';
+  document.getElementById('countdown-num').textContent     = '3';
+
+  overlay.classList.add('active');
+}
+
+function onReadyClick(){
+  // Switch to countdown
+  document.getElementById('ready-btn-wrap').style.display = 'none';
+  document.getElementById('countdown-wrap').style.display = 'flex';
+  runCountdown(3);
+}
+
+function runCountdown(n){
+  const numEl = document.getElementById('countdown-num');
+  numEl.textContent = n;
+
+  if(n === 0){
+    // Countdown done – reveal image and start
+    const overlay = document.getElementById('ready-overlay');
+    overlay.classList.remove('active');
+    elSatImg.style.visibility    = 'visible';
+    document.getElementById('label-bar').style.visibility = 'visible';
+    elTrash.style.visibility     = 'visible';
+    startTimer();
+    return;
+  }
+  setTimeout(() => runCountdown(n - 1), 1000);
 }
 
 // ── Timer ────────────────────────────────────────────────────
