@@ -24,10 +24,19 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 @keyframes spin{to{transform:rotate(360deg)}}
 
 #start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;
-  justify-content:center;background:var(--bg);transition:opacity .4s}
+  justify-content:center;transition:opacity .4s;
+  background:url('./Bilder/Deko_und_UI/Startscreen.png') center/cover no-repeat;
+}
+#start-screen::before{
+  /* dark vignette so the panel stays readable */
+  content:'';position:absolute;inset:0;
+  background:rgba(11,15,20,0.55);
+}
 #start-screen.hidden{opacity:0;pointer-events:none}
-.start-panel{width:min(720px,90vw);padding:56px;background:var(--panel);
-  border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:center}
+.start-panel{position:relative;z-index:1;
+  width:min(720px,90vw);padding:56px;
+  background:rgba(18,24,32,0.88);backdrop-filter:blur(6px);
+  border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.7);text-align:center}
 .start-kicker{font-family:'JetBrains Mono',monospace;color:var(--accent);
   letter-spacing:.2em;font-size:11px;margin-bottom:16px}
 .start-panel h1{font-size:42px;margin-bottom:18px;line-height:1.1}
