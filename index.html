@@ -23,8 +23,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-#start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;
-  justify-content:center;transition:opacity .4s;
+#start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;
+  justify-content:flex-end;transition:opacity .4s;
   background:url('./Bilder/Deko_und_UI/Startscreen.png') center/cover no-repeat;
 }
 #start-screen::before{
@@ -33,23 +33,23 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 }
 #start-screen.hidden{opacity:0;pointer-events:none}
 .start-panel{position:relative;z-index:1;
-  width:min(560px,88vw);padding:32px 40px;
+  width:min(400px,92vw);padding:18px 22px;
   background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,0.18);
   box-shadow:0 8px 40px rgba(0,0,0,.45);text-align:center;
-  margin-top:18vh;}
+  margin:0 28px 28px 0;}
 .start-kicker{font-family:'JetBrains Mono',monospace;color:var(--accent);
-  letter-spacing:.2em;font-size:10px;margin-bottom:10px}
-.start-panel h1{font-size:28px;margin-bottom:12px;line-height:1.15;color:#fff}
-.start-panel p{line-height:1.6;margin-bottom:16px;color:rgba(255,255,255,0.75);font-size:13px}
-.briefing-box{text-align:left;padding:14px 18px;
+  letter-spacing:.2em;font-size:9px;margin-bottom:6px}
+.start-panel h1{font-size:22px;margin-bottom:8px;line-height:1.15;color:#fff}
+.start-panel p{line-height:1.5;margin-bottom:10px;color:rgba(255,255,255,0.75);font-size:12px}
+.briefing-box{text-align:left;padding:8px 12px;
   border:1px solid rgba(255,255,255,0.15);
   background:rgba(0,0,0,0.28);
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  margin-bottom:20px;display:grid;gap:7px;color:rgba(255,255,255,0.85)}
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  margin-bottom:12px;display:grid;gap:4px;color:rgba(255,255,255,0.85)}
 .briefing-box span{color:var(--accent2)}
-#btn-start{padding:11px 36px;border:none;background:var(--accent2);color:#0b0f14;
-  font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;
+#btn-start{padding:9px 28px;border:none;background:var(--accent2);color:#0b0f14;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;
   letter-spacing:.06em;animation:pulse 1.8s infinite;transition:transform .15s}
 #btn-start:hover{transform:translateY(-2px)}
 #level-count-text{font-weight:700;color:var(--accent)}
