@@ -232,6 +232,7 @@ def main():
             "bounds":          bounds,
             "absent":          absent,           # komplett fehlend → nur Papierkorb
             "absent_optional": absent_optional,  # zu klein → Papierkorb ODER Karte
+            "areas":           areas,            # {klasse: anteil 0-1} für Debug-Anzeige
         })
         print()
 
