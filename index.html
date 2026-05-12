@@ -28,25 +28,28 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
   background:url('./Bilder/Deko_und_UI/Startscreen.png') center/cover no-repeat;
 }
 #start-screen::before{
-  /* dark vignette so the panel stays readable */
   content:'';position:absolute;inset:0;
-  background:rgba(11,15,20,0.55);
+  background:rgba(11,15,20,0.25);
 }
 #start-screen.hidden{opacity:0;pointer-events:none}
 .start-panel{position:relative;z-index:1;
-  width:min(720px,90vw);padding:56px;
-  background:rgba(18,24,32,0.88);backdrop-filter:blur(6px);
-  border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.7);text-align:center}
+  width:min(560px,88vw);padding:32px 40px;
+  background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 8px 40px rgba(0,0,0,.45);text-align:center;
+  margin-top:18vh;}
 .start-kicker{font-family:'JetBrains Mono',monospace;color:var(--accent);
-  letter-spacing:.2em;font-size:11px;margin-bottom:16px}
-.start-panel h1{font-size:42px;margin-bottom:18px;line-height:1.1}
-.start-panel p{line-height:1.7;margin-bottom:24px;color:#8aa0b8}
-.briefing-box{text-align:left;padding:22px 26px;border:1px solid var(--border);
-  background:#0d141d;font-family:'JetBrains Mono',monospace;font-size:13px;
-  margin-bottom:32px;display:grid;gap:10px}
+  letter-spacing:.2em;font-size:10px;margin-bottom:10px}
+.start-panel h1{font-size:28px;margin-bottom:12px;line-height:1.15;color:#fff}
+.start-panel p{line-height:1.6;margin-bottom:16px;color:rgba(255,255,255,0.75);font-size:13px}
+.briefing-box{text-align:left;padding:14px 18px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(0,0,0,0.28);
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  margin-bottom:20px;display:grid;gap:7px;color:rgba(255,255,255,0.85)}
 .briefing-box span{color:var(--accent2)}
-#btn-start{padding:15px 44px;border:none;background:var(--accent2);color:#0b0f14;
-  font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;
+#btn-start{padding:11px 36px;border:none;background:var(--accent2);color:#0b0f14;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;
   letter-spacing:.06em;animation:pulse 1.8s infinite;transition:transform .15s}
 #btn-start:hover{transform:translateY(-2px)}
 #level-count-text{font-weight:700;color:var(--accent)}
