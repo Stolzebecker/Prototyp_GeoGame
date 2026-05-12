@@ -738,44 +738,80 @@ function handleStageDrop(fx,fy,localX,localY){
     return;
   }
   if(hitKlassen.has(draggingId)){
-    zoneFilled[draggingId]=true;
-    const lbl=CONFIG.labels.find(l=>l.id===draggingId);
-    const txt='✓ '+(lbl?lbl.icon+' '+lbl.text:draggingId);
-    const ok=document.createElement('div');
-    ok.className='zone-ok'; ok.textContent=txt;
-    ok.style.left=localX+'px'; ok.style.top=localY+'px';
+    const lv2 = CONFIG.levels[currentLevel];
+    const absentOpt = lv2.absent_optional || [];
+    const isOptional = absentOpt.includes(draggingId);
+
+    // Mark as zone-filled (so level-complete check works)
+    zoneFilled[draggingId] = true;
+    // Also mark trash as filled so it doesn't block completion
+    if(isOptional) trashFilled[draggingId] = true;
+
+    const lbl = CONFIG.labels.find(l => l.id === draggingId);
+    const txt  = '✓ ' + (lbl ? lbl.icon + ' ' + lbl.text : draggingId);
+    const ok   = document.createElement('div');
+    ok.className = 'zone-ok'; ok.textContent = txt;
+    ok.style.left = localX + 'px'; ok.style.top = localY + 'px';
     elStage.appendChild(ok);
     markChipUsed(draggingId);
-    showFeedback('✓ Korrekt','ok');
-    if(debugMode) redrawDebug();  // refresh so filled zones still show
+    const msg = isOptional
+      ? '✓ Kleines Objekt gefunden!'
+      : '✓ Korrekt';
+    showFeedback(msg, 'ok');
+    if(debugMode) redrawDebug();
     checkLevelComplete();
   } else {
     currentErrors++;
-    document.getElementById('stat-err-val').textContent=currentErrors;
-    showFeedback('✗ Falsches Label für diesen Bereich','err');
+    document.getElementById('stat-err-val').textContent = currentErrors;
+    showFeedback('✗ Falsches Label für diesen Bereich', 'err');
   }
 }
 
 // ── Trash drop ───────────────────────────────────────────────
 function handleTrashDrop(){
-  const lv=CONFIG.levels[currentLevel];
-  if(lv.absent.includes(draggingId)){
-    trashFilled[draggingId]=true; markChipUsed(draggingId);
-    const done=Object.keys(trashFilled).length;
-    document.getElementById('trash-count').textContent=done+' / '+lv.absent.length;
-    showFeedback('✓ Korrekt entfernt','ok'); checkLevelComplete();
+  const lv = CONFIG.levels[currentLevel];
+  const absentOpt = lv.absent_optional || [];
+  // Accept: truly absent OR too small (absent_optional)
+  if(lv.absent.includes(draggingId) || absentOpt.includes(draggingId)){
+    trashFilled[draggingId] = true;
+    markChipUsed(draggingId);
+    const totalTrash = lv.absent.length + absentOpt.length;
+    const done = Object.keys(trashFilled).length;
+    document.getElementById('trash-count').textContent = done + ' / ' + totalTrash;
+    const msg = absentOpt.includes(draggingId)
+      ? '✓ Zu kleines Objekt – korrekt entfernt'
+      : '✓ Korrekt entfernt';
+    showFeedback(msg, 'ok');
+    checkLevelComplete();
   } else {
     currentErrors++;
-    document.getElementById('stat-err-val').textContent=currentErrors;
-    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen','err');
+    document.getElementById('stat-err-val').textContent = currentErrors;
+    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen', 'err');
   }
 }
 
 // ── Level complete ───────────────────────────────────────────
 function checkLevelComplete(){
-  const lv=CONFIG.levels[currentLevel];
-  const uniqueKlassen=[...new Set(zones.map(z=>z.klasse))];
-  if(uniqueKlassen.every(k=>zoneFilled[k])&&lv.absent.every(a=>trashFilled[a])){
+  const lv = CONFIG.levels[currentLevel];
+  const absentOpt = lv.absent_optional || [];
+
+  // Zones that must be placed on the map:
+  // all klassen that are present (not in absent, not in absent_optional)
+  const mustPlace = [...new Set(zones.map(z => z.klasse))]
+    .filter(k => !absentOpt.includes(k));
+
+  // Items that must be trashed: truly absent + absent_optional
+  // (absent_optional can also be resolved via map, handled in handleStageDrop)
+  const mustTrash = [
+    ...lv.absent,
+    ...absentOpt.filter(k => !zoneFilled[k]), // only if not already placed on map
+  ];
+
+  const zonesOk = mustPlace.every(k => zoneFilled[k]);
+  const trashOk = lv.absent.every(a => trashFilled[a])
+               && absentOpt.every(a => trashFilled[a] || zoneFilled[a]);
+
+  if(zonesOk && trashOk){
     stopTimer();
     results.push({image:lv.id, time:Date.now()-levelStartTime, errors:currentErrors});
     document.getElementById('btn-next').style.display='block';
