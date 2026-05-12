@@ -149,7 +149,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);
 #btn-next{display:none;position:fixed;right:28px;bottom:90px;
   padding:11px 28px;background:var(--accent2);color:#0b0f14;border:none;
   font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
-  cursor:pointer;z-index:400;animation:pulse 1.8s infinite;transition:transform .15s}
+  cursor:pointer;z-index:800;animation:pulse 1.8s infinite;transition:transform .15s}
 #btn-next:hover{transform:translateY(-2px)}
 
 #results-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1500;
@@ -592,7 +592,29 @@ function setupMouseEvents(){
     if(inStage){
       const lx=e.clientX-rect.left, ly=e.clientY-rect.top;
       updateLoupe(lx,ly,rect.width,rect.height);
-      elLoupe.style.left=lx+'px'; elLoupe.style.top=ly+'px';
+      // When dragging: offset loupe so it doesn't cover the pin/drop area.
+      // Loupe is 250px; place it above-left with a small gap.
+      // But keep it fully inside the stage (clamp to edges).
+      const LOUPE_R = LOUPE_D / 2;
+      const OFFSET  = 30; // gap between cursor and loupe edge
+      if(draggingId){
+        // Prefer upper-left; flip to other side if too close to edge
+        const stageW2 = rect.width, stageH2 = rect.height;
+        let ox = lx - LOUPE_R - OFFSET;
+        let oy = ly - LOUPE_R - OFFSET;
+        // Flip right if clipped left
+        if(ox - LOUPE_R < 0) ox = lx + LOUPE_R + OFFSET;
+        // Flip down if clipped top
+        if(oy - LOUPE_R < 0) oy = ly + LOUPE_R + OFFSET;
+        // Hard clamp to stay inside stage
+        ox = Math.max(LOUPE_R, Math.min(stageW2 - LOUPE_R, ox));
+        oy = Math.max(LOUPE_R, Math.min(stageH2 - LOUPE_R, oy));
+        elLoupe.style.left = ox + 'px';
+        elLoupe.style.top  = oy + 'px';
+      } else {
+        elLoupe.style.left = lx + 'px';
+        elLoupe.style.top  = ly + 'px';
+      }
       elLoupe.style.display='block';
       if(draggingId){
         elPin.style.left=lx+'px'; elPin.style.top=ly+'px';
