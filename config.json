@@ -31,6 +31,7 @@
       "icon": "💧"
     }
   ],
+  "area_threshold": 0.05,
   "levels": [
     {
       "id": "B1",
@@ -46,7 +47,11 @@
           15.077939
         ]
       ],
-      "absent": []
+      "absent": [],
+      "absent_optional": [
+        "See",
+        "Siedlung"
+      ]
     },
     {
       "id": "B2",
@@ -62,7 +67,11 @@
           8.679778
         ]
       ],
-      "absent": []
+      "absent": [],
+      "absent_optional": [
+        "Fluss",
+        "Wald"
+      ]
     },
     {
       "id": "B4",
@@ -80,6 +89,10 @@
       ],
       "absent": [
         "Straße"
+      ],
+      "absent_optional": [
+        "See",
+        "Siedlung"
       ]
     },
     {
@@ -99,6 +112,10 @@
       "absent": [
         "See",
         "Wald"
+      ],
+      "absent_optional": [
+        "Acker",
+        "Siedlung"
       ]
     },
     {
@@ -115,7 +132,11 @@
           8.814067
         ]
       ],
-      "absent": []
+      "absent": [],
+      "absent_optional": [
+        "Fluss",
+        "See"
+      ]
     }
   ]
 }
