@@ -15,7 +15,7 @@ import os
 import glob
 import numpy as np
 
-TIF_DIR = "./Bilder/EO_Bilder"
+TIF_DIR = "../Bilder/EO_Bilder"
 
 
 def convert(tif_path, png_path):
