@@ -1,0 +1,179 @@
+{
+  "labels": [
+    {
+      "id": "Wald",
+      "text": "Wald",
+      "icon": "🌲"
+    },
+    {
+      "id": "Fluss",
+      "text": "Fluss",
+      "icon": "🌊"
+    },
+    {
+      "id": "Siedlung",
+      "text": "Siedlung",
+      "icon": "🏘️"
+    },
+    {
+      "id": "Acker",
+      "text": "Acker",
+      "icon": "🌾"
+    },
+    {
+      "id": "Straße",
+      "text": "Straße",
+      "icon": "🛣️"
+    },
+    {
+      "id": "See",
+      "text": "See",
+      "icon": "💧"
+    }
+  ],
+  "area_threshold": 0.05,
+  "levels": [
+    {
+      "id": "B1",
+      "imgSrc": "./Bilder/EO_Bilder/B1norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B1puf.geojson",
+      "bounds": [
+        [
+          47.955712,
+          14.968597
+        ],
+        [
+          48.010572,
+          15.077939
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "See",
+        "Siedlung"
+      ],
+      "areas": {
+        "Acker": 0.5067,
+        "Fluss": 0.0529,
+        "See": 0.0003,
+        "Siedlung": 0.0379,
+        "Straße": 0.2547,
+        "Wald": 0.1634
+      }
+    },
+    {
+      "id": "B2",
+      "imgSrc": "./Bilder/EO_Bilder/B2norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B2puf.geojson",
+      "bounds": [
+        [
+          49.402391,
+          8.64291
+        ],
+        [
+          49.42048,
+          8.679778
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Fluss",
+        "Wald"
+      ],
+      "areas": {
+        "Acker": 0.0972,
+        "Fluss": 0.0432,
+        "See": 0.0854,
+        "Siedlung": 0.4504,
+        "Straße": 0.7515,
+        "Wald": 0.0464
+      }
+    },
+    {
+      "id": "B4",
+      "imgSrc": "./Bilder/EO_Bilder/B4norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B4puf.geojson",
+      "bounds": [
+        [
+          46.67481,
+          7.869288
+        ],
+        [
+          46.786753,
+          8.089795
+        ]
+      ],
+      "absent": [
+        "Straße"
+      ],
+      "absent_optional": [
+        "See",
+        "Siedlung"
+      ],
+      "areas": {
+        "Acker": 0.1508,
+        "Fluss": 0.0503,
+        "See": 0.0019,
+        "Siedlung": 0.0179,
+        "Wald": 0.2086
+      }
+    },
+    {
+      "id": "B5",
+      "imgSrc": "./Bilder/EO_Bilder/B5norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B5puf.geojson",
+      "bounds": [
+        [
+          25.994553,
+          32.216663
+        ],
+        [
+          26.141504,
+          32.435871
+        ]
+      ],
+      "absent": [
+        "See",
+        "Wald"
+      ],
+      "absent_optional": [
+        "Acker",
+        "Siedlung"
+      ],
+      "areas": {
+        "Acker": 0.0,
+        "Fluss": 0.1499,
+        "Siedlung": 0.0098,
+        "Straße": 0.6466
+      }
+    },
+    {
+      "id": "B6",
+      "imgSrc": "./Bilder/EO_Bilder/B6norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/B6puf.geojson",
+      "bounds": [
+        [
+          49.364995,
+          8.594956
+        ],
+        [
+          49.471445,
+          8.814067
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Fluss",
+        "See"
+      ],
+      "areas": {
+        "Acker": 0.273,
+        "Fluss": 0.0377,
+        "See": 0.0127,
+        "Siedlung": 0.1913,
+        "Straße": 0.546,
+        "Wald": 0.3215
+      }
+    }
+  ]
+}
