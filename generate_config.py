@@ -30,7 +30,7 @@ import math
 # ── Konfiguration ───────────────────────────────────────────────────────
 TIF_DIR     = "./Bilder/EO_Bilder"
 GEOJSON_DIR = "./Bilder/Hitboxes"
-OUTPUT_FILE = "./config.json"
+OUTPUT_FILE = "./data/config.json"
 
 # Schwellenwert: Anteil der Polygon-Gesamtfläche an der Bildfläche.
 # Klassen darunter → absent_optional (Papierkorb ODER Karte = richtig).
