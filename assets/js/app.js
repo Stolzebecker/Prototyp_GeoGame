@@ -3,7 +3,7 @@
  * EO Visual Complexity Experiment
  * ─────────────────────────────────────────
  * Entry point: boot() is called on DOMContentLoaded.
- * Config is loaded from data/config.json.
+ * Config is loaded from config.json (repo root).
  *
  * Module overview:
  *   boot()            – loads config.json, shows start screen
