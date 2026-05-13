@@ -27,10 +27,15 @@ import os
 import glob
 import math
 
+# Resolve paths relative to repo root, not working directory
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR   = os.path.dirname(SCRIPT_DIR)
+
+
 # ── Konfiguration ───────────────────────────────────────────────────────
-TIF_DIR     = "../Bilder/EO_Bilder"
-GEOJSON_DIR = "../Bilder/Hitboxes"
-OUTPUT_FILE = "../data/config.json"
+TIF_DIR     = os.path.join(ROOT_DIR, "Bilder", "EO_Bilder")
+GEOJSON_DIR = os.path.join(ROOT_DIR, "Bilder", "Hitboxes")
+OUTPUT_FILE = os.path.join(ROOT_DIR, "data", "config.json")
 
 # Schwellenwert: Anteil der Polygon-Gesamtfläche an der Bildfläche.
 # Klassen darunter → absent_optional (Papierkorb ODER Karte = richtig).
