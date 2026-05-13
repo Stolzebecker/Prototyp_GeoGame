@@ -15,7 +15,12 @@ import os
 import glob
 import numpy as np
 
-TIF_DIR = "../Bilder/EO_Bilder"
+# Resolve paths relative to repo root, not working directory
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR   = os.path.dirname(SCRIPT_DIR)
+
+
+TIF_DIR = os.path.join(ROOT_DIR, "Bilder", "EO_Bilder")
 
 
 def convert(tif_path, png_path):
