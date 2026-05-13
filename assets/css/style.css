@@ -41,7 +41,7 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
 
 #start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;
   justify-content:flex-end;transition:opacity .4s;
-  background:url('../../Bilder/Deko_und_UI/Startscreen.png') center/cover no-repeat;
+  background:url('././Bilder/Deko_und_UI/Startscreen.png') center/cover no-repeat;
 }
 #start-screen::before{
   content:'';position:absolute;inset:0;
