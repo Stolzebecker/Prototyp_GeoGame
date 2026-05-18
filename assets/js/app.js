@@ -308,7 +308,7 @@ function redrawDebug(){
     // Centroid label
     const cx=ring.reduce((s,p)=>s+p[0],0)/ring.length*w;
     const cy=ring.reduce((s,p)=>s+p[1],0)/ring.length*h;
-    elDebugCtx.font='bold 11px JetBrains Mono,monospace';
+    elDebugCtx.font='bold 11px Segoe UI,sans-serif';
     elDebugCtx.textAlign='center';
     elDebugCtx.textBaseline='middle';
     elDebugCtx.strokeStyle='rgba(0,0,0,0.85)';
