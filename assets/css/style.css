@@ -14,6 +14,7 @@
  */
 
 :root{
+  --font-ui: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   /* rgeo CI */
   --bg:#0f1a2e;           /* near-black navy base */
   --panel:#0a3f70;        /* primary blue panel */
