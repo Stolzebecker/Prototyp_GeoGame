@@ -1,32 +1,25 @@
 """
 pipeline.py – EO Visual Complexity Experiment
 ═══════════════════════════════════════════════
-Doppelklick-Pipeline für Windows.
+Doppelklick-Pipeline für Windows (via Verarbeitung_starten.bat).
 
 Was passiert automatisch:
-  1. TIFs aus input/ einlesen
-  2. Auf 4:3 Seitenverhältnis zentriert zuschneiden
-  3. Als 1024×768 px PNG speichern → Bilder/EO_Bilder/
-  4. OSM-Daten (Overpass API) für Bild-Bounds abrufen
-  5. Polygone per Klasse auflösen (dissolve) → Polygon-Reduktion
-  6. Als GeoJSON speichern → Bilder/Hitboxes/
-  7. Flächenanteile berechnen, absent/absent_optional setzen
-  8. data/config.json aktualisieren
+  1. TIFs aus input/ einlesen (jede Datei genau einmal)
+  2. Auf 4:3 zentriert zuschneiden → 1024×768 px PNG
+  3. OSM-Hitboxes via Overpass API (bewährter Ansatz)
+  4. Polygon-Reduktion via geopandas dissolve
+  5. data/config.json aktualisieren
 
-Parameter (aus bestehenden Bildern abgeleitet):
-  Seitenverhältnis : 4:3
-  Ausgabe-Auflösung: 1024 × 768 px
-  Zuschnitt        : zentriert
-  Polygon-Reduktion: geopandas dissolve(by="klasse")
-
-Abhängigkeiten (einmalig via build_exe.bat installieren):
-  pip install rasterio numpy pillow requests geopandas shapely pyinstaller
+Abhängigkeiten:
+  pip install rasterio numpy pillow requests geopandas shapely
 """
 
-import os, sys, json, math, glob, time, traceback
+import os, sys, json, math, glob, time, traceback, logging
 import tkinter as tk
 from tkinter import scrolledtext, ttk
 import threading
+import warnings
+warnings.filterwarnings("ignore")
 
 # ── Konstanten ───────────────────────────────────────────────────────────
 SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
@@ -36,10 +29,9 @@ HITBOX_DIR    = os.path.join(SCRIPT_DIR, "Bilder", "Hitboxes")
 DATA_DIR      = os.path.join(SCRIPT_DIR, "data")
 CONFIG_FILE   = os.path.join(DATA_DIR, "config.json")
 
-TARGET_W      = 1024   # px
-TARGET_H      = 768    # px  → 4:3
-ASPECT        = TARGET_W / TARGET_H   # 1.3333…
-
+TARGET_W       = 1024
+TARGET_H       = 768
+ASPECT         = TARGET_W / TARGET_H
 AREA_THRESHOLD = 0.05
 
 ALL_LABELS = [
@@ -52,35 +44,54 @@ ALL_LABELS = [
 ]
 ALL_LABEL_IDS = {l["id"] for l in ALL_LABELS}
 
-# OSM Overpass queries per Klasse
-OSM_QUERIES = {
-    "Wald": """
-        way["landuse"="forest"](bbox);
-        way["natural"="wood"](bbox);
-        relation["landuse"="forest"](bbox);
-        relation["natural"="wood"](bbox);
-    """,
-    "Fluss": """
-        way["waterway"~"river|stream|canal"](bbox);
-        relation["waterway"~"river|stream|canal"](bbox);
-    """,
-    "Siedlung": """
-        way["landuse"~"residential|commercial|industrial|retail"](bbox);
-        relation["landuse"~"residential|commercial|industrial|retail"](bbox);
-    """,
-    "Acker": """
-        way["landuse"~"farmland|meadow|orchard|vineyard|allotments"](bbox);
-        relation["landuse"~"farmland|meadow|orchard|vineyard|allotments"](bbox);
-    """,
-    "Straße": """
-        way["highway"~"motorway|trunk|primary|secondary|tertiary|residential|unclassified"](bbox);
-    """,
-    "See": """
-        way["natural"="water"](bbox);
-        way["landuse"="reservoir"](bbox);
-        relation["natural"="water"](bbox);
-        relation["type"="multipolygon"]["natural"="water"](bbox);
-    """,
+OVERPASS_ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+]
+
+# Bewährte OSM-Klassen-Definition (aus ursprünglichem generate_hitboxes.py)
+OSM_CLASSES = {
+    "Wald": {
+        "filters": [
+            '["landuse"~"^(forest|wood)$"]',
+            '["natural"~"^(wood|scrub|heath)$"]',
+        ],
+        "buffer_m": None,
+    },
+    "See": {
+        "filters": [
+            '["natural"~"^(water|lake|pond|reservoir)$"]',
+            '["landuse"~"^(reservoir|basin)$"]',
+        ],
+        "buffer_m": None,
+    },
+    "Fluss": {
+        "filters": [
+            '["waterway"~"^(river|stream|canal|drain|ditch)$"]',
+        ],
+        "buffer_m": 50,
+    },
+    "Siedlung": {
+        "filters": [
+            '["landuse"~"^(residential|commercial|industrial|retail|construction|garages)$"]',
+            '["building"]',
+        ],
+        "buffer_m": None,
+    },
+    "Acker": {
+        "filters": [
+            '["landuse"~"^(farmland|farm|farmyard|orchard|vineyard|meadow|grass|allotments)$"]',
+            '["natural"~"^(grassland)$"]',
+        ],
+        "buffer_m": None,
+    },
+    "Straße": {
+        "filters": [
+            '["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|road)$"]',
+        ],
+        "buffer_m": 50,
+    },
 }
 
 
@@ -91,11 +102,10 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("EO Pipeline – rgeo")
-        self.geometry("720x540")
+        self.geometry("720x560")
         self.configure(bg="#0a3f70")
         self.resizable(False, False)
 
-        # Header
         hdr = tk.Frame(self, bg="#0a3f70")
         hdr.pack(fill="x", padx=20, pady=(18, 0))
         tk.Label(hdr, text="EO · PIPELINE",
@@ -105,7 +115,6 @@ class App(tk.Tk):
                  font=("Segoe UI", 18, "bold"),
                  fg="white", bg="#0a3f70").pack(anchor="w")
 
-        # Info
         info = tk.Frame(self, bg="#083060")
         info.pack(fill="x", padx=20, pady=10)
         tk.Label(info,
@@ -114,7 +123,6 @@ class App(tk.Tk):
                  font=("Segoe UI", 9),
                  fg="#c6c6c6", bg="#083060", pady=8).pack(anchor="w")
 
-        # Progress
         style = ttk.Style(self)
         style.theme_use("default")
         style.configure("gold.Horizontal.TProgressbar",
@@ -130,9 +138,8 @@ class App(tk.Tk):
             font=("Segoe UI", 9), fg="#c6c6c6", bg="#0a3f70")
         self.prog_label.pack(anchor="w", padx=22)
 
-        # Log
         self.log = scrolledtext.ScrolledText(
-            self, height=17, font=("Segoe UI", 9),
+            self, height=18, font=("Segoe UI", 9),
             bg="#051830", fg="#c6c6c6",
             insertbackground="white",
             relief="flat", bd=0, state="disabled")
@@ -143,7 +150,6 @@ class App(tk.Tk):
         self.log.tag_config("done", foreground="#84993d")
         self.log.tag_config("warn", foreground="#ec6608")
 
-        # Buttons
         btn_frame = tk.Frame(self, bg="#0a3f70")
         btn_frame.pack(pady=(0, 14))
         self.btn_start = tk.Button(
@@ -192,96 +198,213 @@ class App(tk.Tk):
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# OSM HELPERS (aus bewährtem generate_hitboxes.py)
+# ═══════════════════════════════════════════════════════════════════════
+def build_query(bbox_wgs84: tuple, filters: list) -> str:
+    w, s, e, n = bbox_wgs84
+    bbox_str = f"{s},{w},{n},{e}"
+    parts = []
+    for f in filters:
+        parts.append(f"  way{f}({bbox_str});")
+        parts.append(f"  relation{f}({bbox_str});")
+    union = "\n".join(parts)
+    return (
+        f"[out:json][timeout:120];\n"
+        f"(\n{union}\n);\n"
+        f"out body geom qt;"
+    )
+
+
+def overpass_request(query: str, app=None, retries: int = 3, delay: float = 10.0):
+    """POST als reiner String – kein dict (verhindert 406-Fehler)."""
+    import requests as req
+    for attempt in range(1, retries + 1):
+        for endpoint in OVERPASS_ENDPOINTS:
+            try:
+                resp = req.post(
+                    endpoint,
+                    data=query,           # ← reiner String, kein dict
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=120,
+                )
+                if resp.status_code == 429:
+                    if app: app.log_write("   Rate-limit – warte 60 s", "warn")
+                    time.sleep(60)
+                    continue
+                if resp.status_code != 200:
+                    if app: app.log_write(
+                        f"   HTTP {resp.status_code} ({endpoint})", "warn")
+                    continue
+                return resp.json()
+            except req.exceptions.Timeout:
+                if app: app.log_write(f"   Timeout ({endpoint})", "warn")
+            except Exception as exc:
+                if app: app.log_write(f"   Fehler: {exc}", "warn")
+        time.sleep(delay)
+    return None
+
+
+def osm_element_to_shapely(el: dict):
+    from shapely.geometry import Point, LineString, Polygon
+    t = el.get("type")
+    try:
+        if t == "node":
+            return Point(el["lon"], el["lat"])
+        elif t == "way":
+            coords = [(m["lon"], m["lat"]) for m in el.get("geometry", [])]
+            if len(coords) < 2:
+                return None
+            if coords[0] == coords[-1] and len(coords) >= 4:
+                return Polygon(coords)
+            return LineString(coords)
+        elif t == "relation":
+            outer, inner = [], []
+            for member in el.get("members", []):
+                pts = [(g["lon"], g["lat"]) for g in member.get("geometry", [])]
+                if len(pts) < 2:
+                    continue
+                (inner if member.get("role") == "inner" else outer).append(pts)
+            if not outer:
+                return None
+            ext = outer[0]
+            if len(ext) >= 4 and ext[0] == ext[-1]:
+                return Polygon(ext, inner)
+            return LineString(ext)
+    except Exception:
+        return None
+    return None
+
+
+def elements_to_polygons(elements: list, bbox_wgs84: tuple, buffer_m=None):
+    import geopandas as gpd
+    from shapely.geometry import box
+    w, s, e, n = bbox_wgs84
+    clip_poly = box(w, s, e, n)
+
+    raw = [g for el in elements
+           if (g := osm_element_to_shapely(el)) is not None
+           and not g.is_empty]
+    if not raw:
+        return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+
+    gdf   = gpd.GeoDataFrame(geometry=raw, crs="EPSG:4326")
+    utm   = gdf.estimate_utm_crs()
+    gdf_m = gdf.to_crs(utm)
+
+    polys = []
+    for geom in gdf_m.geometry:
+        gt = geom.geom_type
+        if gt in ("Polygon", "MultiPolygon"):
+            polys.append(geom.buffer(0))
+        elif gt in ("LineString", "MultiLineString") and buffer_m:
+            polys.append(geom.buffer(buffer_m / 2))
+        elif gt in ("Point", "MultiPoint"):
+            polys.append(geom.buffer(10))
+        elif gt == "GeometryCollection":
+            for part in geom.geoms:
+                pt = part.geom_type
+                if pt in ("Polygon", "MultiPolygon"):
+                    polys.append(part.buffer(0))
+                elif pt in ("LineString", "MultiLineString") and buffer_m:
+                    polys.append(part.buffer(buffer_m / 2))
+
+    if not polys:
+        return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+
+    result = gpd.GeoDataFrame(geometry=polys, crs=utm).to_crs("EPSG:4326")
+    result["geometry"] = result.geometry.intersection(clip_poly)
+    result = result[
+        result.geometry.is_valid & ~result.geometry.is_empty
+    ].reset_index(drop=True)
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # PIPELINE
 # ═══════════════════════════════════════════════════════════════════════
 def run_pipeline(app):
     import rasterio
+    from rasterio.crs import CRS
     from rasterio.warp import transform_bounds
     import numpy as np
     from PIL import Image
-    import requests
     import geopandas as gpd
-    from shapely.geometry import shape
 
     for d in [INPUT_DIR, EO_DIR, HITBOX_DIR, DATA_DIR]:
         os.makedirs(d, exist_ok=True)
 
-    # ── 1. TIFs finden ────────────────────────────────────────────────
+    # ── 1. TIFs finden (dedupliziert) ────────────────────────────────
     app.log_write("── Schritt 1: TIF-Dateien suchen …", "info")
-    tifs = sorted(
-        glob.glob(os.path.join(INPUT_DIR, "*.tif"))  +
-        glob.glob(os.path.join(INPUT_DIR, "*.TIF"))  +
-        glob.glob(os.path.join(INPUT_DIR, "*.tiff")) +
-        glob.glob(os.path.join(INPUT_DIR, "*.TIFF"))
-    )
+    seen = set()
+    tifs = []
+    for pattern in ["*.tif", "*.TIF", "*.tiff", "*.TIFF"]:
+        for p in sorted(glob.glob(os.path.join(INPUT_DIR, pattern))):
+            norm = os.path.normcase(os.path.abspath(p))
+            if norm not in seen:
+                seen.add(norm)
+                tifs.append(p)
+    tifs = sorted(tifs)
+
     if not tifs:
         app.log_write(f"⚠  Keine TIF-Dateien in {INPUT_DIR}", "err")
         app.set_progress(0, "Keine TIFs gefunden.")
         return
-    app.log_write(f"   {len(tifs)} TIF(s) gefunden.", "ok")
 
-    levels   = []
-    n        = len(tifs)
+    app.log_write(f"   {len(tifs)} TIF(s) gefunden:", "ok")
+    for t in tifs:
+        app.log_write(f"   • {os.path.basename(t)}")
+
+    levels = []
+    n      = len(tifs)
 
     for idx, tif_path in enumerate(tifs):
-        bname    = f"B{idx + 1}"
-        png_out  = os.path.join(EO_DIR,     f"{bname}norm.png")
-        geo_out  = os.path.join(HITBOX_DIR,  f"{bname}puf.geojson")
+        bname   = f"B{idx + 1}"
+        png_out = os.path.join(EO_DIR,     f"{bname}norm.png")
+        geo_out = os.path.join(HITBOX_DIR,  f"{bname}puf.geojson")
         base_pct = int(idx / n * 85)
 
         app.log_write(f"\n{'─'*55}", "info")
         app.log_write(f"  {bname}  ←  {os.path.basename(tif_path)}", "info")
-        app.set_progress(base_pct, f"{bname}: Bounds lesen …")
+        app.set_progress(base_pct, f"{bname}: lese Bounds …")
 
-        # ── 2. Bounds + Zuschnitt berechnen ──────────────────────────
+        # ── 2. Bounds lesen + Zuschnitt ───────────────────────────────
         try:
             with rasterio.open(tif_path) as ds:
-                crs     = ds.crs
-                n_bands = ds.count
-                cols    = ds.width
-                rows    = ds.height
-                transform = ds.transform
+                if ds.crs is None:
+                    raise ValueError("Keine CRS-Information im TIF.")
+                cols, rows = ds.width, ds.height
 
-                # Pixel-Zuschnitt auf 4:3 (zentriert)
+                # 4:3-Zuschnitt (zentriert)
                 img_ratio = cols / rows
                 if abs(img_ratio - ASPECT) > 0.01:
                     if img_ratio > ASPECT:
-                        # zu breit → links/rechts beschneiden
                         new_cols = int(rows * ASPECT)
                         col_off  = (cols - new_cols) // 2
-                        row_off  = 0
-                        new_rows = rows
+                        row_off, new_rows = 0, rows
                     else:
-                        # zu hoch → oben/unten beschneiden
                         new_rows = int(cols / ASPECT)
                         row_off  = (rows - new_rows) // 2
-                        col_off  = 0
-                        new_cols = cols
+                        col_off, new_cols = 0, cols
                     app.log_write(
                         f"   Zuschnitt: {cols}×{rows} → {new_cols}×{new_rows} (4:3)",
                         "warn")
                 else:
-                    col_off = 0; row_off = 0
-                    new_cols = cols; new_rows = rows
+                    col_off = row_off = 0
+                    new_cols, new_rows = cols, rows
                     app.log_write(f"   Bildgröße: {cols}×{rows} (bereits 4:3)", "ok")
 
-                # Geo-Bounds des zugeschnittenen Bereichs
-                win = rasterio.windows.Window(col_off, row_off,
-                                               new_cols, new_rows)
-                win_transform = ds.window_transform(win)
-                win_bounds    = rasterio.windows.bounds(win, ds.transform)
-                left, bottom, right, top = win_bounds
+                window    = rasterio.windows.Window(col_off, row_off, new_cols, new_rows)
+                win_bounds = rasterio.windows.bounds(window, ds.transform)
+                west, south, east, north = transform_bounds(
+                    ds.crs, CRS.from_epsg(4326), *win_bounds)
 
-                if crs.to_epsg() != 4326:
-                    left, bottom, right, top = transform_bounds(
-                        crs, "EPSG:4326", left, bottom, right, top)
-
-                geo_bounds = [[round(bottom, 6), round(left, 6)],
-                              [round(top, 6),    round(right, 6)]]
+                geo_bounds = [[round(south, 6), round(west, 6)],
+                              [round(north, 6), round(east, 6)]]
+                bbox_wgs84 = (west, south, east, north)
                 app.log_write(f"   Bounds: {geo_bounds}", "ok")
 
                 # ── 3. PNG konvertieren ───────────────────────────────
-                app.set_progress(base_pct + 5, f"{bname}: PNG konvertieren …")
+                app.set_progress(base_pct + 5, f"{bname}: PNG …")
                 app.log_write("   Konvertiere zu PNG …")
 
                 def norm_band(arr):
@@ -295,9 +418,8 @@ def run_pipeline(app):
                         arr = (arr - p2) / (p98 - p2) * 255
                     return arr.astype(np.uint8)
 
-                window = rasterio.windows.Window(col_off, row_off,
-                                                  new_cols, new_rows)
-                if n_bands >= 3:
+                nb = ds.count
+                if nb >= 3:
                     r     = norm_band(ds.read(1, window=window))
                     g     = norm_band(ds.read(2, window=window))
                     b_arr = norm_band(ds.read(3, window=window))
@@ -305,98 +427,69 @@ def run_pipeline(app):
                     r = g = b_arr = norm_band(ds.read(1, window=window))
 
                 rgb = np.stack([r, g, b_arr], axis=-1)
-                img = Image.fromarray(rgb, "RGB").resize(
-                    (TARGET_W, TARGET_H), Image.LANCZOS)
-                img.save(png_out, "PNG")
+                Image.fromarray(rgb, "RGB")\
+                     .resize((TARGET_W, TARGET_H), Image.LANCZOS)\
+                     .save(png_out, "PNG")
                 app.log_write(
-                    f"   PNG gespeichert ({TARGET_W}×{TARGET_H} px) → {png_out}", "ok")
+                    f"   PNG gespeichert ({TARGET_W}×{TARGET_H} px) → "
+                    f"{os.path.basename(png_out)}", "ok")
 
         except Exception as e:
-            app.log_write(f"   ⚠ Fehler TIF-Verarbeitung: {e}", "err")
+            app.log_write(f"   ⚠ TIF-Fehler: {e}", "err")
             continue
 
-        # ── 4. OSM-Daten abrufen ─────────────────────────────────────
-        app.set_progress(base_pct + 15, f"{bname}: OSM abrufen …")
+        # ── 4. OSM-Hitboxes ───────────────────────────────────────────
+        app.set_progress(base_pct + 15, f"{bname}: OSM …")
         app.log_write("   OSM-Daten abrufen …")
-        south, west = geo_bounds[0]
-        north, east = geo_bounds[1]
-        bbox_str    = f"{south},{west},{north},{east}"
-        all_features = []
+        layers = []
 
-        for klasse, osm_body in OSM_QUERIES.items():
-            query = (
-                "[out:json][timeout:90];\n(\n"
-                + osm_body.replace("(bbox)", f"({bbox_str})")
-                + "\n);\nout geom;"
-            )
-            try:
-                resp = requests.post(
-                    "https://overpass-api.de/api/interpreter",
-                    data={"data": query}, timeout=120)
-                resp.raise_for_status()
-                elements = resp.json().get("elements", [])
-                app.log_write(f"   {klasse:10s}: {len(elements):4d} Elemente")
-
-                for el in elements:
-                    geom = osm_to_geometry(el)
-                    if geom:
-                        all_features.append({
-                            "type": "Feature",
-                            "properties": {"klasse": klasse,
-                                           "osm_id": el.get("id")},
-                            "geometry": geom,
-                        })
-            except Exception as e:
-                app.log_write(f"   ⚠ OSM-Fehler {klasse}: {e}", "err")
-            time.sleep(0.8)   # Overpass rate-limit
-
-        # ── 5. Polygon-Reduktion via dissolve ─────────────────────────
-        app.set_progress(base_pct + 25, f"{bname}: Polygone reduzieren …")
-        app.log_write("   Polygon-Reduktion (dissolve by Klasse) …")
-        try:
-            if all_features:
-                gdf = gpd.GeoDataFrame.from_features(all_features, crs="EPSG:4326")
-                # dissolve: alle Polygone gleicher Klasse zusammenführen
-                dissolved = gdf.dissolve(by="klasse", as_index=False)
-                # Nur relevante Spalten behalten
-                dissolved = dissolved[["klasse", "geometry"]]
-                before = len(gdf)
-                after  = len(dissolved)
-                app.log_write(
-                    f"   {before} Features → {after} nach dissolve", "ok")
-
-                # Zurück zu GeoJSON-Features
-                reduced_features = []
-                for _, row in dissolved.iterrows():
-                    geom = row.geometry
-                    if geom is None or geom.is_empty:
-                        continue
-                    reduced_features.append({
-                        "type": "Feature",
-                        "properties": {"klasse": row["klasse"]},
-                        "geometry": geom.__geo_interface__,
-                    })
+        for klasse, cfg in OSM_CLASSES.items():
+            app.log_write(f"   Klasse: {klasse}")
+            query  = build_query(bbox_wgs84, cfg["filters"])
+            result = overpass_request(query, app)
+            if result is None:
+                app.log_write(f"   ⚠ {klasse}: keine Antwort", "warn")
+                continue
+            elements = result.get("elements", [])
+            app.log_write(f"   [{klasse}] {len(elements)} Elemente")
+            gdf = elements_to_polygons(elements, bbox_wgs84, cfg["buffer_m"])
+            if not gdf.empty:
+                gdf["klasse"] = klasse
+                layers.append(gdf)
+                app.log_write(f"   [{klasse}] → {len(gdf)} Polygone", "ok")
             else:
-                reduced_features = []
-                app.log_write("   Keine OSM-Features gefunden.", "warn")
+                app.log_write(f"   [{klasse}] → keine Polygone")
+            time.sleep(2)
 
-        except Exception as e:
-            app.log_write(f"   ⚠ Dissolve-Fehler: {e}", "err")
-            reduced_features = all_features   # fallback: undissolved
+        # ── 5. Dissolve + speichern ───────────────────────────────────
+        app.set_progress(base_pct + 25, f"{bname}: dissolve …")
+        app.log_write("   Polygon-Reduktion (dissolve) …")
 
-        # ── 6. GeoJSON speichern ──────────────────────────────────────
-        geojson = {"type": "FeatureCollection", "features": reduced_features}
-        with open(geo_out, "w", encoding="utf-8") as f:
-            json.dump(geojson, f, ensure_ascii=False)
+        if layers:
+            combined = gpd.pd.concat(layers, ignore_index=True)[["klasse","geometry"]]
+            combined["geometry"] = combined.geometry.buffer(0)
+            combined = combined[combined.geometry.is_valid & ~combined.geometry.is_empty]
+            dissolved = combined.dissolve(by="klasse", as_index=False)
+            app.log_write(
+                f"   {len(combined)} → {len(dissolved)} Features nach dissolve", "ok")
+            dissolved[["klasse","geometry"]].to_file(geo_out, driver="GeoJSON")
+            # Zurück lesen für Flächenberechnung
+            with open(geo_out) as f:
+                geojson = json.load(f)
+        else:
+            app.log_write("   Keine OSM-Daten – leeres GeoJSON.", "warn")
+            geojson = {"type": "FeatureCollection", "features": []}
+            with open(geo_out, "w", encoding="utf-8") as f:
+                json.dump(geojson, f)
+
         app.log_write(
-            f"   GeoJSON gespeichert ({len(reduced_features)} Features) → {geo_out}",
-            "ok")
+            f"   GeoJSON gespeichert → {os.path.basename(geo_out)}", "ok")
 
-        # ── 7. Flächenanteile ─────────────────────────────────────────
+        # ── 6. Flächenanteile ─────────────────────────────────────────
         absent, absent_opt, areas = compute_areas(geojson, geo_bounds)
         app.log_write("   Flächenanteile:")
         for k, v in sorted(areas.items(), key=lambda x: -x[1]):
-            flag = " ← unter Schwellenwert" if k in absent_opt else ""
+            flag = "  ← unter Schwellenwert" if k in absent_opt else ""
             app.log_write(f"     {k:12s} {v*100:5.1f} %{flag}")
 
         levels.append({
@@ -409,14 +502,15 @@ def run_pipeline(app):
             "areas":           areas,
         })
 
-    # ── 8. config.json schreiben ──────────────────────────────────────
-    app.set_progress(92, "config.json schreiben …")
+    # ── 7. config.json ────────────────────────────────────────────────
+    app.set_progress(95, "config.json …")
     app.log_write("\n── config.json schreiben …", "info")
     config = {
         "labels":         ALL_LABELS,
         "area_threshold": AREA_THRESHOLD,
         "levels":         levels,
     }
+    os.makedirs(DATA_DIR, exist_ok=True)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
     app.log_write(f"   Geschrieben → {CONFIG_FILE}", "ok")
@@ -424,56 +518,21 @@ def run_pipeline(app):
     app.set_progress(100, "✅  Fertig!")
     app.log_write(
         f"\n✅  Pipeline abgeschlossen – {len(levels)} Level verarbeitet.", "done")
-    app.log_write(
-        "   Dateien auf GitHub hochladen:", "done")
-    app.log_write(
-        "   • Bilder/EO_Bilder/  (PNGs)", "done")
-    app.log_write(
-        "   • Bilder/Hitboxes/   (GeoJSONs)", "done")
-    app.log_write(
-        "   • data/config.json", "done")
+    app.log_write("   Auf GitHub hochladen:", "done")
+    app.log_write("   • Bilder/EO_Bilder/   (PNGs)", "done")
+    app.log_write("   • Bilder/Hitboxes/    (GeoJSONs)", "done")
+    app.log_write("   • data/config.json", "done")
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# HILFSFUNKTIONEN
+# AREA HELPERS
 # ═══════════════════════════════════════════════════════════════════════
-def osm_to_geometry(el):
-    """Overpass 'out geom' Element → GeoJSON geometry dict."""
-    t = el.get("type")
-    if t == "way":
-        nodes = el.get("geometry", [])
-        if len(nodes) < 3:
-            return None
-        coords = [[n["lon"], n["lat"]] for n in nodes]
-        if coords[0] != coords[-1]:
-            coords.append(coords[0])
-        return {"type": "Polygon", "coordinates": [coords]}
-
-    elif t == "relation":
-        outer = []
-        for m in el.get("members", []):
-            if m.get("type") == "way" and m.get("role") in ("outer", ""):
-                nodes = m.get("geometry", [])
-                if len(nodes) >= 3:
-                    coords = [[n["lon"], n["lat"]] for n in nodes]
-                    if coords[0] != coords[-1]:
-                        coords.append(coords[0])
-                    outer.append(coords)
-        if not outer:
-            return None
-        if len(outer) == 1:
-            return {"type": "Polygon", "coordinates": outer}
-        return {"type": "MultiPolygon", "coordinates": [[r] for r in outer]}
-    return None
-
-
 def to_mercator(lon, lat):
     R    = 6378137
     x    = lon * math.pi / 180 * R
     sinL = math.sin(lat * math.pi / 180)
     y    = R * math.log((1 + sinL) / (1 - sinL)) / 2
     return x, y
-
 
 def ring_area_m2(ring):
     pts  = [to_mercator(c[0], c[1]) for c in ring]
@@ -485,43 +544,30 @@ def ring_area_m2(ring):
         area -= pts[j][0] * pts[i][1]
     return abs(area) / 2.0
 
-
 def image_area_m2(bounds):
     x0, y0 = to_mercator(bounds[0][1], bounds[0][0])
     x1, y1 = to_mercator(bounds[1][1], bounds[1][0])
     return abs(x1 - x0) * abs(y1 - y0)
 
-
 def extract_outer_rings(geom):
     t = geom["type"]
-    if t == "Polygon":
-        return [geom["coordinates"][0]]
-    if t == "MultiPolygon":
-        return [p[0] for p in geom["coordinates"]]
+    if t == "Polygon":      return [geom["coordinates"][0]]
+    if t == "MultiPolygon": return [p[0] for p in geom["coordinates"]]
     return []
-
 
 def compute_areas(geojson, bounds):
     img_area    = image_area_m2(bounds)
     klasse_area = {}
     for feat in geojson.get("features", []):
         k = feat.get("properties", {}).get("klasse")
-        if not k:
-            continue
+        if not k: continue
         for ring in extract_outer_rings(feat["geometry"]):
             klasse_area[k] = klasse_area.get(k, 0.0) + ring_area_m2(ring)
-
-    present = []
-    absent_opt = []
-    areas = {}
+    present = []; absent_opt = []; areas = {}
     for k, area in klasse_area.items():
-        ratio   = area / img_area if img_area > 0 else 0
+        ratio    = area / img_area if img_area > 0 else 0
         areas[k] = round(ratio, 4)
-        if ratio >= AREA_THRESHOLD:
-            present.append(k)
-        else:
-            absent_opt.append(k)
-
+        (present if ratio >= AREA_THRESHOLD else absent_opt).append(k)
     absent = sorted(ALL_LABEL_IDS - set(klasse_area.keys()))
     return absent, sorted(absent_opt), areas
 

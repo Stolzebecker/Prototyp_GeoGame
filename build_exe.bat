@@ -5,7 +5,7 @@ echo ═════════════════════════
 echo.
 
 echo [1/3] Abhaengigkeiten installieren ...
-pip install rasterio numpy pillow requests geopandas shapely pyinstaller --quiet
+python -m pip install rasterio numpy pillow requests geopandas shapely pyinstaller --quiet
 if %errorlevel% neq 0 (
     echo FEHLER bei pip install.
     pause & exit /b 1
@@ -13,7 +13,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [2/3] .exe kompilieren ...
-pyinstaller --onefile --noconsole --name "Verarbeitung_starten" pipeline.py
+python -m PyInstaller --onefile --noconsole --name "Verarbeitung_starten" pipeline.py
 if %errorlevel% neq 0 (
     echo FEHLER beim Kompilieren.
     pause & exit /b 1
