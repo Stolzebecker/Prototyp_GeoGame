@@ -364,31 +364,23 @@ function positionFloatChip(cx,cy){
 
 // Returns the bounding rect of the satellite image (4:3 box),
 // which may be smaller than the stage if the stage has a different ratio.
-function getImageRect(){
-  return elSatImg.getBoundingClientRect();
-}
-
 // ── Mouse events ─────────────────────────────────────────────
 function setupMouseEvents(){
   document.addEventListener('mousemove',e=>{
     if(draggingId) positionFloatChip(e.clientX,e.clientY);
-    const rect=getImageRect();
+    const rect=elStage.getBoundingClientRect();
     const inStage=e.clientX>=rect.left&&e.clientX<=rect.right
                &&e.clientY>=rect.top&&e.clientY<=rect.bottom;
     if(inStage){
       const lx=e.clientX-rect.left, ly=e.clientY-rect.top;
-      // Offset of image rect within stage (for positioning loupe/pin)
-      const stageRect=elStage.getBoundingClientRect();
-      const imgOffX=rect.left-stageRect.left;
-      const imgOffY=rect.top-stageRect.top;
-      const slx=lx+imgOffX, sly=ly+imgOffY;  // stage-relative coords
+      const slx=lx, sly=ly;  // stage coords = image coords
 
       updateLoupe(lx,ly,rect.width,rect.height);
 
       const LOUPE_R = LOUPE_D / 2;
       const OFFSET  = 30;
       if(draggingId){
-        const stageW2=stageRect.width, stageH2=stageRect.height;
+        const stageW2=rect.width, stageH2=rect.height;
         let ox = slx - LOUPE_R - OFFSET;
         let oy = sly - LOUPE_R - OFFSET;
         if(ox - LOUPE_R < 0) ox = slx + LOUPE_R + OFFSET;
@@ -418,7 +410,7 @@ function setupMouseEvents(){
 
   document.addEventListener('mouseup',e=>{
     if(!draggingId){ endDrag(); return; }
-    const rect=getImageRect();
+    const rect=elStage.getBoundingClientRect();
     const tipX=e.clientX, tipY=e.clientY;
     const inStage=tipX>=rect.left&&tipX<=rect.right&&tipY>=rect.top&&tipY<=rect.bottom;
     if(inStage){
@@ -575,21 +567,21 @@ function checkLevelComplete(){
   const lv = CONFIG.levels[currentLevel];
   const absentOpt = lv.absent_optional || [];
 
-  // Zones that must be placed on the map:
-  // all klassen that are present (not in absent, not in absent_optional)
-  const mustPlace = [...new Set(zones.map(z => z.klasse))]
-    .filter(k => !absentOpt.includes(k));
-
-  // Items that must be trashed: truly absent + absent_optional
-  // (absent_optional can also be resolved via map, handled in handleStageDrop)
-  const mustTrash = [
-    ...lv.absent,
-    ...absentOpt.filter(k => !zoneFilled[k]), // only if not already placed on map
-  ];
+  // Klassen die auf der Karte platziert werden müssen:
+  // alle die in den Zonen vorkommen UND nicht in absent_optional sind
+  const zoneKlassen = [...new Set(zones.map(z => z.klasse))];
+  const mustPlace   = zoneKlassen.filter(k => !absentOpt.includes(k));
 
   const zonesOk = mustPlace.every(k => zoneFilled[k]);
   const trashOk = lv.absent.every(a => trashFilled[a])
                && absentOpt.every(a => trashFilled[a] || zoneFilled[a]);
+
+  console.log('[checkLevelComplete]',
+    'mustPlace:', mustPlace,
+    'zoneFilled:', {...zoneFilled},
+    'absentOpt:', absentOpt,
+    'trashFilled:', {...trashFilled},
+    'zonesOk:', zonesOk, 'trashOk:', trashOk);
 
   if(zonesOk && trashOk){
     stopTimer();
