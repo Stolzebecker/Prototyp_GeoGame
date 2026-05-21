@@ -361,42 +361,49 @@ function positionFloatChip(cx,cy){
   elFloatChip.style.left=cx+'px'; elFloatChip.style.top=cy+'px';
 }
 
+
+// Returns the bounding rect of the satellite image (4:3 box),
+// which may be smaller than the stage if the stage has a different ratio.
+function getImageRect(){
+  return elSatImg.getBoundingClientRect();
+}
+
 // ── Mouse events ─────────────────────────────────────────────
 function setupMouseEvents(){
   document.addEventListener('mousemove',e=>{
     if(draggingId) positionFloatChip(e.clientX,e.clientY);
-    const rect=elStage.getBoundingClientRect();
+    const rect=getImageRect();
     const inStage=e.clientX>=rect.left&&e.clientX<=rect.right
                &&e.clientY>=rect.top&&e.clientY<=rect.bottom;
     if(inStage){
       const lx=e.clientX-rect.left, ly=e.clientY-rect.top;
+      // Offset of image rect within stage (for positioning loupe/pin)
+      const stageRect=elStage.getBoundingClientRect();
+      const imgOffX=rect.left-stageRect.left;
+      const imgOffY=rect.top-stageRect.top;
+      const slx=lx+imgOffX, sly=ly+imgOffY;  // stage-relative coords
+
       updateLoupe(lx,ly,rect.width,rect.height);
-      // When dragging: offset loupe so it doesn't cover the pin/drop area.
-      // Loupe is 250px; place it above-left with a small gap.
-      // But keep it fully inside the stage (clamp to edges).
+
       const LOUPE_R = LOUPE_D / 2;
-      const OFFSET  = 30; // gap between cursor and loupe edge
+      const OFFSET  = 30;
       if(draggingId){
-        // Prefer upper-left; flip to other side if too close to edge
-        const stageW2 = rect.width, stageH2 = rect.height;
-        let ox = lx - LOUPE_R - OFFSET;
-        let oy = ly - LOUPE_R - OFFSET;
-        // Flip right if clipped left
-        if(ox - LOUPE_R < 0) ox = lx + LOUPE_R + OFFSET;
-        // Flip down if clipped top
-        if(oy - LOUPE_R < 0) oy = ly + LOUPE_R + OFFSET;
-        // Hard clamp to stay inside stage
+        const stageW2=stageRect.width, stageH2=stageRect.height;
+        let ox = slx - LOUPE_R - OFFSET;
+        let oy = sly - LOUPE_R - OFFSET;
+        if(ox - LOUPE_R < 0) ox = slx + LOUPE_R + OFFSET;
+        if(oy - LOUPE_R < 0) oy = sly + LOUPE_R + OFFSET;
         ox = Math.max(LOUPE_R, Math.min(stageW2 - LOUPE_R, ox));
         oy = Math.max(LOUPE_R, Math.min(stageH2 - LOUPE_R, oy));
         elLoupe.style.left = ox + 'px';
         elLoupe.style.top  = oy + 'px';
       } else {
-        elLoupe.style.left = lx + 'px';
-        elLoupe.style.top  = ly + 'px';
+        elLoupe.style.left = slx + 'px';
+        elLoupe.style.top  = sly + 'px';
       }
       elLoupe.style.display='block';
       if(draggingId){
-        elPin.style.left=lx+'px'; elPin.style.top=ly+'px';
+        elPin.style.left=slx+'px'; elPin.style.top=sly+'px';
         elPin.style.display='block';
       } else { elPin.style.display='none'; }
     } else {
@@ -411,7 +418,7 @@ function setupMouseEvents(){
 
   document.addEventListener('mouseup',e=>{
     if(!draggingId){ endDrag(); return; }
-    const rect=elStage.getBoundingClientRect();
+    const rect=getImageRect();
     const tipX=e.clientX, tipY=e.clientY;
     const inStage=tipX>=rect.left&&tipX<=rect.right&&tipY>=rect.top&&tipY<=rect.bottom;
     if(inStage){
