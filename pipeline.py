@@ -469,13 +469,28 @@ def run_pipeline(app):
             combined = gpd.pd.concat(layers, ignore_index=True)[["klasse","geometry"]]
             combined["geometry"] = combined.geometry.buffer(0)
             combined = combined[combined.geometry.is_valid & ~combined.geometry.is_empty]
+
+            # dissolve fasst überlappende Polygone pro Klasse zusammen,
+            # explode zerlegt MultiPolygons wieder in Einzelpolygone
             dissolved = combined.dissolve(by="klasse", as_index=False)
+            dissolved = dissolved.explode(index_parts=False).reset_index(drop=True)
+            dissolved = dissolved[
+                dissolved.geometry.is_valid & ~dissolved.geometry.is_empty
+            ].reset_index(drop=True)
+
             app.log_write(
-                f"   {len(combined)} → {len(dissolved)} Features nach dissolve", "ok")
-            dissolved[["klasse","geometry"]].to_file(geo_out, driver="GeoJSON")
-            # Zurück lesen für Flächenberechnung
-            with open(geo_out) as f:
-                geojson = json.load(f)
+                f"   {len(combined)} → {len(dissolved)} Features nach dissolve+explode", "ok")
+
+            features_out = []
+            for _, row in dissolved.iterrows():
+                features_out.append({
+                    "type": "Feature",
+                    "properties": {"klasse": row["klasse"]},
+                    "geometry": row.geometry.__geo_interface__
+                })
+            geojson = {"type": "FeatureCollection", "features": features_out}
+            with open(geo_out, "w", encoding="utf-8") as f:
+                json.dump(geojson, f, ensure_ascii=False)
         else:
             app.log_write("   Keine OSM-Daten – leeres GeoJSON.", "warn")
             geojson = {"type": "FeatureCollection", "features": []}
