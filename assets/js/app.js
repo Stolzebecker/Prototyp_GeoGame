@@ -284,7 +284,7 @@ function debugNextLevel(){
 
 // ── Debug draw ───────────────────────────────────────────────
 function redrawDebug(){
-  const w=elStage.offsetWidth, h=elStage.offsetHeight;
+  const w=elSatImg.offsetWidth||elStage.offsetWidth, h=elSatImg.offsetHeight||elStage.offsetHeight;
   elDebugCanvas.width=w; elDebugCanvas.height=h;
   elDebugCanvas.style.width='100%'; elDebugCanvas.style.height='100%';
   elDebugCtx.clearRect(0,0,w,h);
@@ -368,30 +368,31 @@ function positionFloatChip(cx,cy){
 function setupMouseEvents(){
   document.addEventListener('mousemove',e=>{
     if(draggingId) positionFloatChip(e.clientX,e.clientY);
-    const rect=elStage.getBoundingClientRect();
-    const inStage=e.clientX>=rect.left&&e.clientX<=rect.right
-               &&e.clientY>=rect.top&&e.clientY<=rect.bottom;
+    // imgRect: actual rendered image position (accounts for black bars)
+    // stageRect: full #stage container
+    const imgRect  = elSatImg.getBoundingClientRect();
+    const stageRect= elStage.getBoundingClientRect();
+    const inStage  = e.clientX>=imgRect.left&&e.clientX<=imgRect.right
+                  && e.clientY>=imgRect.top &&e.clientY<=imgRect.bottom;
     if(inStage){
-      const lx=e.clientX-rect.left, ly=e.clientY-rect.top;
-      const slx=lx, sly=ly;  // stage coords = image coords
+      // lx,ly relative to image → used for loupe sampling and hit-test fractions
+      const lx=e.clientX-imgRect.left, ly=e.clientY-imgRect.top;
+      // slx,sly relative to #stage → used for positioning loupe/pin elements
+      const slx=e.clientX-stageRect.left, sly=e.clientY-stageRect.top;
 
-      updateLoupe(lx,ly,rect.width,rect.height);
+      updateLoupe(lx,ly,imgRect.width,imgRect.height);
 
-      const LOUPE_R = LOUPE_D / 2;
-      const OFFSET  = 30;
+      const LOUPE_R=LOUPE_D/2, OFFSET=30;
+      const sw=stageRect.width, sh=stageRect.height;
       if(draggingId){
-        const stageW2=rect.width, stageH2=rect.height;
-        let ox = slx - LOUPE_R - OFFSET;
-        let oy = sly - LOUPE_R - OFFSET;
-        if(ox - LOUPE_R < 0) ox = slx + LOUPE_R + OFFSET;
-        if(oy - LOUPE_R < 0) oy = sly + LOUPE_R + OFFSET;
-        ox = Math.max(LOUPE_R, Math.min(stageW2 - LOUPE_R, ox));
-        oy = Math.max(LOUPE_R, Math.min(stageH2 - LOUPE_R, oy));
-        elLoupe.style.left = ox + 'px';
-        elLoupe.style.top  = oy + 'px';
+        let ox=slx-LOUPE_R-OFFSET, oy=sly-LOUPE_R-OFFSET;
+        if(ox-LOUPE_R<0) ox=slx+LOUPE_R+OFFSET;
+        if(oy-LOUPE_R<0) oy=sly+LOUPE_R+OFFSET;
+        ox=Math.max(LOUPE_R,Math.min(sw-LOUPE_R,ox));
+        oy=Math.max(LOUPE_R,Math.min(sh-LOUPE_R,oy));
+        elLoupe.style.left=ox+'px'; elLoupe.style.top=oy+'px';
       } else {
-        elLoupe.style.left = slx + 'px';
-        elLoupe.style.top  = sly + 'px';
+        elLoupe.style.left=slx+'px'; elLoupe.style.top=sly+'px';
       }
       elLoupe.style.display='block';
       if(draggingId){
@@ -410,12 +411,17 @@ function setupMouseEvents(){
 
   document.addEventListener('mouseup',e=>{
     if(!draggingId){ endDrag(); return; }
-    const rect=elStage.getBoundingClientRect();
+    const imgRect2=elSatImg.getBoundingClientRect();
+    const stgRect2=elStage.getBoundingClientRect();
     const tipX=e.clientX, tipY=e.clientY;
-    const inStage=tipX>=rect.left&&tipX<=rect.right&&tipY>=rect.top&&tipY<=rect.bottom;
+    const inStage=tipX>=imgRect2.left&&tipX<=imgRect2.right
+               &&tipY>=imgRect2.top&&tipY<=imgRect2.bottom;
     if(inStage){
-      const fx=(tipX-rect.left)/rect.width, fy=(tipY-rect.top)/rect.height;
-      handleStageDrop(fx,fy,tipX-rect.left,tipY-rect.top);
+      const fx=(tipX-imgRect2.left)/imgRect2.width;
+      const fy=(tipY-imgRect2.top)/imgRect2.height;
+      // localX/Y for zone-ok label positioning: relative to stage
+      const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
+      handleStageDrop(fx,fy,localX,localY);
     } else {
       const tr=elTrash.getBoundingClientRect();
       if(tipX>=tr.left&&tipX<=tr.right&&tipY>=tr.top&&tipY<=tr.bottom) handleTrashDrop();
@@ -430,22 +436,40 @@ function setupMouseEvents(){
 }
 
 // ── Loupe ───────────────────────────────────────────────────
-// Current loupe centre in stage fractions (needed for debug overlay in loupe)
 let _loupeFx=0, _loupeFy=0;
 
 function updateLoupe(lx,ly,stageW,stageH){
   if(!elSatImg.naturalWidth) return;
-  _loupeFx=lx/stageW; _loupeFy=ly/stageH;
 
-  const scaleX=elSatImg.naturalWidth/stageW, scaleY=elSatImg.naturalHeight/stageH;
-  const srcW=(LOUPE_D/LOUPE_ZOOM)*scaleX, srcH=(LOUPE_D/LOUPE_ZOOM)*scaleY;
+  // Get actual rendered image position within stage (handles letterbox)
+  const stageRect = elStage.getBoundingClientRect();
+  const imgRect   = elSatImg.getBoundingClientRect();
+  const imgOffX   = imgRect.left - stageRect.left;
+  const imgOffY   = imgRect.top  - stageRect.top;
+  const imgW      = imgRect.width;
+  const imgH      = imgRect.height;
 
-  // Draw satellite image
-  elLoupeCtx.clearRect(0,0,LOUPE_D,LOUPE_D);
-  elLoupeCtx.drawImage(elSatImg, lx*scaleX-srcW/2, ly*scaleY-srcH/2, srcW, srcH, 0,0,LOUPE_D,LOUPE_D);
+  // Convert stage-local mouse coords → image-local coords
+  const ix = lx - imgOffX;
+  const iy = ly - imgOffY;
 
-  // Overlay debug zones inside loupe if debug mode is on
-  if(debugMode) drawDebugInLoupe(lx/stageW, ly/stageH, stageW, stageH);
+  const scaleX = elSatImg.naturalWidth  / imgW;
+  const scaleY = elSatImg.naturalHeight / imgH;
+  const srcW   = (LOUPE_D / LOUPE_ZOOM) * scaleX;
+  const srcH   = (LOUPE_D / LOUPE_ZOOM) * scaleY;
+
+  // Store fractions for debug overlay
+  _loupeFx = ix / imgW;
+  _loupeFy = iy / imgH;
+
+  elLoupeCtx.clearRect(0, 0, LOUPE_D, LOUPE_D);
+  elLoupeCtx.drawImage(elSatImg,
+    ix * scaleX - srcW/2,
+    iy * scaleY - srcH/2,
+    srcW, srcH,
+    0, 0, LOUPE_D, LOUPE_D);
+
+  if(debugMode) drawDebugInLoupe(_loupeFx, _loupeFy, imgW, imgH);
 }
 
 // Draw the visible debug zones clipped to the loupe, at loupe zoom level.
@@ -572,14 +596,16 @@ function checkLevelComplete(){
   const zoneKlassen = [...new Set(zones.map(z => z.klasse))];
   const mustPlace   = zoneKlassen.filter(k => !absentOpt.includes(k));
 
-  const zonesOk = mustPlace.every(k => zoneFilled[k]);
+  const zonesOk = mustPlace.length === 0 || mustPlace.every(k => zoneFilled[k]);
+  // absent: must be in trash
+  // absent_optional: resolved by trash OR map
+  // If absent/absentOpt are empty arrays, every() returns true automatically
   const trashOk = lv.absent.every(a => trashFilled[a])
                && absentOpt.every(a => trashFilled[a] || zoneFilled[a]);
 
   console.log('[checkLevelComplete]',
-    'mustPlace:', mustPlace,
-    'zoneFilled:', {...zoneFilled},
-    'absentOpt:', absentOpt,
+    'mustPlace:', mustPlace, 'zoneFilled:', {...zoneFilled},
+    'absent:', lv.absent, 'absentOpt:', absentOpt,
     'trashFilled:', {...trashFilled},
     'zonesOk:', zonesOk, 'trashOk:', trashOk);
 
