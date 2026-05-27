@@ -287,20 +287,16 @@ function debugNextLevel(){
 
 // ── Debug draw ───────────────────────────────────────────────
 function redrawDebug(){
-  // Use the actual rendered image size and position, not the full stage
-  const imgRect   = elSatImg.getBoundingClientRect();
-  const stageRect = elStage.getBoundingClientRect();
-  const w = imgRect.width;
-  const h = imgRect.height;
-  const offX = imgRect.left - stageRect.left;
-  const offY = imgRect.top  - stageRect.top;
+  // Stage is now exactly 4:3, so we use it directly
+  const w = elStage.offsetWidth;
+  const h = elStage.offsetHeight;
 
   elDebugCanvas.width  = w;
   elDebugCanvas.height = h;
-  elDebugCanvas.style.width  = w + 'px';
-  elDebugCanvas.style.height = h + 'px';
-  elDebugCanvas.style.left   = offX + 'px';
-  elDebugCanvas.style.top    = offY + 'px';
+  elDebugCanvas.style.width  = '100%';
+  elDebugCanvas.style.height = '100%';
+  elDebugCanvas.style.left   = '0';
+  elDebugCanvas.style.top    = '0';
   elDebugCtx.clearRect(0,0,w,h);
 
   zones.forEach(zone=>{
@@ -455,35 +451,23 @@ let _loupeFx=0, _loupeFy=0;
 function updateLoupe(lx,ly,stageW,stageH){
   if(!elSatImg.naturalWidth) return;
 
-  // Get actual rendered image position within stage (handles letterbox)
-  const stageRect = elStage.getBoundingClientRect();
-  const imgRect   = elSatImg.getBoundingClientRect();
-  const imgOffX   = imgRect.left - stageRect.left;
-  const imgOffY   = imgRect.top  - stageRect.top;
-  const imgW      = imgRect.width;
-  const imgH      = imgRect.height;
-
-  // Convert stage-local mouse coords → image-local coords
-  const ix = lx - imgOffX;
-  const iy = ly - imgOffY;
-
-  const scaleX = elSatImg.naturalWidth  / imgW;
-  const scaleY = elSatImg.naturalHeight / imgH;
+  // Stage = image (same 4:3), so lx/ly are already image-relative
+  const scaleX = elSatImg.naturalWidth  / elStage.offsetWidth;
+  const scaleY = elSatImg.naturalHeight / elStage.offsetHeight;
   const srcW   = (LOUPE_D / LOUPE_ZOOM) * scaleX;
   const srcH   = (LOUPE_D / LOUPE_ZOOM) * scaleY;
 
-  // Store fractions for debug overlay
-  _loupeFx = ix / imgW;
-  _loupeFy = iy / imgH;
+  _loupeFx = lx / elStage.offsetWidth;
+  _loupeFy = ly / elStage.offsetHeight;
 
   elLoupeCtx.clearRect(0, 0, LOUPE_D, LOUPE_D);
   elLoupeCtx.drawImage(elSatImg,
-    ix * scaleX - srcW/2,
-    iy * scaleY - srcH/2,
+    lx * scaleX - srcW/2,
+    ly * scaleY - srcH/2,
     srcW, srcH,
     0, 0, LOUPE_D, LOUPE_D);
 
-  if(debugMode) drawDebugInLoupe(_loupeFx, _loupeFy, imgW, imgH);
+  if(debugMode) drawDebugInLoupe(_loupeFx, _loupeFy, elStage.offsetWidth, elStage.offsetHeight);
 }
 
 // Draw the visible debug zones clipped to the loupe, at loupe zoom level.

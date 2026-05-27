@@ -99,29 +99,32 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
 
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-/* Stage wrapper centres the 4:3 stage in available space */
 #stage-outer{
   flex:1;min-height:0;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--bg);
+  position:relative;
+  background:#000;
   overflow:hidden;
 }
 #stage{
-  /* Enforce 4:3: take full height, width = height * 4/3.
-     If viewport is taller than wide, fall back to full width. */
-  position:relative;
-  height:100%;
-  width:calc(100% * 4 / 3);
-  max-width:100%;
-  max-height:calc(100vw * 3 / 4);
-  overflow:hidden;cursor:none;
-  background:var(--panel-dark);
-  flex-shrink:0;
+  position:absolute;
+  /* Centre a 4:3 box inside the available space */
+  /* If wider than 4:3: full height, auto width     */
+  /* If taller than 4:3: full width, auto height    */
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  /* Use aspect-ratio – supported in all modern browsers */
+  aspect-ratio:4/3;
+  /* Take as much space as possible without overflow */
+  width:min(100%, calc(100vh * 4/3 - 120px * 4/3));
+  height:auto;
+  cursor:none;
+  background:#000;
+  overflow:hidden;
 }
 #sat-img{
   position:absolute;inset:0;
   width:100%;height:100%;
-  object-fit:fill;  /* image is already 4:3 from pipeline */
+  object-fit:fill;
   display:block;pointer-events:none;user-select:none;
 }
 
@@ -152,7 +155,7 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
   box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:all .12s;}
 .debug-btn:hover{border-color:var(--accent2);color:var(--accent2);
   transform:translateY(-1px);}
-#debug-canvas{position:absolute;pointer-events:none;display:none;z-index:490}
+#debug-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:490}
 
 /* LOUPE */
 #loupe{position:absolute;width:250px;height:250px;border-radius:50%;
