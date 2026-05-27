@@ -287,9 +287,20 @@ function debugNextLevel(){
 
 // ── Debug draw ───────────────────────────────────────────────
 function redrawDebug(){
-  const w=elSatImg.offsetWidth||elStage.offsetWidth, h=elSatImg.offsetHeight||elStage.offsetHeight;
-  elDebugCanvas.width=w; elDebugCanvas.height=h;
-  elDebugCanvas.style.width='100%'; elDebugCanvas.style.height='100%';
+  // Use the actual rendered image size and position, not the full stage
+  const imgRect   = elSatImg.getBoundingClientRect();
+  const stageRect = elStage.getBoundingClientRect();
+  const w = imgRect.width;
+  const h = imgRect.height;
+  const offX = imgRect.left - stageRect.left;
+  const offY = imgRect.top  - stageRect.top;
+
+  elDebugCanvas.width  = w;
+  elDebugCanvas.height = h;
+  elDebugCanvas.style.width  = w + 'px';
+  elDebugCanvas.style.height = h + 'px';
+  elDebugCanvas.style.left   = offX + 'px';
+  elDebugCanvas.style.top    = offY + 'px';
   elDebugCtx.clearRect(0,0,w,h);
 
   zones.forEach(zone=>{
