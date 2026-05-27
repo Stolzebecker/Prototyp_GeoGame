@@ -145,7 +145,10 @@ function buildZones(geojson, bounds){
 
   function geoToFrac(lon,lat){
     const [mx,my]=toMercator(lon,lat);
-    return [(mx-mxW)/mxSpan, (myN-my)/mySpan];
+    // Clamp to [0,1] so polygons stay strictly within image bounds
+    const fx=Math.max(0,Math.min(1,(mx-mxW)/mxSpan));
+    const fy=Math.max(0,Math.min(1,(myN-my)/mySpan));
+    return [fx,fy];
   }
   function extractRings(geom){
     if(geom.type==='Polygon') return [geom.coordinates[0]];
