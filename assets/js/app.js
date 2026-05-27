@@ -48,8 +48,32 @@ let klasseColour = {};  // klasse → {fill, stroke}
 let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
     elPin, elFloatChip, elTrash, elDebugCanvas, elDebugCtx;
 
+
+// ── Stage sizing ─────────────────────────────────────────────────────────────
+// Keeps #stage at exactly 4:3 inside #stage-outer, with black bars if needed.
+function resizeStage(){
+  const outer = document.getElementById('stage-outer');
+  const ow = outer.clientWidth;
+  const oh = outer.clientHeight;
+  let w, h;
+  if(ow / oh > 4/3){
+    // outer is wider than 4:3 → constrain by height
+    h = oh;
+    w = oh * 4 / 3;
+  } else {
+    // outer is taller than 4:3 → constrain by width
+    w = ow;
+    h = ow * 3 / 4;
+  }
+  const stage = document.getElementById('stage');
+  stage.style.width  = Math.round(w) + 'px';
+  stage.style.height = Math.round(h) + 'px';
+}
+window.addEventListener('resize', resizeStage);
+
 // ── Boot ────────────────────────────────────────────────────
 async function boot(){
+  resizeStage();
   elStage       = document.getElementById('stage');
   elSatImg      = document.getElementById('sat-img');
   elLoupe       = document.getElementById('loupe');
