@@ -110,6 +110,7 @@ function startExperiment(){
   const ss = document.getElementById('start-screen');
   ss.classList.add('hidden');
   setTimeout(()=> ss.remove(), 400);
+  resizeStage();
   setupMouseEvents();
   loadLevel(0);
 }
