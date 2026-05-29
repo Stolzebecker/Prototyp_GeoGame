@@ -109,10 +109,12 @@ async function boot(){
 function startExperiment(){
   const ss = document.getElementById('start-screen');
   ss.classList.add('hidden');
-  setTimeout(()=> ss.remove(), 400);
-  resizeStage();
+  setTimeout(()=>{
+    ss.remove();
+    resizeStage();
+    loadLevel(0);
+  }, 420);
   setupMouseEvents();
-  loadLevel(0);
 }
 
 // ── Load level ──────────────────────────────────────────────
