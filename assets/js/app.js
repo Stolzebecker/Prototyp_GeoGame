@@ -49,30 +49,6 @@ let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
     elPin, elFloatChip, elTrash, elDebugCanvas, elDebugCtx;
 
 
-// ── Stage sizing ─────────────────────────────────────────────────────────────
-// Keeps #stage at exactly 4:3 inside #stage-outer, with black bars if needed.
-function resizeStage(){
-  const outer = document.getElementById('stage-outer');
-  if(!outer) return;
-  const ow = outer.clientWidth;
-  const oh = outer.clientHeight;
-  console.log('[resizeStage] outer:', ow, 'x', oh);
-  if(!ow || !oh) return;
-  let w, h;
-  if(ow / oh > 4/3){
-    h = oh;
-    w = oh * 4 / 3;
-  } else {
-    w = ow;
-    h = ow * 3 / 4;
-  }
-  const stage = document.getElementById('stage');
-  stage.style.width  = Math.round(w) + 'px';
-  stage.style.height = Math.round(h) + 'px';
-  console.log('[resizeStage] stage set to:', Math.round(w), 'x', Math.round(h));
-}
-window.addEventListener('resize', resizeStage);
-
 // ── Boot ────────────────────────────────────────────────────
 async function boot(){
   elStage       = document.getElementById('stage');
@@ -87,7 +63,6 @@ async function boot(){
   elDebugCtx    = elDebugCanvas.getContext('2d');
 
   // Size the stage to 4:3 now that DOM is ready
-  resizeStage();
 
   try{
     const res = await fetch('./data/config.json');
@@ -112,8 +87,7 @@ function startExperiment(){
   ss.classList.add('hidden');
   setTimeout(()=>{
     ss.remove();
-    resizeStage();
-    loadLevel(0);
+      loadLevel(0);
   }, 420);
   setupMouseEvents();
 }
