@@ -56,19 +56,20 @@ function resizeStage(){
   if(!outer) return;
   const ow = outer.clientWidth;
   const oh = outer.clientHeight;
+  console.log('[resizeStage] outer:', ow, 'x', oh);
+  if(!ow || !oh) return;
   let w, h;
   if(ow / oh > 4/3){
-    // outer is wider than 4:3 → constrain by height
     h = oh;
     w = oh * 4 / 3;
   } else {
-    // outer is taller than 4:3 → constrain by width
     w = ow;
     h = ow * 3 / 4;
   }
   const stage = document.getElementById('stage');
   stage.style.width  = Math.round(w) + 'px';
   stage.style.height = Math.round(h) + 'px';
+  console.log('[resizeStage] stage set to:', Math.round(w), 'x', Math.round(h));
 }
 window.addEventListener('resize', resizeStage);
 
