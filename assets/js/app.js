@@ -53,6 +53,7 @@ let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
 // Keeps #stage at exactly 4:3 inside #stage-outer, with black bars if needed.
 function resizeStage(){
   const outer = document.getElementById('stage-outer');
+  if(!outer) return;
   const ow = outer.clientWidth;
   const oh = outer.clientHeight;
   let w, h;
@@ -73,7 +74,6 @@ window.addEventListener('resize', resizeStage);
 
 // ── Boot ────────────────────────────────────────────────────
 async function boot(){
-  resizeStage();
   elStage       = document.getElementById('stage');
   elSatImg      = document.getElementById('sat-img');
   elLoupe       = document.getElementById('loupe');
@@ -84,6 +84,9 @@ async function boot(){
   elTrash       = document.getElementById('trash');
   elDebugCanvas = document.getElementById('debug-canvas');
   elDebugCtx    = elDebugCanvas.getContext('2d');
+
+  // Size the stage to 4:3 now that DOM is ready
+  resizeStage();
 
   try{
     const res = await fetch('./data/config.json');
