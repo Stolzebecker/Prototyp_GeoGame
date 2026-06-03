@@ -50,7 +50,11 @@ OVERPASS_ENDPOINTS = [
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 
-# Bewährte OSM-Klassen-Definition (aus ursprünglichem generate_hitboxes.py)
+# Optimierte OSM-Klassen-Definition
+# – See/Fluss strikt getrennt (kein doppeltes Mapping von Wasserflächen)
+# – Siedlung ohne building-Tag (Einzelgebäude im Wald/Acker ausgeschlossen)
+# – Acker ohne grass (urbane Grünflächen ausgeschlossen)
+# – Straße ohne track/service (verhindert Buffer-Overload auf Feldwegen)
 OSM_CLASSES = {
     "Wald": {
         "filters": [
@@ -61,7 +65,7 @@ OSM_CLASSES = {
     },
     "See": {
         "filters": [
-            '["natural"~"^(water|lake|pond|reservoir)$"]',
+            '["natural"="water"]["water"!~"^(river|stream|canal|lock|ditch|drain)$"]',
             '["landuse"~"^(reservoir|basin)$"]',
         ],
         "buffer_m": None,
@@ -69,26 +73,26 @@ OSM_CLASSES = {
     "Fluss": {
         "filters": [
             '["waterway"~"^(river|stream|canal|drain|ditch)$"]',
+            '["natural"="water"]["water"~"^(river|stream|canal|lock)$"]',
         ],
         "buffer_m": 50,
     },
     "Siedlung": {
         "filters": [
             '["landuse"~"^(residential|commercial|industrial|retail|construction|garages)$"]',
-            '["building"]',
         ],
         "buffer_m": None,
     },
     "Acker": {
         "filters": [
-            '["landuse"~"^(farmland|farm|farmyard|orchard|vineyard|meadow|grass|allotments)$"]',
-            '["natural"~"^(grassland)$"]',
+            '["landuse"~"^(farmland|farmyard|orchard|vineyard|meadow|allotments)$"]',
+            '["natural"="grassland"]',
         ],
         "buffer_m": None,
     },
     "Straße": {
         "filters": [
-            '["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|road)$"]',
+            '["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|road)$"]',
         ],
         "buffer_m": 50,
     },
@@ -209,13 +213,13 @@ def build_query(bbox_wgs84: tuple, filters: list) -> str:
         parts.append(f"  relation{f}({bbox_str});")
     union = "\n".join(parts)
     return (
-        f"[out:json][timeout:120];\n"
+        f"[out:json][timeout:180];\n"
         f"(\n{union}\n);\n"
         f"out body geom qt;"
     )
 
 
-def overpass_request(query: str, app=None, retries: int = 3, delay: float = 10.0):
+def overpass_request(query: str, app=None, retries: int = 5, delay: float = 15.0):
     """POST als reiner String – kein dict (verhindert 406-Fehler)."""
     import requests as req
     for attempt in range(1, retries + 1):
@@ -225,7 +229,7 @@ def overpass_request(query: str, app=None, retries: int = 3, delay: float = 10.0
                     endpoint,
                     data=query,           # ← reiner String, kein dict
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
-                    timeout=120,
+                    timeout=180,
                 )
                 if resp.status_code == 429:
                     if app: app.log_write("   Rate-limit – warte 60 s", "warn")
@@ -459,7 +463,7 @@ def run_pipeline(app):
                 app.log_write(f"   [{klasse}] → {len(gdf)} Polygone", "ok")
             else:
                 app.log_write(f"   [{klasse}] → keine Polygone")
-            time.sleep(2)
+            time.sleep(3)
 
         # ── 5. Dissolve + speichern ───────────────────────────────────
         app.set_progress(base_pct + 25, f"{bname}: dissolve …")
@@ -474,19 +478,36 @@ def run_pipeline(app):
             # explode zerlegt MultiPolygons wieder in Einzelpolygone
             dissolved = combined.dissolve(by="klasse", as_index=False)
             dissolved = dissolved.explode(index_parts=False).reset_index(drop=True)
+
+            # Strict clip to image bounds – removes anything outside the image
+            from shapely.geometry import box as shp_box
+            clip_box = shp_box(west, south, east, north)
+            dissolved["geometry"] = dissolved.geometry.intersection(clip_box)
             dissolved = dissolved[
-                dissolved.geometry.is_valid & ~dissolved.geometry.is_empty
+                dissolved.geometry.is_valid &
+                ~dissolved.geometry.is_empty &
+                dissolved.geometry.geom_type.isin(
+                    ["Polygon","MultiPolygon","GeometryCollection"])
             ].reset_index(drop=True)
 
             app.log_write(
-                f"   {len(combined)} → {len(dissolved)} Features nach dissolve+explode", "ok")
+                f"   {len(combined)} → {len(dissolved)} Features nach dissolve+clip", "ok")
 
             features_out = []
             for _, row in dissolved.iterrows():
+                geom = row.geometry
+                # Flatten GeometryCollections to only polygons
+                if geom.geom_type == "GeometryCollection":
+                    from shapely.geometry import MultiPolygon
+                    polys = [g for g in geom.geoms
+                             if g.geom_type in ("Polygon","MultiPolygon")]
+                    if not polys:
+                        continue
+                    geom = polys[0] if len(polys)==1 else MultiPolygon(polys)
                 features_out.append({
                     "type": "Feature",
                     "properties": {"klasse": row["klasse"]},
-                    "geometry": row.geometry.__geo_interface__
+                    "geometry": geom.__geo_interface__
                 })
             geojson = {"type": "FeatureCollection", "features": features_out}
             with open(geo_out, "w", encoding="utf-8") as f:
