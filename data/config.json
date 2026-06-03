@@ -47,15 +47,14 @@
           8.332374
         ]
       ],
-      "absent": [
-        "See"
-      ],
+      "absent": [],
       "absent_optional": [],
       "areas": {
-        "Acker": 0.2179,
-        "Fluss": 0.1872,
-        "Siedlung": 0.1375,
-        "Straße": 0.362,
+        "Acker": 0.1978,
+        "Fluss": 0.2133,
+        "See": 0.0632,
+        "Siedlung": 0.1243,
+        "Straße": 0.1825,
         "Wald": 0.2045
       }
     },
@@ -73,16 +72,17 @@
           8.172957
         ]
       ],
-      "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Siedlung",
-        "Wald"
+      "absent": [],
+      "absent_optional": [
+        "Siedlung"
       ],
-      "absent_optional": [],
       "areas": {
-        "Straße": 0.1224
+        "Acker": 0.1507,
+        "Fluss": 0.2077,
+        "See": 0.126,
+        "Siedlung": 0.0042,
+        "Straße": 0.1018,
+        "Wald": 0.308
       }
     },
     {
@@ -99,17 +99,16 @@
           8.195122
         ]
       ],
-      "absent": [
-        "Acker",
-        "See",
-        "Straße"
-      ],
+      "absent": [],
       "absent_optional": [
-        "Fluss"
+        "See"
       ],
       "areas": {
-        "Fluss": 0.0464,
-        "Siedlung": 0.0578,
+        "Acker": 0.4758,
+        "Fluss": 0.0579,
+        "See": 0.0256,
+        "Siedlung": 0.054,
+        "Straße": 0.4455,
         "Wald": 0.2276
       }
     },
@@ -127,16 +126,17 @@
           8.300417
         ]
       ],
-      "absent": [
-        "Fluss",
-        "Wald"
+      "absent": [],
+      "absent_optional": [
+        "See"
       ],
-      "absent_optional": [],
       "areas": {
-        "Acker": 0.3263,
-        "See": 0.0514,
-        "Siedlung": 0.0739,
-        "Straße": 0.5963
+        "Acker": 0.3163,
+        "Fluss": 0.1904,
+        "See": 0.0344,
+        "Siedlung": 0.0696,
+        "Straße": 0.5661,
+        "Wald": 0.2679
       }
     },
     {
@@ -153,15 +153,16 @@
           8.336939
         ]
       ],
-      "absent": [
-        "Fluss"
+      "absent": [],
+      "absent_optional": [
+        "See"
       ],
-      "absent_optional": [],
       "areas": {
-        "Acker": 0.3233,
-        "See": 0.0731,
-        "Siedlung": 0.3927,
-        "Straße": 0.6207,
+        "Acker": 0.246,
+        "Fluss": 0.0823,
+        "See": 0.0179,
+        "Siedlung": 0.389,
+        "Straße": 0.1169,
         "Wald": 0.1679
       }
     },
@@ -180,16 +181,16 @@
         ]
       ],
       "absent": [
-        "See",
-        "Siedlung"
+        "Siedlung",
+        "Straße"
       ],
       "absent_optional": [
-        "Fluss"
+        "See"
       ],
       "areas": {
-        "Acker": 0.3233,
-        "Fluss": 0.0492,
-        "Straße": 0.6207,
+        "Acker": 0.246,
+        "Fluss": 0.0823,
+        "See": 0.0179,
         "Wald": 0.1679
       }
     },
@@ -207,15 +208,16 @@
           8.216905
         ]
       ],
-      "absent": [
+      "absent": [],
+      "absent_optional": [
         "See"
       ],
-      "absent_optional": [],
       "areas": {
-        "Acker": 0.5957,
-        "Fluss": 0.0738,
-        "Siedlung": 0.1366,
-        "Straße": 0.1607,
+        "Acker": 0.5904,
+        "Fluss": 0.0732,
+        "See": 0.0186,
+        "Siedlung": 0.1318,
+        "Straße": 0.1361,
         "Wald": 0.1234
       }
     },
@@ -234,14 +236,16 @@
         ]
       ],
       "absent": [
-        "Fluss",
-        "See",
-        "Siedlung"
+        "Fluss"
       ],
-      "absent_optional": [],
+      "absent_optional": [
+        "See"
+      ],
       "areas": {
-        "Acker": 0.3891,
-        "Straße": 0.3204,
+        "Acker": 0.3734,
+        "See": 0.0399,
+        "Siedlung": 0.1123,
+        "Straße": 0.2817,
         "Wald": 0.3537
       }
     },
@@ -260,17 +264,17 @@
         ]
       ],
       "absent": [
-        "Wald"
+        "Siedlung"
       ],
       "absent_optional": [
         "See"
       ],
       "areas": {
-        "Acker": 0.345,
+        "Acker": 0.3177,
         "Fluss": 0.0653,
         "See": 0.0013,
-        "Siedlung": 0.3083,
-        "Straße": 0.3952
+        "Straße": 0.3638,
+        "Wald": 0.1494
       }
     },
     {
@@ -287,15 +291,14 @@
           8.332852
         ]
       ],
-      "absent": [
-        "Fluss",
-        "Siedlung",
-        "Straße"
-      ],
+      "absent": [],
       "absent_optional": [],
       "areas": {
-        "Acker": 0.208,
-        "See": 0.1744,
+        "Acker": 0.1679,
+        "Fluss": 0.1694,
+        "See": 0.0792,
+        "Siedlung": 0.1842,
+        "Straße": 0.133,
         "Wald": 0.1988
       }
     },
@@ -313,15 +316,16 @@
           8.21601
         ]
       ],
-      "absent": [
-        "Acker",
-        "Siedlung"
+      "absent": [],
+      "absent_optional": [
+        "See"
       ],
-      "absent_optional": [],
       "areas": {
-        "Fluss": 0.0503,
-        "See": 0.0801,
-        "Straße": 0.2399,
+        "Acker": 0.2662,
+        "Fluss": 0.0741,
+        "See": 0.0495,
+        "Siedlung": 0.1004,
+        "Straße": 0.1566,
         "Wald": 0.1933
       }
     },
@@ -340,18 +344,17 @@
         ]
       ],
       "absent": [
+        "Fluss",
         "Straße"
       ],
       "absent_optional": [
-        "Fluss",
         "See",
         "Siedlung"
       ],
       "areas": {
-        "Acker": 0.4303,
-        "Fluss": 0.0337,
+        "Acker": 0.3964,
         "See": 0.0016,
-        "Siedlung": 0.0189,
+        "Siedlung": 0.0071,
         "Wald": 0.108
       }
     },
@@ -371,14 +374,14 @@
       ],
       "absent": [
         "Acker",
-        "Fluss",
-        "Siedlung",
-        "Straße",
-        "Wald"
+        "See"
       ],
       "absent_optional": [],
       "areas": {
-        "See": 0.1178
+        "Fluss": 0.1237,
+        "Siedlung": 0.0706,
+        "Straße": 0.0911,
+        "Wald": 0.3381
       }
     },
     {
@@ -395,16 +398,17 @@
           8.20891
         ]
       ],
-      "absent": [
-        "Acker",
-        "Fluss",
-        "See",
-        "Wald"
+      "absent": [],
+      "absent_optional": [
+        "Fluss"
       ],
-      "absent_optional": [],
       "areas": {
-        "Siedlung": 0.2419,
-        "Straße": 0.2729
+        "Acker": 0.1381,
+        "Fluss": 0.0471,
+        "See": 0.0578,
+        "Siedlung": 0.2381,
+        "Straße": 0.2255,
+        "Wald": 0.4463
       }
     },
     {
@@ -422,14 +426,14 @@
         ]
       ],
       "absent": [
-        "Acker",
-        "Fluss",
-        "See"
+        "Siedlung",
+        "Straße"
       ],
       "absent_optional": [],
       "areas": {
-        "Siedlung": 0.0938,
-        "Straße": 0.1349,
+        "Acker": 0.237,
+        "Fluss": 0.091,
+        "See": 0.0873,
         "Wald": 0.377
       }
     }
