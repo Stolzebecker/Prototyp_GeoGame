@@ -1,0 +1,183 @@
+/*
+ * tutorial.css
+ * EO Visual Complexity Experiment – Tutorial
+ */
+
+/* ── Language Selection ─────────────────────────────────── */
+#lang-screen{
+  position:fixed;inset:0;z-index:4000;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+.lang-panel{
+  display:flex;flex-direction:column;align-items:center;gap:28px;
+  padding:52px 60px;
+  background:rgba(10,63,112,0.82);backdrop-filter:blur(10px);
+  border:1px solid var(--border);border-top:3px solid var(--accent2);
+  box-shadow:0 12px 48px rgba(0,0,0,.6);
+}
+.lang-panel h2{
+  font-size:22px;color:#fff;font-weight:700;letter-spacing:.02em;
+  text-align:center;
+}
+.lang-buttons{display:flex;gap:16px;}
+.lang-btn{
+  padding:14px 36px;border:none;border-radius:4px;
+  background:linear-gradient(180deg,#ffe566 0%,#fdc300 55%,#c99400 100%);
+  color:#0a3f70;font-family:var(--font-ui);font-weight:700;font-size:15px;
+  cursor:pointer;border-bottom:3px solid #8a6500;
+  box-shadow:0 4px 16px rgba(253,195,0,.35),inset 0 1px 0 rgba(255,255,255,.5);
+  transition:all .12s;
+}
+.lang-btn:hover{transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(253,195,0,.5),inset 0 1px 0 rgba(255,255,255,.5);}
+.lang-btn:active{transform:translateY(1px);border-bottom-width:1px;}
+
+/* ── Info screens (fullscreen) ───────────────────────────── */
+#tutorial-info-screen{
+  position:fixed;inset:0;z-index:3500;
+  display:none;
+  align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#212348 0%,#0a3f70 100%);
+}
+#tutorial-info-screen.active{display:flex;}
+
+.tut-info-panel{
+  width:min(680px,88vw);
+  padding:44px 48px;
+  background:rgba(10,63,112,0.75);backdrop-filter:blur(12px);
+  border:1px solid rgba(12,164,209,.4);border-top:3px solid var(--accent2);
+  box-shadow:0 12px 48px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;gap:18px;
+}
+.tut-step-badge{
+  font-family:var(--font-ui);font-size:10px;
+  color:var(--accent);letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.tut-info-panel h2{
+  font-size:26px;color:#fff;font-weight:700;line-height:1.15;margin:0;
+}
+.tut-info-panel .tut-subtitle{
+  font-size:13px;color:var(--accent2);font-weight:600;letter-spacing:.04em;
+  margin-bottom:-8px;
+}
+.tut-info-panel p{
+  font-size:14px;color:rgba(255,255,255,.82);line-height:1.7;margin:0;
+}
+.tut-info-panel .tut-note{
+  font-size:12px;color:var(--muted);
+  border-left:2px solid var(--border);padding-left:12px;
+  line-height:1.6;
+}
+.tut-progress{
+  display:flex;gap:6px;align-items:center;margin-top:4px;
+}
+.tut-progress-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border);transition:background .3s;
+}
+.tut-progress-dot.active{background:var(--accent2);}
+.tut-btn-row{
+  display:flex;justify-content:flex-end;gap:10px;margin-top:6px;
+}
+.tut-btn{
+  padding:11px 30px;border:none;border-radius:4px;
+  background:linear-gradient(180deg,#ffe566 0%,#fdc300 55%,#c99400 100%);
+  color:#0a3f70;font-family:var(--font-ui);font-weight:700;font-size:14px;
+  cursor:pointer;border-bottom:3px solid #8a6500;
+  box-shadow:0 4px 14px rgba(253,195,0,.35),inset 0 1px 0 rgba(255,255,255,.5);
+  transition:all .12s;
+}
+.tut-btn:hover{transform:translateY(-2px);}
+.tut-btn:active{transform:translateY(1px);border-bottom-width:1px;}
+.tut-btn-skip{
+  padding:11px 20px;border:1px solid var(--border);border-radius:4px;
+  background:transparent;color:var(--muted);
+  font-family:var(--font-ui);font-size:13px;cursor:pointer;
+  transition:border-color .15s,color .15s;
+}
+.tut-btn-skip:hover{border-color:var(--accent);color:var(--text);}
+
+/* ── Overlay tutorial (over satellite image) ─────────────── */
+#tutorial-overlay{
+  position:fixed;inset:0;z-index:3000;
+  display:none;pointer-events:none;
+}
+#tutorial-overlay.active{display:block;pointer-events:all;}
+
+/* Dark veil behind everything except the spotlight */
+#tut-veil{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.62);
+  pointer-events:none;
+}
+
+/* Tooltip card */
+#tut-tooltip{
+  position:absolute;
+  width:min(400px,80vw);
+  padding:20px 24px;
+  background:rgba(10,63,112,0.95);backdrop-filter:blur(10px);
+  border:1px solid rgba(12,164,209,.5);border-top:2px solid var(--accent2);
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
+  pointer-events:all;
+  transition:top .35s ease, left .35s ease;
+}
+#tut-tooltip h3{
+  font-size:15px;color:var(--accent2);font-weight:700;
+  margin-bottom:8px;letter-spacing:.02em;
+}
+#tut-tooltip p{
+  font-size:13px;color:rgba(255,255,255,.85);line-height:1.65;margin:0 0 14px;
+}
+
+/* Blinking arrow pointer */
+.tut-arrow{
+  position:absolute;
+  width:36px;height:36px;
+  pointer-events:none;
+  animation:tut-blink 1s ease-in-out infinite;
+  z-index:3100;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.8));
+}
+@keyframes tut-blink{
+  0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:.4;transform:translate(-50%,-50%) scale(1.2);}
+}
+
+/* Spotlight cutout (shown via clip-path on veil) */
+.tut-spotlight{
+  position:absolute;
+  border:2px solid var(--accent2);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.62);
+  pointer-events:none;
+  border-radius:4px;
+  transition:all .35s ease;
+}
+
+/* ── Practice round ──────────────────────────────────────── */
+#tut-practice-banner{
+  position:absolute;
+  top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(10,63,112,.92);border:1px solid var(--accent2);
+  padding:8px 20px;
+  font-family:var(--font-ui);font-size:12px;color:var(--accent2);
+  letter-spacing:.12em;pointer-events:none;z-index:2900;
+  display:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+}
+#tut-practice-banner.active{display:block;}
+
+#tut-success-msg{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:rgba(10,63,112,.95);border:1px solid var(--accent2);
+  padding:10px 24px;
+  font-family:var(--font-ui);font-size:14px;color:var(--accent2);font-weight:600;
+  z-index:3200;display:none;
+  box-shadow:0 4px 20px rgba(0,255,157,.25);
+}
+
+/* ── Transition ──────────────────────────────────────────── */
+.tut-fade-out{animation:tutFadeOut .4s forwards;}
+@keyframes tutFadeOut{to{opacity:0;pointer-events:none;}}

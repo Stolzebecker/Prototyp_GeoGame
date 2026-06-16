@@ -82,14 +82,21 @@ async function boot(){
 }
 
 // ── Start ───────────────────────────────────────────────────
-function startExperiment(){
-  const ss = document.getElementById('start-screen');
-  ss.classList.add('hidden');
-  setTimeout(()=>{
-    ss.remove();
-      loadLevel(0);
-  }, 420);
+// setupMouseEvents guard – only run once
+let _mouseEventsReady = false;
+function ensureMouseEvents(){
+  if(_mouseEventsReady) return;
+  _mouseEventsReady = true;
   setupMouseEvents();
+}
+
+function startExperiment(){
+  // btn-start now calls startTutorial() from tutorial.js
+  // This function is kept for compatibility (skip/finish tutorial calls it)
+  const ss = document.getElementById('start-screen');
+  if(ss){ ss.classList.add('hidden'); setTimeout(()=> ss.remove(), 420); }
+  ensureMouseEvents();
+  // Tutorial takes over from here via startTutorial()
 }
 
 // ── Load level ──────────────────────────────────────────────
@@ -536,6 +543,14 @@ function handleStageDrop(fx,fy,localX,localY){
     if(zoneFilled[zone.klasse]) continue;
     if(pointHitsZone(fx,fy,zone.fracRing)) hitKlassen.add(zone.klasse);
   }
+
+  // Tutorial practice intercept
+  if(window._tutPracticeActive && typeof tutPracticeCheck === 'function'){
+    const firstHit = hitKlassen.size > 0 ? [...hitKlassen][0] : null;
+    const consumed = tutPracticeCheck(draggingId, firstHit);
+    if(consumed) return;
+  }
+
   if(hitKlassen.size===0){
     currentErrors++;
     document.getElementById('stat-err-val').textContent=currentErrors;
