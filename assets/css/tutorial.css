@@ -1,66 +1,68 @@
 /**
  * tutorial.js – EO Visual Complexity Experiment
+ * Tutorial flow: Language → Info screens → Overlay → Practice → Experiment
  */
 
+/* global CONFIG, buildZones, renderLabels, ensureMouseEvents, loadLevel */
+
+// ── Texts ─────────────────────────────────────────────────────────────────────
 const TUT_TEXTS = {
   de: {
-    langLabel: 'Sprache waehlen / Choose language',
-    langBtn:   'Deutsch',
     info: [
       {
         badge:    '01 / Hintergrund',
         title:    'Warum gibt es dieses Spiel?',
         subtitle: 'Wissenschaftliche Studie',
-        body:     'Dieses Spiel ist Teil einer wissenschaftlichen Studie zur visuellen Komplexit\u00e4t von Satelliten- und Drohnenbildern. Ziel ist es zu untersuchen, wie Menschen verschiedene Landschaftselemente in Fernerkundungsbildern erkennen und wie sich unterschiedliche Bildmerkmale auf die Wahrnehmung auswirken.',
+        body:     'Dieses Spiel ist Teil einer wissenschaftlichen Studie zur visuellen Komplexität von Satelliten- und Drohnenbildern. Ziel ist es zu untersuchen, wie Menschen verschiedene Landschaftselemente in Fernerkundungsbildern erkennen und wie sich unterschiedliche Bildmerkmale auf die Wahrnehmung auswirken.',
         note:     null,
       },
       {
         badge:    '02 / Aufgabe',
         title:    'Wie funktioniert das Spiel?',
         subtitle: 'Deine Aufgabe',
-        body:     'Ziehe die angezeigten Labels auf die passenden Stellen im Satellitenbild. Falls ein Objekt im Bild nicht vorhanden ist, lege es in den Papierkorb. Arbeite dabei so genau wie m\u00f6glich.',
+        body:     'Ziehe die angezeigten Labels auf die passenden Stellen im Satellitenbild. Falls ein Objekt im Bild nicht vorhanden ist, lege es in den Papierkorb. Arbeite dabei so genau wie möglich.',
         note:     null,
       },
       {
         badge:    '03 / Messung',
         title:    'Was wird gemessen?',
         subtitle: 'Bearbeitungszeit & Datenschutz',
-        body:     'W\u00e4hrend der Bearbeitung wird die ben\u00f6tigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz nat\u00fcrlich \u2013 versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen l\u00f6sen.',
-        note:     'Die Teilnahme erfolgt anonym. Es werden keine personenbezogenen Daten erfasst oder gespeichert. Die Daten dienen ausschlie\u00dflich wissenschaftlichen Zwecken.',
+        body:     'Während der Bearbeitung wird die benötigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen.',
+        note:     'Die Teilnahme erfolgt anonym. Es werden keine personenbezogenen Daten erfasst oder gespeichert. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.',
       },
     ],
     overlay: [
       {
         title:  'Die Labels',
-        body:   'Hier findest du alle Objekte, die du auf dem Bild markieren sollst. Ziehe ein Label mit gedr\u00fcckter Maustaste auf den entsprechenden Bereich im Bild.',
+        body:   'Hier findest du alle Objekte, die du auf dem Bild markieren sollst. Ziehe ein Label mit gedrückter Maustaste auf den entsprechenden Bereich im Bild.',
         target: 'labels',
       },
       {
-        title:  'Nicht vorhanden \u2013 der Papierkorb',
+        title:  'Nicht vorhanden – der Papierkorb',
         body:   'Ist ein Objekt auf dem Bild nicht sichtbar, ziehe das Label in den Papierkorb rechts unten.',
         target: 'trash',
       },
       {
         title:  'Die Lupe',
-        body:   'Sobald du die Maus \u00fcber das Bild bewegst, erscheint eine Lupe. Sie zeigt den Bereich unter dem Cursor vergr\u00f6\u00dfert an und hilft dir bei der genauen Zuordnung.',
+        body:   'Sobald du die Maus über das Bild bewegst, erscheint eine Lupe. Sie zeigt den Bereich unter dem Cursor vergrößert an und hilft dir bei der genauen Zuordnung.',
         target: 'loupe',
       },
       {
         title:  'Die Nadel',
-        body:   'Wenn du ein Label aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an \u2013 platziere sie pr\u00e4zise im richtigen Bereich.',
+        body:   'Wenn du ein Label aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an – platziere sie präzise im richtigen Bereich.',
         target: 'pin',
       },
     ],
     practiceTitle:   'Jetzt bist du dran!',
-    practiceBody:    'Markiere den Fluss auf dem Bild. Ziehe das Label "Fluss \ud83c\udf0a" auf den Bereich mit dem Flie\u00dfgew\u00e4sser.',
-    practiceSuccess: '\u2713 Sehr gut! Du hast die Spielmechanik verstanden.',
-    practiceBtn:     'Weiter zum Experiment \u203a',
-    nextBtn:         'Weiter \u203a',
-    skipBtn:         'Tutorial \u00fcberspringen',
+    practiceBody:    'Markiere den Fluss auf dem Bild. Ziehe das Label "Fluss" auf den Bereich mit dem Fließgewässer.',
+    practiceWrong:   'Versuche es mit dem Label "Fluss".',
+    practiceSuccess: 'Sehr gut! Du hast die Spielmechanik verstanden.',
+    practiceBtn:     'Weiter zum Experiment',
+    nextBtn:         'Weiter',
+    skipBtn:         'Tutorial überspringen',
+    practiceHint:    'ÜBUNGSRUNDE – Zeit läuft nicht',
   },
   en: {
-    langLabel: 'Sprache waehlen / Choose language',
-    langBtn:   'English',
     info: [
       {
         badge:    '01 / Background',
@@ -80,7 +82,7 @@ const TUT_TEXTS = {
         badge:    '03 / Measurement',
         title:    'What is being measured?',
         subtitle: 'Processing Time & Privacy',
-        body:     'Your processing time is recorded during the task. Please work naturally \u2013 do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.',
+        body:     'Your processing time is recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.',
         note:     'Participation is completely anonymous. No personal data is collected or stored. All data is used exclusively for scientific research purposes.',
       },
     ],
@@ -91,7 +93,7 @@ const TUT_TEXTS = {
         target: 'labels',
       },
       {
-        title:  'Not Present \u2013 the Bin',
+        title:  'Not Present – the Bin',
         body:   'If an object is not visible in the image, drag its label into the bin in the bottom right.',
         target: 'trash',
       },
@@ -102,84 +104,93 @@ const TUT_TEXTS = {
       },
       {
         title:  'The Pin',
-        body:   'When you pick up a label, a pin appears under the cursor. The tip of the pin shows the exact drop location \u2013 place it precisely in the correct area.',
+        body:   'When you pick up a label, a pin appears under the cursor. The tip of the pin shows the exact drop location – place it precisely in the correct area.',
         target: 'pin',
       },
     ],
     practiceTitle:   'Your turn!',
-    practiceBody:    'Mark the river in the image. Drag the label "Fluss \ud83c\udf0a" onto the area with the waterway.',
-    practiceSuccess: '\u2713 Well done! You have understood the game mechanics.',
-    practiceBtn:     'Continue to Experiment \u203a',
-    nextBtn:         'Next \u203a',
+    practiceBody:    'Mark the river in the image. Drag the label "Fluss" onto the area with the waterway.',
+    practiceWrong:   'Try the label "Fluss".',
+    practiceSuccess: 'Well done! You have understood the game mechanics.',
+    practiceBtn:     'Continue to Experiment',
+    nextBtn:         'Next',
     skipBtn:         'Skip tutorial',
+    practiceHint:    'PRACTICE ROUND – Timer not running',
   },
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let tutLang       = 'de';
-let tutInfoStep   = 0;
-let tutOverStep   = 0;
-let tutArrow      = null;
-let tutSpotlight  = null;
+let tutLang      = 'de';
+let tutInfoStep  = 0;
+let tutOverStep  = 0;
+let tutArrow     = null;
+let tutSpotlight = null;
 
 // ── Entry point ───────────────────────────────────────────────────────────────
-function startTutorial(){
+function startTutorial() {
   const ss = document.getElementById('start-screen');
-  if(ss){
+  if (ss) {
     ss.classList.add('hidden');
-    setTimeout(()=>{ ss.remove(); showLangScreen(); }, 420);
+    setTimeout(function() { ss.remove(); showLangScreen(); }, 420);
   } else {
     showLangScreen();
   }
 }
 
 // ── 1. Language selection ─────────────────────────────────────────────────────
-function showLangScreen(){
+function showLangScreen() {
   const el = document.getElementById('lang-screen');
-  if(el){
-    el.style.display = 'flex';
-    el.style.opacity = '0';
+  if (el) {
+    el.style.display    = 'flex';
+    el.style.opacity    = '0';
     el.style.transition = 'opacity .3s';
-    requestAnimationFrame(()=>{ el.style.opacity = '1'; });
+    requestAnimationFrame(function() { el.style.opacity = '1'; });
   }
 }
 
-function selectLang(lang){
+function selectLang(lang) {
   tutLang = lang;
   const el = document.getElementById('lang-screen');
-  if(el){ el.classList.add('tut-fade-out'); setTimeout(()=> el.remove(), 400); }
-  setTimeout(()=> showInfoScreen(0), 420);
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(function() { el.remove(); showInfoScreen(0); }, 320);
+  } else {
+    showInfoScreen(0);
+  }
 }
 
 // ── 2. Info screens ───────────────────────────────────────────────────────────
-function showInfoScreen(step){
-  tutInfoStep = step;
-  const texts  = TUT_TEXTS[tutLang];
-  const info   = texts.info;
-  const s      = info[step];
-  const screen = document.getElementById('tutorial-info-screen');
+function showInfoScreen(step) {
+  tutInfoStep  = step;
+  var texts    = TUT_TEXTS[tutLang];
+  var info     = texts.info;
+  var s        = info[step];
+  var screen   = document.getElementById('tutorial-info-screen');
   screen.classList.add('active');
 
-  screen.innerHTML = `
-    <div class="tut-info-panel">
-      <div class="tut-step-badge">${s.badge}</div>
-      <h2>${s.title}</h2>
-      <div class="tut-subtitle">${s.subtitle}</div>
-      <p>${s.body}</p>
-      ${s.note ? `<div class="tut-note">${s.note}</div>` : ''}
-      <div class="tut-progress">
-        ${info.map((_,i)=>`<div class="tut-progress-dot${i===step?' active':''}"></div>`).join('')}
-      </div>
-      <div class="tut-btn-row">
-        <button class="tut-btn-skip" onclick="skipTutorial()">${texts.skipBtn}</button>
-        <button class="tut-btn" onclick="nextInfoScreen()">${texts.nextBtn}</button>
-      </div>
-    </div>`;
+  var dots = '';
+  for (var i = 0; i < info.length; i++) {
+    dots += '<div class="tut-progress-dot' + (i === step ? ' active' : '') + '"></div>';
+  }
+
+  screen.innerHTML =
+    '<div class="tut-info-panel">' +
+      '<div class="tut-step-badge">' + s.badge + '</div>' +
+      '<h2>' + s.title + '</h2>' +
+      '<div class="tut-subtitle">' + s.subtitle + '</div>' +
+      '<p>' + s.body + '</p>' +
+      (s.note ? '<div class="tut-note">' + s.note + '</div>' : '') +
+      '<div class="tut-progress">' + dots + '</div>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+        '<button class="tut-btn" onclick="nextInfoScreen()">' + texts.nextBtn + '</button>' +
+      '</div>' +
+    '</div>';
 }
 
-function nextInfoScreen(){
-  const texts = TUT_TEXTS[tutLang];
-  if(tutInfoStep < texts.info.length - 1){
+function nextInfoScreen() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutInfoStep < texts.info.length - 1) {
     showInfoScreen(tutInfoStep + 1);
   } else {
     document.getElementById('tutorial-info-screen').classList.remove('active');
@@ -188,84 +199,84 @@ function nextInfoScreen(){
 }
 
 // ── 3. Overlay tutorial ───────────────────────────────────────────────────────
-async function startOverlayTutorial(){
-  await loadLevelSilent(0);
-  showOverlayStep(0);
+function startOverlayTutorial() {
+  loadLevelSilent(0).then(function() {
+    showOverlayStep(0);
+  });
 }
 
-function showOverlayStep(step){
-  tutOverStep = step;
-  const texts   = TUT_TEXTS[tutLang];
-  const steps   = texts.overlay;
-  const s       = steps[step];
-  const overlay = document.getElementById('tutorial-overlay');
+function showOverlayStep(step) {
+  tutOverStep  = step;
+  var texts    = TUT_TEXTS[tutLang];
+  var steps    = texts.overlay;
+  var s        = steps[step];
+  var overlay  = document.getElementById('tutorial-overlay');
   overlay.classList.add('active');
 
-  if(tutArrow)     { tutArrow.remove();     tutArrow = null; }
-  if(tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+  if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
+  if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  const target = getTutorialTarget(s.target);
+  var target = getTutorialTarget(s.target);
 
-  if(target){
+  if (target) {
+    var r   = target.getBoundingClientRect();
+    var pad = 8;
+
     tutSpotlight = document.createElement('div');
     tutSpotlight.className = 'tut-spotlight';
-    const r = target.getBoundingClientRect();
-    const pad = 8;
-    Object.assign(tutSpotlight.style, {
-      position:'fixed',
-      left: (r.left-pad)+'px', top: (r.top-pad)+'px',
-      width: (r.width+pad*2)+'px', height: (r.height+pad*2)+'px',
-    });
+    tutSpotlight.style.position = 'fixed';
+    tutSpotlight.style.left     = (r.left - pad) + 'px';
+    tutSpotlight.style.top      = (r.top  - pad) + 'px';
+    tutSpotlight.style.width    = (r.width  + pad * 2) + 'px';
+    tutSpotlight.style.height   = (r.height + pad * 2) + 'px';
     overlay.appendChild(tutSpotlight);
 
     tutArrow = document.createElement('div');
     tutArrow.className = 'tut-arrow';
-    tutArrow.innerHTML = `<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="18,2 34,34 18,26 2,34" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>
-    </svg>`;
-    Object.assign(tutArrow.style, {
-      position:'fixed',
-      left: (r.left + r.width/2)+'px',
-      top:  (r.top - 44)+'px',
-      transform: 'translate(-50%,-50%) rotate(180deg)',
-    });
+    tutArrow.innerHTML =
+      '<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">' +
+        '<polygon points="18,2 34,34 18,26 2,34" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>' +
+      '</svg>';
+    tutArrow.style.position  = 'fixed';
+    tutArrow.style.left      = (r.left + r.width / 2) + 'px';
+    tutArrow.style.top       = (r.top - 44) + 'px';
+    tutArrow.style.transform = 'translate(-50%,-50%) rotate(180deg)';
     overlay.appendChild(tutArrow);
   }
 
-  const tooltip = document.getElementById('tut-tooltip');
+  var tooltip = document.getElementById('tut-tooltip');
   tooltip.style.transform = '';
-  tooltip.innerHTML = `
-    <h3>${s.title}</h3>
-    <p>${s.body}</p>
-    <div class="tut-btn-row">
-      <button class="tut-btn-skip" onclick="skipTutorial()">${texts.skipBtn}</button>
-      <button class="tut-btn" onclick="nextOverlayStep()">${texts.nextBtn}</button>
-    </div>`;
+  tooltip.innerHTML =
+    '<h3>' + s.title + '</h3>' +
+    '<p>' + s.body + '</p>' +
+    '<div class="tut-btn-row">' +
+      '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+      '<button class="tut-btn" onclick="nextOverlayStep()">' + texts.nextBtn + '</button>' +
+    '</div>';
 
-  // Position tooltip away from target
-  if(target){
-    const r  = target.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    let top  = r.top - 160;
-    let left = r.left + r.width/2 - 200;
-    if(top < 10) top = r.bottom + 20;
+  if (target) {
+    var r2   = target.getBoundingClientRect();
+    var vw   = window.innerWidth;
+    var vh   = window.innerHeight;
+    var top  = r2.top - 180;
+    var left = r2.left + r2.width / 2 - 200;
+    if (top < 10) { top = r2.bottom + 20; }
     left = Math.max(10, Math.min(vw - 420, left));
-    top  = Math.max(10, Math.min(vh - 200, top));
-    Object.assign(tooltip.style, {
-      position:'fixed', top: top+'px', left: left+'px',
-    });
+    top  = Math.max(10, Math.min(vh - 220, top));
+    tooltip.style.position = 'fixed';
+    tooltip.style.top      = top + 'px';
+    tooltip.style.left     = left + 'px';
   } else {
-    Object.assign(tooltip.style, {
-      position:'fixed', top:'50%', left:'50%',
-      transform:'translate(-50%,-50%)',
-    });
+    tooltip.style.position  = 'fixed';
+    tooltip.style.top       = '50%';
+    tooltip.style.left      = '50%';
+    tooltip.style.transform = 'translate(-50%,-50%)';
   }
 }
 
-function nextOverlayStep(){
-  const texts = TUT_TEXTS[tutLang];
-  if(tutOverStep < texts.overlay.length - 1){
+function nextOverlayStep() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutOverStep < texts.overlay.length - 1) {
     showOverlayStep(tutOverStep + 1);
   } else {
     startPracticeRound();
@@ -273,97 +284,102 @@ function nextOverlayStep(){
 }
 
 // ── 4. Practice round ─────────────────────────────────────────────────────────
-function startPracticeRound(){
-  const texts = TUT_TEXTS[tutLang];
-  if(tutArrow)     { tutArrow.remove();     tutArrow = null; }
-  if(tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+function startPracticeRound() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
+  if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  const tooltip = document.getElementById('tut-tooltip');
-  tooltip.innerHTML = `<h3>${texts.practiceTitle}</h3><p>${texts.practiceBody}</p>`;
-  Object.assign(tooltip.style, {
-    position:'fixed', top:'20px', left:'50%', transform:'translateX(-50%)',
-  });
+  var tooltip = document.getElementById('tut-tooltip');
+  tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
+  tooltip.style.position  = 'fixed';
+  tooltip.style.top       = '20px';
+  tooltip.style.left      = '50%';
+  tooltip.style.transform = 'translateX(-50%)';
 
-  const banner = document.getElementById('tut-practice-banner');
-  banner.textContent = tutLang === 'de'
-    ? '\uD83C\uDFAF  \u00dcBUNGSRUNDE \u2013 Zeit l\u00e4uft nicht'
-    : '\uD83C\uDFAF  PRACTICE ROUND \u2013 Timer not running';
+  var banner = document.getElementById('tut-practice-banner');
+  banner.textContent = texts.practiceHint;
   banner.classList.add('active');
 
   window._tutPracticeActive = true;
 }
 
-function tutPracticeCheck(droppedId, hitKlasse){
-  if(!window._tutPracticeActive) return false;
-  const texts = TUT_TEXTS[tutLang];
+// Called from app.js handleStageDrop when practice is active
+function tutPracticeCheck(droppedId, hitKlasse) {
+  if (!window._tutPracticeActive) { return false; }
+  var texts = TUT_TEXTS[tutLang];
 
-  if(droppedId === 'Fluss' && hitKlasse === 'Fluss'){
+  if (droppedId === 'Fluss' && hitKlasse === 'Fluss') {
     window._tutPracticeActive = false;
-    const msg = document.getElementById('tut-success-msg');
-    msg.textContent = texts.practiceSuccess;
+
+    var msg = document.getElementById('tut-success-msg');
+    msg.textContent  = texts.practiceSuccess;
     msg.style.display = 'block';
-    const tooltip = document.getElementById('tut-tooltip');
-    tooltip.innerHTML = `
-      <h3>${texts.practiceSuccess}</h3>
-      <div class="tut-btn-row">
-        <button class="tut-btn" onclick="finishTutorial()">${texts.practiceBtn}</button>
-      </div>`;
+
+    var tooltip = document.getElementById('tut-tooltip');
+    tooltip.innerHTML =
+      '<h3>' + texts.practiceSuccess + '</h3>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn" onclick="finishTutorial()">' + texts.practiceBtn + '</button>' +
+      '</div>';
     return true;
-  } else if(droppedId !== 'Fluss'){
-    const tooltip = document.getElementById('tut-tooltip');
-    const p = tooltip.querySelector('p');
-    if(p) p.textContent = tutLang === 'de'
-      ? 'Versuche es mit dem Label "Fluss \uD83C\uDF0A".'
-      : 'Try the label "Fluss \uD83C\uDF0A".';
+  }
+
+  if (droppedId !== 'Fluss') {
+    var tooltip2 = document.getElementById('tut-tooltip');
+    var p = tooltip2.querySelector('p');
+    if (p) { p.textContent = texts.practiceWrong; }
     return true;
   }
   return false;
 }
 
 // ── 5. Finish ─────────────────────────────────────────────────────────────────
-function finishTutorial(){
+function finishTutorial() {
   document.getElementById('tutorial-overlay').classList.remove('active');
   document.getElementById('tut-practice-banner').classList.remove('active');
-  document.getElementById('tut-success-msg').style.display = 'none';
+  var msg = document.getElementById('tut-success-msg');
+  if (msg) { msg.style.display = 'none'; }
   window._tutPracticeActive = false;
   ensureMouseEvents();
   loadLevel(1);
 }
 
-function skipTutorial(){
-  const screen = document.getElementById('tutorial-info-screen');
-  if(screen) screen.classList.remove('active');
-  const overlay = document.getElementById('tutorial-overlay');
-  if(overlay) overlay.classList.remove('active');
-  const banner = document.getElementById('tut-practice-banner');
-  if(banner) banner.classList.remove('active');
+function skipTutorial() {
+  var screen  = document.getElementById('tutorial-info-screen');
+  var overlay = document.getElementById('tutorial-overlay');
+  var banner  = document.getElementById('tut-practice-banner');
+  if (screen)  { screen.classList.remove('active'); }
+  if (overlay) { overlay.classList.remove('active'); }
+  if (banner)  { banner.classList.remove('active'); }
   window._tutPracticeActive = false;
   ensureMouseEvents();
   loadLevel(1);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-async function loadLevelSilent(i){
-  const lv = CONFIG.levels[i];
-  await new Promise(resolve=>{
-    const img = document.getElementById('sat-img');
+function loadLevelSilent(i) {
+  var lv = CONFIG.levels[i];
+  return new Promise(function(resolve) {
+    var img = document.getElementById('sat-img');
     img.onload = img.onerror = resolve;
     img.src = lv.imgSrc;
-  });
-  try{
-    const res = await fetch(lv.geojsonSrc);
-    const gj  = await res.json();
+  }).then(function() {
+    return fetch(lv.geojsonSrc);
+  }).then(function(res) {
+    return res.json();
+  }).then(function(gj) {
     buildZones(gj, lv.bounds);
-  }catch(e){ console.warn('Tutorial GeoJSON:', e); }
-  renderLabels(lv);
+    renderLabels(lv);
+  }).catch(function(e) {
+    console.warn('Tutorial GeoJSON error:', e);
+    renderLabels(lv);
+  });
 }
 
-function getTutorialTarget(name){
-  switch(name){
-    case 'labels': return document.getElementById('label-bar');
-    case 'trash':  return document.getElementById('trash');
-    case 'loupe':  return document.getElementById('loupe');
-    case 'pin':    return document.getElementById('pin');
-    default:       return null;
-  }
+function getTutorialTarget(name) {
+  if (name === 'labels') { return document.getElementById('label-bar'); }
+  if (name === 'trash')  { return document.getElementById('trash'); }
+  if (name === 'loupe')  { return document.getElementById('loupe'); }
+  if (name === 'pin')    { return document.getElementById('pin'); }
+  return null;
 }
