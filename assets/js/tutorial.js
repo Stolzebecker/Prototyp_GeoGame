@@ -1,458 +1,385 @@
 /**
- * tutorial.js
- * EO Visual Complexity Experiment – Tutorial
- * ──────────────────────────────────────────
- * Flow:
- *   1. Language selection (DE / EN)
- *   2. Info screens (fullscreen): Why / How / Measurement
- *   3. Overlay tutorial (over B1 satellite image):
- *      - Labels bar  → blinking arrow
- *      - Trash bin   → blinking arrow
- *      - Loupe hint  → blinking arrow
- *      - Pin hint    → blinking arrow
- *   4. Practice: user must drop "Fluss" on the correct zone
- *   5. Transition to main experiment (B1 skipped)
+ * tutorial.js – EO Visual Complexity Experiment
+ * Tutorial flow: Language → Info screens → Overlay → Practice → Experiment
  */
 
-// ── Texts ────────────────────────────────────────────────────────────────────
+/* global CONFIG, buildZones, renderLabels, ensureMouseEvents, loadLevel */
+
+// ── Texts ─────────────────────────────────────────────────────────────────────
 const TUT_TEXTS = {
   de: {
-    langLabel: "Sprache wählen / Choose language",
-    langBtn:   "Deutsch",
-
     info: [
       {
-        badge:    "01 / Hintergrund",
-        title:    "Warum gibt es dieses Spiel?",
-        subtitle: "Wissenschaftliche Studie",
-        body:     "Dieses Spiel ist Teil einer wissenschaftlichen Studie zur visuellen Komplexität von Satelliten- und Drohnenbildern. Ziel ist es zu untersuchen, wie Menschen verschiedene Landschaftselemente in Fernerkundungsbildern erkennen und wie sich unterschiedliche Bildmerkmale auf die Wahrnehmung auswirken.",
+        badge:    '01 / Hintergrund',
+        title:    'Warum gibt es dieses Spiel?',
+        subtitle: 'Wissenschaftliche Studie',
+        body:     'Dieses Spiel ist Teil einer wissenschaftlichen Studie zur visuellen Komplexität von Satelliten- und Drohnenbildern. Ziel ist es zu untersuchen, wie Menschen verschiedene Landschaftselemente in Fernerkundungsbildern erkennen und wie sich unterschiedliche Bildmerkmale auf die Wahrnehmung auswirken.',
         note:     null,
       },
       {
-        badge:    "02 / Aufgabe",
-        title:    "Wie funktioniert das Spiel?",
-        subtitle: "Deine Aufgabe",
-        body:     "Ziehe die angezeigten Labels auf die passenden Stellen im Satellitenbild. Falls ein Objekt im Bild nicht vorhanden ist, lege es in den Papierkorb. Arbeite dabei so genau wie möglich.",
+        badge:    '02 / Aufgabe',
+        title:    'Wie funktioniert das Spiel?',
+        subtitle: 'Deine Aufgabe',
+        body:     'Ziehe die angezeigten Labels auf die passenden Stellen im Satellitenbild. Falls ein Objekt im Bild nicht vorhanden ist, lege es in den Papierkorb. Arbeite dabei so genau wie möglich.',
         note:     null,
       },
       {
-        badge:    "03 / Messung",
-        title:    "Was wird gemessen?",
-        subtitle: "Bearbeitungszeit & Datenschutz",
-        body:     "Während der Bearbeitung wird die benötigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen.",
-        note:     "Die Teilnahme erfolgt anonym. Es werden keine personenbezogenen Daten erfasst oder gespeichert. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.",
+        badge:    '03 / Messung',
+        title:    'Was wird gemessen?',
+        subtitle: 'Bearbeitungszeit & Datenschutz',
+        body:     'Während der Bearbeitung wird die benötigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen.',
+        note:     'Die Teilnahme erfolgt anonym. Es werden keine personenbezogenen Daten erfasst oder gespeichert. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.',
       },
     ],
-
     overlay: [
       {
-        title:  "Die Labels",
-        body:   "Hier findest du alle Objekte, die du auf dem Bild markieren sollst. Ziehe ein Label mit gedrückter Maustaste auf den entsprechenden Bereich im Bild.",
-        target: "labels",
+        title:  'Die Labels',
+        body:   'Hier findest du alle Objekte, die du auf dem Bild markieren sollst. Ziehe ein Label mit gedrückter Maustaste auf den entsprechenden Bereich im Bild.',
+        target: 'labels',
       },
       {
-        title:  "Nicht vorhanden – der Papierkorb",
-        body:   "Ist ein Objekt auf dem Bild nicht sichtbar, ziehe das Label in den Papierkorb rechts unten.",
-        target: "trash",
+        title:  'Nicht vorhanden – der Papierkorb',
+        body:   'Ist ein Objekt auf dem Bild nicht sichtbar, ziehe das Label in den Papierkorb rechts unten.',
+        target: 'trash',
       },
       {
-        title:  "Die Lupe",
-        body:   "Sobald du die Maus über das Bild bewegst, erscheint eine Lupe. Sie zeigt den Bereich unter dem Cursor vergrößert an und hilft dir bei der genauen Zuordnung.",
-        target: "loupe",
+        title:  'Die Lupe',
+        body:   'Sobald du die Maus über das Bild bewegst, erscheint eine Lupe. Sie zeigt den Bereich unter dem Cursor vergrößert an und hilft dir bei der genauen Zuordnung.',
+        target: 'loupe',
       },
       {
-        title:  "Die Nadel",
-        body:   "Wenn du ein Label aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an – platziere sie präzise im richtigen Bereich.",
-        target: "pin",
+        title:  'Die Nadel',
+        body:   'Wenn du ein Label aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an – platziere sie präzise im richtigen Bereich.',
+        target: 'pin',
       },
     ],
-
-    practiceTitle:   "Jetzt bist du dran!",
-    practiceBody:    "Markiere den Fluss auf dem Bild. Ziehe das Label „Fluss 🌊" auf den Bereich mit dem Fließgewässer.",
-    practiceSuccess: "✓ Sehr gut! Du hast die Spielmechanik verstanden.",
-    practiceBtn:     "Weiter zum Experiment ›",
-    nextBtn:  "Weiter ›",
-    skipBtn:  "Tutorial überspringen",
-    startBtn: "Experiment starten ›",
+    practiceTitle:   'Jetzt bist du dran!',
+    practiceBody:    'Markiere den Fluss auf dem Bild. Ziehe das Label "Fluss" auf den Bereich mit dem Fließgewässer.',
+    practiceWrong:   'Versuche es mit dem Label "Fluss".',
+    practiceSuccess: 'Sehr gut! Du hast die Spielmechanik verstanden.',
+    practiceBtn:     'Weiter zum Experiment',
+    nextBtn:         'Weiter',
+    skipBtn:         'Tutorial überspringen',
+    practiceHint:    'ÜBUNGSRUNDE – Zeit läuft nicht',
   },
-
   en: {
-    langLabel: "Sprache wählen / Choose language",
-    langBtn:   "English",
-
     info: [
       {
-        badge:    "01 / Background",
-        title:    "Why does this game exist?",
-        subtitle: "Scientific Study",
-        body:     "This game is part of a scientific study on the visual complexity of satellite and drone images. The goal is to investigate how people recognise different landscape elements in remote sensing imagery and how various image characteristics affect perception.",
+        badge:    '01 / Background',
+        title:    'Why does this game exist?',
+        subtitle: 'Scientific Study',
+        body:     'This game is part of a scientific study on the visual complexity of satellite and drone images. The goal is to investigate how people recognise different landscape elements in remote sensing imagery and how various image characteristics affect perception.',
         note:     null,
       },
       {
-        badge:    "02 / Task",
-        title:    "How does the game work?",
-        subtitle: "Your Task",
-        body:     "Drag the displayed labels onto the matching areas in the satellite image. If an object is not present in the image, drop it into the bin. Please work as accurately as possible.",
+        badge:    '02 / Task',
+        title:    'How does the game work?',
+        subtitle: 'Your Task',
+        body:     'Drag the displayed labels onto the matching areas in the satellite image. If an object is not present in the image, drop it into the bin. Please work as accurately as possible.',
         note:     null,
       },
       {
-        badge:    "03 / Measurement",
-        title:    "What is being measured?",
-        subtitle: "Processing Time & Privacy",
-        body:     "Your processing time is recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.",
-        note:     "Participation is completely anonymous. No personal data is collected or stored. All data is used exclusively for scientific research purposes.",
+        badge:    '03 / Measurement',
+        title:    'What is being measured?',
+        subtitle: 'Processing Time & Privacy',
+        body:     'Your processing time is recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.',
+        note:     'Participation is completely anonymous. No personal data is collected or stored. All data is used exclusively for scientific research purposes.',
       },
     ],
-
     overlay: [
       {
-        title:  "The Labels",
-        body:   "Here you find all objects you need to identify in the image. Drag a label with the mouse button held down onto the corresponding area in the image.",
-        target: "labels",
+        title:  'The Labels',
+        body:   'Here you find all objects you need to identify in the image. Drag a label with the mouse button held down onto the corresponding area in the image.',
+        target: 'labels',
       },
       {
-        title:  "Not Present – the Bin",
-        body:   "If an object is not visible in the image, drag its label into the bin in the bottom right.",
-        target: "trash",
+        title:  'Not Present – the Bin',
+        body:   'If an object is not visible in the image, drag its label into the bin in the bottom right.',
+        target: 'trash',
       },
       {
-        title:  "The Magnifier",
-        body:   "As you move your mouse over the image, a magnifying glass appears. It shows the area under the cursor enlarged and helps you place labels accurately.",
-        target: "loupe",
+        title:  'The Magnifier',
+        body:   'As you move your mouse over the image, a magnifying glass appears. It shows the area under the cursor enlarged and helps you place labels accurately.',
+        target: 'loupe',
       },
       {
-        title:  "The Pin",
-        body:   "When you pick up a label, a pin appears under the cursor. The tip of the pin shows the exact drop location – place it precisely in the correct area.",
-        target: "pin",
+        title:  'The Pin',
+        body:   'When you pick up a label, a pin appears under the cursor. The tip of the pin shows the exact drop location – place it precisely in the correct area.',
+        target: 'pin',
       },
     ],
-
-    practiceTitle:   "Your turn!",
-    practiceBody:    "Mark the river in the image. Drag the label \"Fluss 🌊\" onto the area with the waterway.",
-    practiceSuccess: "✓ Well done! You have understood the game mechanics.",
-    practiceBtn:     "Continue to Experiment ›",
-    nextBtn:  "Next ›",
-    skipBtn:  "Skip tutorial",
-    startBtn: "Start Experiment ›",
+    practiceTitle:   'Your turn!',
+    practiceBody:    'Mark the river in the image. Drag the label "Fluss" onto the area with the waterway.',
+    practiceWrong:   'Try the label "Fluss".',
+    practiceSuccess: 'Well done! You have understood the game mechanics.',
+    practiceBtn:     'Continue to Experiment',
+    nextBtn:         'Next',
+    skipBtn:         'Skip tutorial',
+    practiceHint:    'PRACTICE ROUND – Timer not running',
   },
 };
 
-// ── State ────────────────────────────────────────────────────────────────────
-let tutLang       = "de";
-let tutInfoStep   = 0;
-let tutOverStep   = 0;
-let tutArrow      = null;
-let tutSpotlight  = null;
-let tutPracticeOk = false;
+// ── State ─────────────────────────────────────────────────────────────────────
+let tutLang      = 'de';
+let tutInfoStep  = 0;
+let tutOverStep  = 0;
+let tutArrow     = null;
+let tutSpotlight = null;
 
-// ── Entry point (called from app.js instead of startExperiment) ──────────────
-function startTutorial(){
-  // Hide start screen first
+// ── Entry point ───────────────────────────────────────────────────────────────
+function startTutorial() {
   const ss = document.getElementById('start-screen');
-  if(ss){
+  if (ss) {
     ss.classList.add('hidden');
-    setTimeout(()=>{
-      ss.remove();
-      showLangScreen();
-    }, 420);
+    setTimeout(function() { ss.remove(); showLangScreen(); }, 420);
   } else {
     showLangScreen();
   }
 }
 
-// ── 1. Language selection ────────────────────────────────────────────────────
-function showLangScreen(){
+// ── 1. Language selection ─────────────────────────────────────────────────────
+function showLangScreen() {
   const el = document.getElementById('lang-screen');
-  if(el){
-    el.style.display = 'flex';
-    el.style.opacity = '0';
+  if (el) {
+    el.style.display    = 'flex';
+    el.style.opacity    = '0';
     el.style.transition = 'opacity .3s';
-    requestAnimationFrame(()=>{ el.style.opacity = '1'; });
+    requestAnimationFrame(function() { el.style.opacity = '1'; });
   }
 }
 
-function selectLang(lang){
+function selectLang(lang) {
   tutLang = lang;
   const el = document.getElementById('lang-screen');
-  if(el){ el.classList.add('tut-fade-out'); setTimeout(()=>el.remove(), 400); }
-  setTimeout(()=> showInfoScreen(0), 420);
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(function() { el.remove(); showInfoScreen(0); }, 320);
+  } else {
+    showInfoScreen(0);
+  }
 }
 
 // ── 2. Info screens ───────────────────────────────────────────────────────────
-function showInfoScreen(step){
-  tutInfoStep = step;
-  const texts = TUT_TEXTS[tutLang];
-  const info  = texts.info;
-  const s     = info[step];
-  const screen = document.getElementById('tutorial-info-screen');
+function showInfoScreen(step) {
+  tutInfoStep  = step;
+  var texts    = TUT_TEXTS[tutLang];
+  var info     = texts.info;
+  var s        = info[step];
+  var screen   = document.getElementById('tutorial-info-screen');
   screen.classList.add('active');
 
-  screen.innerHTML = `
-    <div class="tut-info-panel">
-      <div class="tut-step-badge">${s.badge}</div>
-      <h2>${s.title}</h2>
-      <div class="tut-subtitle">${s.subtitle}</div>
-      <p>${s.body}</p>
-      ${s.note ? `<div class="tut-note">${s.note}</div>` : ''}
-      <div class="tut-progress">
-        ${info.map((_,i)=>`<div class="tut-progress-dot${i===step?' active':''}"></div>`).join('')}
-      </div>
-      <div class="tut-btn-row">
-        <button class="tut-btn-skip" onclick="skipTutorial()">${texts.skipBtn}</button>
-        <button class="tut-btn" onclick="nextInfoScreen()">
-          ${step < info.length-1 ? texts.nextBtn : texts.nextBtn}
-        </button>
-      </div>
-    </div>`;
+  var dots = '';
+  for (var i = 0; i < info.length; i++) {
+    dots += '<div class="tut-progress-dot' + (i === step ? ' active' : '') + '"></div>';
+  }
+
+  screen.innerHTML =
+    '<div class="tut-info-panel">' +
+      '<div class="tut-step-badge">' + s.badge + '</div>' +
+      '<h2>' + s.title + '</h2>' +
+      '<div class="tut-subtitle">' + s.subtitle + '</div>' +
+      '<p>' + s.body + '</p>' +
+      (s.note ? '<div class="tut-note">' + s.note + '</div>' : '') +
+      '<div class="tut-progress">' + dots + '</div>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+        '<button class="tut-btn" onclick="nextInfoScreen()">' + texts.nextBtn + '</button>' +
+      '</div>' +
+    '</div>';
 }
 
-function nextInfoScreen(){
-  const texts = TUT_TEXTS[tutLang];
-  if(tutInfoStep < texts.info.length - 1){
+function nextInfoScreen() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutInfoStep < texts.info.length - 1) {
     showInfoScreen(tutInfoStep + 1);
   } else {
-    // Move to overlay tutorial
-    const screen = document.getElementById('tutorial-info-screen');
-    screen.classList.remove('active');
+    document.getElementById('tutorial-info-screen').classList.remove('active');
     startOverlayTutorial();
   }
 }
 
 // ── 3. Overlay tutorial ───────────────────────────────────────────────────────
-async function startOverlayTutorial(){
-  // Load B1 (tutorial image) into the stage without starting the timer
-  await loadLevelSilent(0);
-  showOverlayStep(0);
+function startOverlayTutorial() {
+  loadLevelSilent(0).then(function() {
+    showOverlayStep(0);
+  });
 }
 
-function showOverlayStep(step){
-  tutOverStep = step;
-  const texts = TUT_TEXTS[tutLang];
-  const steps = texts.overlay;
-  const s     = steps[step];
-
-  const overlay = document.getElementById('tutorial-overlay');
+function showOverlayStep(step) {
+  tutOverStep  = step;
+  var texts    = TUT_TEXTS[tutLang];
+  var steps    = texts.overlay;
+  var s        = steps[step];
+  var overlay  = document.getElementById('tutorial-overlay');
   overlay.classList.add('active');
 
-  // Remove old arrow + spotlight
-  if(tutArrow)     { tutArrow.remove();     tutArrow = null; }
-  if(tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+  if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
+  if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  // Get target element position
-  const target = getTutorialTarget(s.target);
+  var target = getTutorialTarget(s.target);
 
-  // Create spotlight
-  if(target){
+  if (target) {
+    var r   = target.getBoundingClientRect();
+    var pad = 8;
+
     tutSpotlight = document.createElement('div');
     tutSpotlight.className = 'tut-spotlight';
-    positionSpotlight(tutSpotlight, target);
+    tutSpotlight.style.position = 'fixed';
+    tutSpotlight.style.left     = (r.left - pad) + 'px';
+    tutSpotlight.style.top      = (r.top  - pad) + 'px';
+    tutSpotlight.style.width    = (r.width  + pad * 2) + 'px';
+    tutSpotlight.style.height   = (r.height + pad * 2) + 'px';
     overlay.appendChild(tutSpotlight);
-  }
 
-  // Create blinking arrow
-  if(target){
     tutArrow = document.createElement('div');
     tutArrow.className = 'tut-arrow';
-    tutArrow.innerHTML = `
-      <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="18,2 34,34 18,26 2,34" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>
-      </svg>`;
-    positionArrow(tutArrow, target);
+    tutArrow.innerHTML =
+      '<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">' +
+        '<polygon points="18,2 34,34 18,26 2,34" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>' +
+      '</svg>';
+    tutArrow.style.position  = 'fixed';
+    tutArrow.style.left      = (r.left + r.width / 2) + 'px';
+    tutArrow.style.top       = (r.top - 44) + 'px';
+    tutArrow.style.transform = 'translate(-50%,-50%) rotate(180deg)';
     overlay.appendChild(tutArrow);
   }
 
-  // Position tooltip
-  const tooltip = document.getElementById('tut-tooltip');
-  tooltip.innerHTML = `
-    <h3>${s.title}</h3>
-    <p>${s.body}</p>
-    <div class="tut-btn-row">
-      <button class="tut-btn-skip" onclick="skipTutorial()">${texts.skipBtn}</button>
-      <button class="tut-btn" onclick="nextOverlayStep()">
-        ${step < steps.length-1 ? texts.nextBtn : texts.nextBtn}
-      </button>
-    </div>`;
-  positionTooltip(tooltip, target);
+  var tooltip = document.getElementById('tut-tooltip');
+  tooltip.style.transform = '';
+  tooltip.innerHTML =
+    '<h3>' + s.title + '</h3>' +
+    '<p>' + s.body + '</p>' +
+    '<div class="tut-btn-row">' +
+      '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+      '<button class="tut-btn" onclick="nextOverlayStep()">' + texts.nextBtn + '</button>' +
+    '</div>';
+
+  if (target) {
+    var r2   = target.getBoundingClientRect();
+    var vw   = window.innerWidth;
+    var vh   = window.innerHeight;
+    var top  = r2.top - 180;
+    var left = r2.left + r2.width / 2 - 200;
+    if (top < 10) { top = r2.bottom + 20; }
+    left = Math.max(10, Math.min(vw - 420, left));
+    top  = Math.max(10, Math.min(vh - 220, top));
+    tooltip.style.position = 'fixed';
+    tooltip.style.top      = top + 'px';
+    tooltip.style.left     = left + 'px';
+  } else {
+    tooltip.style.position  = 'fixed';
+    tooltip.style.top       = '50%';
+    tooltip.style.left      = '50%';
+    tooltip.style.transform = 'translate(-50%,-50%)';
+  }
 }
 
-function nextOverlayStep(){
-  const texts = TUT_TEXTS[tutLang];
-  if(tutOverStep < texts.overlay.length - 1){
+function nextOverlayStep() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutOverStep < texts.overlay.length - 1) {
     showOverlayStep(tutOverStep + 1);
   } else {
-    // Move to practice round
     startPracticeRound();
   }
 }
 
 // ── 4. Practice round ─────────────────────────────────────────────────────────
-function startPracticeRound(){
-  const texts   = TUT_TEXTS[tutLang];
-  const overlay = document.getElementById('tutorial-overlay');
+function startPracticeRound() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
+  if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  // Remove arrow + spotlight
-  if(tutArrow)     { tutArrow.remove();     tutArrow = null; }
-  if(tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+  var tooltip = document.getElementById('tut-tooltip');
+  tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
+  tooltip.style.position  = 'fixed';
+  tooltip.style.top       = '20px';
+  tooltip.style.left      = '50%';
+  tooltip.style.transform = 'translateX(-50%)';
 
-  // Update tooltip to practice instructions
-  const tooltip = document.getElementById('tut-tooltip');
-  tooltip.innerHTML = `
-    <h3>${texts.practiceTitle}</h3>
-    <p>${texts.practiceBody}</p>`;
-  positionTooltipCenter(tooltip);
-
-  // Show practice banner
-  const banner = document.getElementById('tut-practice-banner');
-  banner.textContent = tutLang === 'de'
-    ? '🎯  ÜBUNGSRUNDE – Zeit läuft nicht'
-    : '🎯  PRACTICE ROUND – Timer not running';
+  var banner = document.getElementById('tut-practice-banner');
+  banner.textContent = texts.practiceHint;
   banner.classList.add('active');
 
-  // Enable drag but intercept drop: only accept "Fluss" as correct
-  tutPracticeOk = false;
   window._tutPracticeActive = true;
 }
 
-// Called from app.js handleStageDrop when tutorial practice is active
-function tutPracticeCheck(droppedId, hitKlasse){
-  if(!window._tutPracticeActive) return false;
-  const texts = TUT_TEXTS[tutLang];
+// Called from app.js handleStageDrop when practice is active
+function tutPracticeCheck(droppedId, hitKlasse) {
+  if (!window._tutPracticeActive) { return false; }
+  var texts = TUT_TEXTS[tutLang];
 
-  if(droppedId === 'Fluss' && hitKlasse === 'Fluss'){
-    tutPracticeOk = true;
+  if (droppedId === 'Fluss' && hitKlasse === 'Fluss') {
     window._tutPracticeActive = false;
 
-    // Show success
-    const msg = document.getElementById('tut-success-msg');
-    msg.textContent = texts.practiceSuccess;
+    var msg = document.getElementById('tut-success-msg');
+    msg.textContent  = texts.practiceSuccess;
     msg.style.display = 'block';
 
-    // Update tooltip with "continue" button
-    const tooltip = document.getElementById('tut-tooltip');
-    tooltip.innerHTML = `
-      <h3>${texts.practiceSuccess}</h3>
-      <p></p>
-      <div class="tut-btn-row">
-        <button class="tut-btn" onclick="finishTutorial()">${texts.practiceBtn}</button>
-      </div>`;
-    positionTooltipCenter(tooltip);
+    var tooltip = document.getElementById('tut-tooltip');
+    tooltip.innerHTML =
+      '<h3>' + texts.practiceSuccess + '</h3>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn" onclick="finishTutorial()">' + texts.practiceBtn + '</button>' +
+      '</div>';
+    return true;
+  }
 
-    return true;  // consumed by tutorial
-  } else if(droppedId !== 'Fluss'){
-    // Wrong label – give hint
-    const tooltip = document.getElementById('tut-tooltip');
-    const hint = tutLang === 'de'
-      ? 'Versuche es mit dem Label „Fluss 🌊".'
-      : 'Try using the label "Fluss 🌊".';
-    tooltip.querySelector('p').textContent = hint;
-    return true;  // consumed – don't count as game error
+  if (droppedId !== 'Fluss') {
+    var tooltip2 = document.getElementById('tut-tooltip');
+    var p = tooltip2.querySelector('p');
+    if (p) { p.textContent = texts.practiceWrong; }
+    return true;
   }
   return false;
 }
 
-// ── 5. Finish tutorial ────────────────────────────────────────────────────────
-function finishTutorial(){
-  // Hide all tutorial elements
+// ── 5. Finish ─────────────────────────────────────────────────────────────────
+function finishTutorial() {
   document.getElementById('tutorial-overlay').classList.remove('active');
   document.getElementById('tut-practice-banner').classList.remove('active');
-  document.getElementById('tut-success-msg').style.display = 'none';
+  var msg = document.getElementById('tut-success-msg');
+  if (msg) { msg.style.display = 'none'; }
   window._tutPracticeActive = false;
-
-  // Start actual experiment from level 1 (skip B1 = index 0)
   ensureMouseEvents();
-  loadLevel(1);   // B1 was tutorial, real game starts at B2
+  loadLevel(1);
 }
 
-function skipTutorial(){
-  document.getElementById('tutorial-info-screen').classList.remove('active');
-  document.getElementById('tutorial-overlay').classList.remove('active');
-  document.getElementById('tut-practice-banner').classList.remove('active');
+function skipTutorial() {
+  var screen  = document.getElementById('tutorial-info-screen');
+  var overlay = document.getElementById('tutorial-overlay');
+  var banner  = document.getElementById('tut-practice-banner');
+  if (screen)  { screen.classList.remove('active'); }
+  if (overlay) { overlay.classList.remove('active'); }
+  if (banner)  { banner.classList.remove('active'); }
   window._tutPracticeActive = false;
   ensureMouseEvents();
   loadLevel(1);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-// Load a level without starting the timer (for tutorial)
-async function loadLevelSilent(i){
-  const lv = CONFIG.levels[i];
-  const stage = document.getElementById('stage');
-
-  // Load satellite image
-  await new Promise(resolve=>{
-    const img = document.getElementById('sat-img');
+function loadLevelSilent(i) {
+  var lv = CONFIG.levels[i];
+  return new Promise(function(resolve) {
+    var img = document.getElementById('sat-img');
     img.onload = img.onerror = resolve;
     img.src = lv.imgSrc;
-  });
-
-  // Load GeoJSON for practice hit-test
-  try{
-    const res  = await fetch(lv.geojsonSrc);
-    const gj   = await res.json();
+  }).then(function() {
+    return fetch(lv.geojsonSrc);
+  }).then(function(res) {
+    return res.json();
+  }).then(function(gj) {
     buildZones(gj, lv.bounds);
-  }catch(e){ console.warn('Tutorial GeoJSON:', e); }
-
-  // Render labels (needed for drag)
-  renderLabels(lv);
+    renderLabels(lv);
+  }).catch(function(e) {
+    console.warn('Tutorial GeoJSON error:', e);
+    renderLabels(lv);
+  });
 }
 
-function getTutorialTarget(name){
-  switch(name){
-    case 'labels': return document.getElementById('label-bar');
-    case 'trash':  return document.getElementById('trash');
-    case 'loupe':  return document.getElementById('loupe');
-    case 'pin':    return document.getElementById('pin');
-    default:       return null;
-  }
-}
-
-function positionSpotlight(el, target){
-  const r   = target.getBoundingClientRect();
-  const pad = 8;
-  el.style.position = 'fixed';
-  el.style.left   = (r.left   - pad) + 'px';
-  el.style.top    = (r.top    - pad) + 'px';
-  el.style.width  = (r.width  + pad*2) + 'px';
-  el.style.height = (r.height + pad*2) + 'px';
-  document.getElementById('tutorial-overlay').appendChild(el);
-}
-
-function positionArrow(el, target){
-  const r = target.getBoundingClientRect();
-  el.style.position = 'fixed';
-  // Point arrow at top-centre of target
-  el.style.left = (r.left + r.width/2) + 'px';
-  el.style.top  = (r.top - 44) + 'px';
-  // Rotate arrow to point downward
-  el.style.transform = 'translate(-50%,-50%) rotate(180deg)';
-  document.getElementById('tutorial-overlay').appendChild(el);
-}
-
-function positionTooltip(tooltip, target){
-  if(!target){ positionTooltipCenter(tooltip); return; }
-  const r  = target.getBoundingClientRect();
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  tooltip.style.position = 'fixed';
-
-  // Try to place above target
-  let top  = r.top - 20 - tooltip.offsetHeight;
-  let left = r.left + r.width/2 - tooltip.offsetWidth/2;
-
-  // If above viewport, place below
-  if(top < 10) top = r.bottom + 20;
-  // Clamp horizontally
-  left = Math.max(10, Math.min(vw - tooltip.offsetWidth - 10, left));
-  top  = Math.max(10, Math.min(vh - tooltip.offsetHeight - 10, top));
-
-  tooltip.style.top  = top + 'px';
-  tooltip.style.left = left + 'px';
-}
-
-function positionTooltipCenter(tooltip){
-  tooltip.style.position = 'fixed';
-  tooltip.style.top      = '50%';
-  tooltip.style.left     = '50%';
-  tooltip.style.transform= 'translate(-50%,-50%)';
+function getTutorialTarget(name) {
+  if (name === 'labels') { return document.getElementById('label-bar'); }
+  if (name === 'trash')  { return document.getElementById('trash'); }
+  if (name === 'loupe')  { return document.getElementById('loupe'); }
+  if (name === 'pin')    { return document.getElementById('pin'); }
+  return null;
 }
