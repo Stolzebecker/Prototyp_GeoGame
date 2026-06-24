@@ -235,12 +235,12 @@ function showOverlayStep(step) {
     tutArrow.className = 'tut-arrow';
     tutArrow.innerHTML =
       '<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">' +
-        '<polygon points="18,2 34,34 18,26 2,34" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>' +
+        '<polygon points="18,34 34,2 18,10 2,2" fill="#fdc300" stroke="#0a3f70" stroke-width="2"/>' +
       '</svg>';
     tutArrow.style.position  = 'fixed';
     tutArrow.style.left      = (r.left + r.width / 2) + 'px';
-    tutArrow.style.top       = (r.top - 44) + 'px';
-    tutArrow.style.transform = 'translate(-50%,-50%) rotate(0deg)';
+    tutArrow.style.top       = (r.top - 42) + 'px';
+    tutArrow.style.transform = 'translate(-50%, 0)';
     overlay.appendChild(tutArrow);
   }
 
