@@ -254,24 +254,11 @@ function showOverlayStep(step) {
       '<button class="tut-btn" onclick="nextOverlayStep()">' + texts.nextBtn + '</button>' +
     '</div>';
 
-  if (target) {
-    var r2   = target.getBoundingClientRect();
-    var vw   = window.innerWidth;
-    var vh   = window.innerHeight;
-    var top  = r2.top - 180;
-    var left = r2.left + r2.width / 2 - 200;
-    if (top < 10) { top = r2.bottom + 20; }
-    left = Math.max(10, Math.min(vw - 420, left));
-    top  = Math.max(10, Math.min(vh - 220, top));
-    tooltip.style.position = 'fixed';
-    tooltip.style.top      = top + 'px';
-    tooltip.style.left     = left + 'px';
-  } else {
-    tooltip.style.position  = 'fixed';
-    tooltip.style.top       = '50%';
-    tooltip.style.left      = '50%';
-    tooltip.style.transform = 'translate(-50%,-50%)';
-  }
+  // Always place tooltip at top-center so it never overlaps the target element
+  tooltip.style.position  = 'fixed';
+  tooltip.style.top       = '80px';
+  tooltip.style.left      = '50%';
+  tooltip.style.transform = 'translateX(-50%)';
 }
 
 function nextOverlayStep() {
@@ -289,12 +276,15 @@ function startPracticeRound() {
   if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
   if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  // Allow mouse events to pass through overlay so user can drag labels
+  // Allow ALL mouse events to pass through overlay during practice
+  // so user can drag labels from bottom bar onto the image
   var overlay = document.getElementById('tutorial-overlay');
   overlay.style.pointerEvents = 'none';
-  // But keep tooltip interactive
-  document.getElementById('tut-tooltip').style.pointerEvents = 'all';
-  document.getElementById('tut-practice-banner').style.pointerEvents = 'none';
+  var veil = document.getElementById('tut-veil');
+  if (veil) { veil.style.pointerEvents = 'none'; }
+  // Tooltip stays interactive (for the finish button)
+  var tip = document.getElementById('tut-tooltip');
+  tip.style.pointerEvents = 'all';
 
   var tooltip = document.getElementById('tut-tooltip');
   tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
@@ -308,6 +298,9 @@ function startPracticeRound() {
   banner.classList.add('active');
 
   window._tutPracticeActive = true;
+
+  // Show cursor during practice so user can see where they're dragging
+  document.getElementById('stage').style.cursor = 'default';
 }
 
 // Called from app.js handleStageDrop when practice is active
@@ -342,6 +335,7 @@ function tutPracticeCheck(droppedId, hitKlasse) {
 
 // ── 5. Finish ─────────────────────────────────────────────────────────────────
 function finishTutorial() {
+  document.getElementById('stage').style.cursor = 'none';
   document.getElementById('tutorial-overlay').classList.remove('active');
   document.getElementById('tut-practice-banner').classList.remove('active');
   var msg = document.getElementById('tut-success-msg');
