@@ -108,21 +108,24 @@
 
 /* Dark veil behind everything except the spotlight */
 #tut-veil{
-  position:absolute;inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.62);
   pointer-events:none;
+  z-index:3000;
 }
 
-/* Tooltip card */
+/* Tooltip card – above veil */
 #tut-tooltip{
-  position:absolute;
-  width:min(400px,80vw);
+  position:fixed;
+  z-index:3200;
+  width:min(420px,82vw);
   padding:20px 24px;
-  background:rgba(10,63,112,0.95);backdrop-filter:blur(10px);
-  border:1px solid rgba(12,164,209,.5);border-top:2px solid var(--accent2);
-  box-shadow:0 8px 32px rgba(0,0,0,.7);
+  background:rgba(8,48,96,0.98);
+  backdrop-filter:blur(12px);
+  border:2px solid var(--accent2);
+  border-top:3px solid var(--accent2);
+  box-shadow:0 0 0 1px rgba(0,212,255,.3), 0 12px 40px rgba(0,0,0,.85);
   pointer-events:all;
-  transition:top .35s ease, left .35s ease;
 }
 #tut-tooltip h3{
   font-size:15px;color:var(--accent2);font-weight:700;
@@ -134,11 +137,11 @@
 
 /* Blinking arrow pointer */
 .tut-arrow{
-  position:absolute;
+  position:fixed;
   width:36px;height:36px;
   pointer-events:none;
   animation:tut-blink 1s ease-in-out infinite;
-  z-index:3100;
+  z-index:3150;
   filter:drop-shadow(0 2px 6px rgba(0,0,0,.8));
 }
 @keyframes tut-blink{
@@ -148,12 +151,12 @@
 
 /* Spotlight cutout (shown via clip-path on veil) */
 .tut-spotlight{
-  position:absolute;
+  position:fixed;
   border:2px solid var(--accent2);
   box-shadow:0 0 0 9999px rgba(0,0,0,.62);
   pointer-events:none;
   border-radius:4px;
-  transition:all .35s ease;
+  z-index:3100;
 }
 
 /* ── Practice round ──────────────────────────────────────── */

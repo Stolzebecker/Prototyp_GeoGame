@@ -240,7 +240,7 @@ function showOverlayStep(step) {
     tutArrow.style.position  = 'fixed';
     tutArrow.style.left      = (r.left + r.width / 2) + 'px';
     tutArrow.style.top       = (r.top - 44) + 'px';
-    tutArrow.style.transform = 'translate(-50%,-50%) rotate(180deg)';
+    tutArrow.style.transform = 'translate(-50%,-50%) rotate(0deg)';
     overlay.appendChild(tutArrow);
   }
 
@@ -288,6 +288,13 @@ function startPracticeRound() {
   var texts = TUT_TEXTS[tutLang];
   if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
   if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+
+  // Allow mouse events to pass through overlay so user can drag labels
+  var overlay = document.getElementById('tutorial-overlay');
+  overlay.style.pointerEvents = 'none';
+  // But keep tooltip interactive
+  document.getElementById('tut-tooltip').style.pointerEvents = 'all';
+  document.getElementById('tut-practice-banner').style.pointerEvents = 'none';
 
   var tooltip = document.getElementById('tut-tooltip');
   tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
