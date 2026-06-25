@@ -291,6 +291,14 @@ function startPracticeRound() {
   document.body.appendChild(banner);
   tip.style.zIndex    = '3200';
   banner.style.zIndex = '3200';
+  // Position banner below tooltip – will be recalculated after tooltip renders
+  setTimeout(function() {
+    var tipH = tip.offsetHeight || 120;
+    banner.style.position  = 'fixed';
+    banner.style.top       = (28 + tipH + 10) + 'px';
+    banner.style.left      = '50%';
+    banner.style.transform = 'translateX(-50%)';
+  }, 50);
 
   var tooltip = document.getElementById('tut-tooltip');
   tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
