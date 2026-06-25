@@ -276,14 +276,22 @@ function startPracticeRound() {
   if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
   if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  // During practice: hide the overlay completely so it doesn't
-  // interfere with drag events or the loupe.
-  // Only the tooltip and banner remain visible via fixed positioning.
+  // Mouse events must be active so drag works during practice
+  ensureMouseEvents();
+
+  // Hide overlay but keep a non-blocking veil for dimming
   var overlay = document.getElementById('tutorial-overlay');
   overlay.classList.remove('active');
   overlay.style.display = 'none';
 
-  // Move tooltip and banner outside overlay so they stay visible
+  // Add a passive dim layer (pointer-events:none so drag still works)
+  var dimEl = document.createElement('div');
+  dimEl.id = 'tut-dim';
+  dimEl.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);' +
+    'pointer-events:none;z-index:3000;';
+  document.body.appendChild(dimEl);
+
+  // Move tooltip and banner to body so they appear above dim layer
   var tip    = document.getElementById('tut-tooltip');
   var banner = document.getElementById('tut-practice-banner');
   document.body.appendChild(tip);
@@ -341,6 +349,7 @@ function tutPracticeCheck(droppedId, hitKlasse) {
 // ── 5. Finish ─────────────────────────────────────────────────────────────────
 function finishTutorial() {
   document.getElementById('stage').style.cursor = 'none';
+  var dim = document.getElementById('tut-dim'); if(dim) dim.remove();
   // Move tooltip and banner back into overlay (cleanup)
   var overlay = document.getElementById('tutorial-overlay');
   var tip     = document.getElementById('tut-tooltip');
@@ -358,6 +367,7 @@ function finishTutorial() {
 }
 
 function skipTutorial() {
+  var dim = document.getElementById('tut-dim'); if(dim) dim.remove();
   var screen  = document.getElementById('tutorial-info-screen');
   var overlay = document.getElementById('tutorial-overlay');
   var banner  = document.getElementById('tut-practice-banner');
