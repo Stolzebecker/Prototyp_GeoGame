@@ -276,15 +276,20 @@ function startPracticeRound() {
   if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
   if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
 
-  // Allow ALL mouse events to pass through overlay during practice
-  // so user can drag labels from bottom bar onto the image
+  // During practice: hide the overlay completely so it doesn't
+  // interfere with drag events or the loupe.
+  // Only the tooltip and banner remain visible via fixed positioning.
   var overlay = document.getElementById('tutorial-overlay');
-  overlay.style.pointerEvents = 'none';
-  var veil = document.getElementById('tut-veil');
-  if (veil) { veil.style.pointerEvents = 'none'; }
-  // Tooltip stays interactive (for the finish button)
-  var tip = document.getElementById('tut-tooltip');
-  tip.style.pointerEvents = 'all';
+  overlay.classList.remove('active');
+  overlay.style.display = 'none';
+
+  // Move tooltip and banner outside overlay so they stay visible
+  var tip    = document.getElementById('tut-tooltip');
+  var banner = document.getElementById('tut-practice-banner');
+  document.body.appendChild(tip);
+  document.body.appendChild(banner);
+  tip.style.zIndex    = '3200';
+  banner.style.zIndex = '3200';
 
   var tooltip = document.getElementById('tut-tooltip');
   tooltip.innerHTML = '<h3>' + texts.practiceTitle + '</h3><p>' + texts.practiceBody + '</p>';
@@ -336,8 +341,15 @@ function tutPracticeCheck(droppedId, hitKlasse) {
 // ── 5. Finish ─────────────────────────────────────────────────────────────────
 function finishTutorial() {
   document.getElementById('stage').style.cursor = 'none';
-  document.getElementById('tutorial-overlay').classList.remove('active');
-  document.getElementById('tut-practice-banner').classList.remove('active');
+  // Move tooltip and banner back into overlay (cleanup)
+  var overlay = document.getElementById('tutorial-overlay');
+  var tip     = document.getElementById('tut-tooltip');
+  var banner  = document.getElementById('tut-practice-banner');
+  if (tip    && tip.parentNode    !== overlay) { overlay.appendChild(tip); }
+  if (banner && banner.parentNode !== overlay) { overlay.appendChild(banner); }
+  overlay.style.display = '';
+  overlay.classList.remove('active');
+  banner.classList.remove('active');
   var msg = document.getElementById('tut-success-msg');
   if (msg) { msg.style.display = 'none'; }
   window._tutPracticeActive = false;
