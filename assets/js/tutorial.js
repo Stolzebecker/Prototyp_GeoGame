@@ -324,6 +324,7 @@ function tutPracticeCheck(droppedId, hitKlasse) {
 
   if (droppedId === 'Fluss' && hitKlasse === 'Fluss') {
     window._tutPracticeActive = false;
+    markChipUsed(droppedId);
 
     var msg = document.getElementById('tut-success-msg');
     msg.textContent  = texts.practiceSuccess;
