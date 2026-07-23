@@ -592,9 +592,6 @@ function handleTrashDrop(){
   if(lv.absent.includes(draggingId) || absentOpt.includes(draggingId)){
     trashFilled[draggingId] = true;
     markChipUsed(draggingId);
-    const totalTrash = lv.absent.length + absentOpt.length;
-    const done = Object.keys(trashFilled).length;
-    document.getElementById('trash-count').textContent = done + ' / ' + totalTrash;
     showFeedback('✓ Korrekt entfernt', 'ok');
     checkLevelComplete();
   } else {
