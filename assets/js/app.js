@@ -37,6 +37,7 @@ let CONFIG = null;
 let zones = [], zoneFilled = {}, trashFilled = {};
 let currentErrors = 0, levelStartTime = null, timerInterval = null;
 let currentLevel = 0, results = [];
+let levelOrder = [], orderPos = 0;
 let draggingId = null, feedbackTimer = null;
 
 // Debug state
@@ -79,6 +80,8 @@ async function boot(){
   ss.style.display = 'flex';
   document.getElementById('level-count-text').textContent =
     CONFIG.levels.length + ' Level';
+
+  setupImagePreview();
 }
 
 // ── Start ───────────────────────────────────────────────────
@@ -111,10 +114,14 @@ async function loadLevel(i){
   elLoupe.style.display=elPin.style.display=elFloatChip.style.display='none';
   elStage.querySelectorAll('.zone-ok').forEach(el=>el.remove());
 
-  const lv=CONFIG.levels[i], tot=CONFIG.levels.length;
-  const pct=Math.round((i/tot)*100);
+  const lv=CONFIG.levels[i];
+  // Progress display follows the shuffled play position, not the raw config
+  // index, so it counts up 1..N in the order the player actually sees them.
+  const tot  = levelOrder.length || CONFIG.levels.length;
+  const pos  = levelOrder.length ? orderPos+1 : i+1;
+  const pct  = Math.round(((pos-1)/tot)*100);
   document.getElementById('progress-fill').style.width=pct+'%';
-  document.getElementById('prog-text').textContent=`LEVEL ${i+1} / ${tot}`;
+  document.getElementById('prog-text').textContent=`LEVEL ${pos} / ${tot}`;
   document.getElementById('prog-pct').textContent=pct+' %';
 
   await new Promise(resolve=>{
@@ -626,13 +633,30 @@ function checkLevelComplete(){
 
   if(zonesOk && trashOk){
     stopTimer();
-    results.push({image:lv.id, time:Date.now()-levelStartTime, errors:currentErrors});
+    results.push({image:lv.id, imgSrc:lv.imgSrc, time:Date.now()-levelStartTime, errors:currentErrors});
     document.getElementById('btn-next').style.display='block';
   }
 }
 function nextLevel(){
-  if(currentLevel+1<CONFIG.levels.length) loadLevel(currentLevel+1);
+  orderPos++;
+  if(orderPos < levelOrder.length) loadLevel(levelOrder[orderPos]);
   else showResults();
+}
+
+// ── Randomised level order ───────────────────────────────────
+// Index 0 is reserved for the tutorial's silent preload/practice round and
+// never appears in the timed experiment – only 1..N-1 get shuffled.
+function buildLevelOrder(){
+  levelOrder = CONFIG.levels.map((_, i) => i).slice(1);
+  for(let i=levelOrder.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [levelOrder[i],levelOrder[j]] = [levelOrder[j],levelOrder[i]];
+  }
+  orderPos = 0;
+}
+function startShuffledExperiment(){
+  buildLevelOrder();
+  loadLevel(levelOrder[orderPos]);
 }
 
 // ── Ready / Countdown ───────────────────────────────────────
@@ -643,8 +667,10 @@ function showReadyOverlay(lv){
   elTrash.style.visibility     = 'hidden';
 
   const overlay = document.getElementById('ready-overlay');
+  const tot = levelOrder.length || CONFIG.levels.length;
+  const pos = levelOrder.length ? orderPos+1 : currentLevel+1;
   document.getElementById('ready-level-tag').textContent =
-    `LEVEL ${currentLevel + 1} / ${CONFIG.levels.length}  —  ${lv.id}`;
+    `LEVEL ${pos} / ${tot}  —  ${lv.id}`;
 
   // Reset to "Bereit" state (hide countdown, show button)
   document.getElementById('ready-btn-wrap').style.display  = 'flex';
@@ -707,7 +733,10 @@ function showResults(){
   results.forEach(r=>{
     tm+=r.time; te+=r.errors;
     const tr=document.createElement('tr');
+    tr.className='results-row';
+    tr.title='Klicken für Bildvorschau';
     tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
+    tr.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
     body.appendChild(tr);
   });
   const s=document.createElement('tr');
@@ -725,6 +754,80 @@ function download(name,content,type){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([content],{type}));
   a.download=name; a.click();
+}
+
+// ── Image preview / zoom (results table) ──────────────────────
+const PREVIEW_MIN_ZOOM = 1, PREVIEW_MAX_ZOOM = 8;
+let previewZoom = 1, previewX = 0, previewY = 0;
+let previewDragging = false, previewDragStart = null;
+let elPreviewModal, elPreviewViewport, elPreviewImg, elPreviewTitle;
+
+function setupImagePreview(){
+  elPreviewModal    = document.getElementById('image-preview-modal');
+  elPreviewViewport = document.getElementById('image-preview-viewport');
+  elPreviewImg      = document.getElementById('image-preview-img');
+  elPreviewTitle    = document.getElementById('image-preview-title');
+
+  elPreviewViewport.addEventListener('wheel', onPreviewWheel, {passive:false});
+  elPreviewImg.addEventListener('mousedown', onPreviewDragStart);
+  document.addEventListener('mousemove', onPreviewDragMove);
+  document.addEventListener('mouseup', onPreviewDragEnd);
+  elPreviewImg.addEventListener('dblclick', resetPreviewZoom);
+  elPreviewModal.addEventListener('click', e=>{
+    if(e.target === elPreviewModal) closeImagePreview();
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && elPreviewModal.classList.contains('active')) closeImagePreview();
+  });
+}
+
+function openImagePreview(src, label){
+  elPreviewImg.src = src;
+  elPreviewTitle.textContent = label;
+  resetPreviewZoom();
+  elPreviewModal.classList.add('active');
+}
+function closeImagePreview(){
+  elPreviewModal.classList.remove('active');
+}
+function resetPreviewZoom(){
+  previewZoom = 1; previewX = 0; previewY = 0;
+  applyPreviewTransform();
+}
+function applyPreviewTransform(){
+  elPreviewImg.style.transform = `translate(${previewX}px, ${previewY}px) scale(${previewZoom})`;
+  elPreviewImg.style.cursor = previewZoom > 1 ? 'grab' : 'zoom-in';
+}
+function onPreviewWheel(e){
+  e.preventDefault();
+  const rect = elPreviewViewport.getBoundingClientRect();
+  const cx = e.clientX - rect.left - rect.width/2;
+  const cy = e.clientY - rect.top - rect.height/2;
+  const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+  const newZoom = Math.min(PREVIEW_MAX_ZOOM, Math.max(PREVIEW_MIN_ZOOM, previewZoom*factor));
+  previewX = cx - (cx - previewX) * (newZoom/previewZoom);
+  previewY = cy - (cy - previewY) * (newZoom/previewZoom);
+  previewZoom = newZoom;
+  if(previewZoom === PREVIEW_MIN_ZOOM){ previewX = 0; previewY = 0; }
+  applyPreviewTransform();
+}
+function onPreviewDragStart(e){
+  if(previewZoom <= 1) return;
+  previewDragging = true;
+  previewDragStart = {x:e.clientX - previewX, y:e.clientY - previewY};
+  elPreviewImg.style.cursor = 'grabbing';
+  e.preventDefault();
+}
+function onPreviewDragMove(e){
+  if(!previewDragging) return;
+  previewX = e.clientX - previewDragStart.x;
+  previewY = e.clientY - previewDragStart.y;
+  applyPreviewTransform();
+}
+function onPreviewDragEnd(){
+  if(!previewDragging) return;
+  previewDragging = false;
+  elPreviewImg.style.cursor = previewZoom > 1 ? 'grab' : 'zoom-in';
 }
 
 document.addEventListener('DOMContentLoaded', boot);

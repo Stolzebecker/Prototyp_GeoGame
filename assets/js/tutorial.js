@@ -364,7 +364,7 @@ function finishTutorial() {
   if (msg) { msg.style.display = 'none'; }
   window._tutPracticeActive = false;
   ensureMouseEvents();
-  loadLevel(1);
+  startShuffledExperiment();
 }
 
 function skipTutorial() {
@@ -376,7 +376,7 @@ function skipTutorial() {
   if (banner)  { banner.classList.remove('active'); }
   window._tutPracticeActive = false;
   ensureMouseEvents();
-  loadLevel(1);
+  startShuffledExperiment();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

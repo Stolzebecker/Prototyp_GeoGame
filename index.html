@@ -149,6 +149,18 @@
   </div>
 </div>
 
+<!-- Image preview / zoom (click a results row) -->
+<div id="image-preview-modal">
+  <div id="image-preview-toolbar">
+    <span id="image-preview-title"></span>
+    <span id="image-preview-hint">Scrollen zum Zoomen · Ziehen zum Verschieben · Doppelklick zum Zurücksetzen</span>
+    <button id="image-preview-close" onclick="closeImagePreview()">✕</button>
+  </div>
+  <div id="image-preview-viewport">
+    <img id="image-preview-img" src="" alt="" draggable="false">
+  </div>
+</div>
+
 
 <!-- Language selection screen -->
 <div id="lang-screen" style="display:none">
