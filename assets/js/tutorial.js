@@ -317,12 +317,14 @@ function startPracticeRound() {
   document.getElementById('stage').style.cursor = 'default';
 }
 
-// Called from app.js handleStageDrop when practice is active
-function tutPracticeCheck(droppedId, hitKlasse) {
+// Called from app.js handleStageDrop when practice is active.
+// hitKlassen is the full Set of zones hit at the drop point (zones can
+// overlap slightly), not just a single "first" class.
+function tutPracticeCheck(droppedId, hitKlassen) {
   if (!window._tutPracticeActive) { return false; }
   var texts = TUT_TEXTS[tutLang];
 
-  if (droppedId === 'Wasser' && hitKlasse === 'Wasser') {
+  if (droppedId === 'Wasser' && hitKlassen.has('Wasser')) {
     window._tutPracticeActive = false;
     markChipUsed(droppedId);
 

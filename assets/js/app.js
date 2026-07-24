@@ -304,6 +304,17 @@ function debugNextLevel(){
   if(CONFIG&&currentLevel<CONFIG.levels.length-1) loadLevel(currentLevel+1);
 }
 
+// Advance the actual (possibly shuffled) experiment sequence regardless of
+// whether the current task's zones are actually solved – lets QA reach any
+// point in the flow without dragging every label correctly.
+function debugSkipTask(){
+  if(levelOrder.length) nextLevel();
+  else if(CONFIG && currentLevel<CONFIG.levels.length-1) loadLevel(currentLevel+1);
+}
+function debugJumpToResults(){
+  showResults();
+}
+
 // ── Debug draw ───────────────────────────────────────────────
 function redrawDebug(){
   // Stage is now exactly 4:3, so we use it directly
@@ -553,8 +564,10 @@ function handleStageDrop(fx,fy,localX,localY){
 
   // Tutorial practice intercept
   if(window._tutPracticeActive && typeof tutPracticeCheck === 'function'){
-    const firstHit = hitKlassen.size > 0 ? [...hitKlassen][0] : null;
-    const consumed = tutPracticeCheck(draggingId, firstHit);
+    // Pass the full hit set, not just its first element – zones can overlap
+    // slightly (OSM+WorldCover), so the "first" class in iteration order
+    // isn't necessarily the one the player actually needs to hit.
+    const consumed = tutPracticeCheck(draggingId, hitKlassen);
     if(consumed) return;
   }
 
