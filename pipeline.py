@@ -98,6 +98,14 @@ OSM_CLASSES = {
     },
 }
 
+# Fallback für Siedlung: viele kleinere Ortschaften sind in OSM nur als einzelne
+# building-Umrisse erfasst, ganz ohne umschließendes landuse=residential-Polygon
+# (der Haupt-Filter oben findet solche Orte daher nicht). Als Ergänzung werden
+# alle Gebäude gepuffert+dissolved; nur Cluster oberhalb einer Mindestfläche
+# zählen als Siedlung – das filtert einzelne Gebäude im Wald/Acker weiterhin raus.
+SIEDLUNG_BUILDING_BUFFER_M   = 15
+SIEDLUNG_BUILDING_MIN_AREA_M2 = 3000
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # GUI
@@ -323,6 +331,47 @@ def elements_to_polygons(elements: list, bbox_wgs84: tuple, buffer_m=None):
     return result
 
 
+def fetch_building_cluster_polygons(bbox_wgs84, app=None):
+    """Fallback-Layer für Siedlung: dissolved Gebäude-Cluster oberhalb einer
+    Mindestfläche (siehe SIEDLUNG_BUILDING_*). Fängt Orte auf, die in OSM nur
+    über einzelne building-Umrisse ohne landuse=residential erfasst sind.
+    Gibt ein leeres GeoDataFrame zurück, wenn die Anfrage fehlschlägt oder
+    keine Cluster über der Mindestfläche liegen (kein harter Fehler)."""
+    import geopandas as gpd
+
+    query  = build_query(bbox_wgs84, ['["building"]'])
+    result = overpass_request(query, app)
+    if result is None:
+        if app: app.log_write("   ⚠ Siedlung-Fallback (Gebäude): keine Antwort", "warn")
+        return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+
+    elements = result.get("elements", [])
+    gdf = elements_to_polygons(elements, bbox_wgs84, buffer_m=None)
+    if gdf.empty:
+        return gdf
+
+    # Gebäude leicht aufblasen, damit benachbarte Häuser eines Orts verschmelzen,
+    # dann zu einem einzigen Cluster-Polygon vereinigen.
+    utm = gdf.estimate_utm_crs()
+    gdf_m = gdf.to_crs(utm)
+    buffered = gdf_m.geometry.buffer(SIEDLUNG_BUILDING_BUFFER_M)
+    merged   = buffered.union_all() if hasattr(buffered, "union_all") else buffered.unary_union
+
+    from shapely.geometry import MultiPolygon
+    polys = list(merged.geoms) if merged.geom_type == "MultiPolygon" else [merged]
+    # Zurück auf die ursprüngliche Gebäudefläche schrumpfen (Puffer nur zum
+    # Verschmelzen genutzt), dann nach Mindestfläche filtern.
+    clusters = [p.buffer(-SIEDLUNG_BUILDING_BUFFER_M) for p in polys]
+    clusters = [c for c in clusters if not c.is_empty and c.area >= SIEDLUNG_BUILDING_MIN_AREA_M2]
+
+    if not clusters:
+        return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
+
+    result_gdf = gpd.GeoDataFrame(geometry=clusters, crs=utm).to_crs("EPSG:4326")
+    if app: app.log_write(f"   [Siedlung-Fallback] {len(result_gdf)} Gebäude-Cluster ≥ {SIEDLUNG_BUILDING_MIN_AREA_M2} m²", "ok")
+    return result_gdf
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # PIPELINE
 # ═══════════════════════════════════════════════════════════════════════
@@ -447,23 +496,44 @@ def run_pipeline(app):
         app.log_write("   OSM-Daten abrufen …")
         layers = []
 
-        for klasse, cfg in OSM_CLASSES.items():
-            app.log_write(f"   Klasse: {klasse}")
-            query  = build_query(bbox_wgs84, cfg["filters"])
-            result = overpass_request(query, app)
-            if result is None:
-                app.log_write(f"   ⚠ {klasse}: keine Antwort", "warn")
-                continue
-            elements = result.get("elements", [])
-            app.log_write(f"   [{klasse}] {len(elements)} Elemente")
-            gdf = elements_to_polygons(elements, bbox_wgs84, cfg["buffer_m"])
-            if not gdf.empty:
-                gdf["klasse"] = klasse
-                layers.append(gdf)
-                app.log_write(f"   [{klasse}] → {len(gdf)} Polygone", "ok")
-            else:
-                app.log_write(f"   [{klasse}] → keine Polygone")
-            time.sleep(3)
+        try:
+            for klasse, cfg in OSM_CLASSES.items():
+                app.log_write(f"   Klasse: {klasse}")
+                query  = build_query(bbox_wgs84, cfg["filters"])
+                result = overpass_request(query, app)
+                if result is None:
+                    # Kompletter Ausfall (alle Endpunkte/Retries erschöpft) darf NICHT
+                    # stillschweigend als "0 Elemente = absent" durchgehen – das hat
+                    # in der Vergangenheit zu falschen "absent"-Flags in config.json
+                    # geführt (Klasse war real vorhanden, Overpass hat nur nicht
+                    # geantwortet). Stattdessen wird das ganze Level übersprungen.
+                    raise RuntimeError(
+                        f"Overpass-Anfrage für Klasse '{klasse}' fehlgeschlagen "
+                        f"(alle Endpunkte/Retries erschöpft)")
+                elements = result.get("elements", [])
+                app.log_write(f"   [{klasse}] {len(elements)} Elemente")
+                gdf = elements_to_polygons(elements, bbox_wgs84, cfg["buffer_m"])
+
+                if klasse == "Siedlung":
+                    fallback = fetch_building_cluster_polygons(bbox_wgs84, app)
+                    time.sleep(3)
+                    if not fallback.empty:
+                        gdf = gpd.pd.concat([gdf, fallback], ignore_index=True) \
+                              if not gdf.empty else fallback
+
+                if not gdf.empty:
+                    gdf["klasse"] = klasse
+                    layers.append(gdf)
+                    app.log_write(f"   [{klasse}] → {len(gdf)} Polygone", "ok")
+                else:
+                    app.log_write(f"   [{klasse}] → keine Polygone")
+                time.sleep(3)
+        except RuntimeError as e:
+            app.log_write(f"   ✗ {bname} übersprungen: {e}", "err")
+            app.log_write(
+                f"   → {bname} wurde NICHT in config.json übernommen. "
+                f"Pipeline später erneut ausführen, um dieses Level nachzuholen.", "err")
+            continue
 
         # ── 5. Dissolve + speichern ───────────────────────────────────
         app.set_progress(base_pct + 25, f"{bname}: dissolve …")
