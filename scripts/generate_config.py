@@ -44,12 +44,10 @@ AREA_THRESHOLD = 0.05   # 5 %
 
 # ── Label-Definitionen ──────────────────────────────────────────────────
 ALL_LABELS = [
-    {"id": "Wald",     "text": "Wald",     "icon": "🌲"},
-    {"id": "Fluss",    "text": "Fluss",    "icon": "🌊"},
-    {"id": "Siedlung", "text": "Siedlung", "icon": "🏘️"},
-    {"id": "Acker",    "text": "Acker",    "icon": "🌾"},
-    {"id": "Straße",   "text": "Straße",   "icon": "🛣️"},
-    {"id": "See",      "text": "See",      "icon": "💧"},
+    {"id": "Wald",    "text": "Wald",                  "icon": "🌲"},
+    {"id": "Acker",   "text": "Acker",                 "icon": "🌾"},
+    {"id": "Gebäude", "text": "Gebäude/Infrastruktur",  "icon": "🏘️"},
+    {"id": "Wasser",  "text": "Wasser",                "icon": "💧"},
 ]
 ALL_LABEL_IDS = {l["id"] for l in ALL_LABELS}
 
@@ -133,14 +131,22 @@ def image_area_m2(bounds):
     return abs(x1 - x0) * abs(y1 - y0)
 
 
-def extract_outer_rings(geometry):
-    """Gibt alle Außenringe eines Polygon/MultiPolygon zurück."""
+def polygon_area_m2(geometry):
+    """Fläche eines Polygon/MultiPolygon abzüglich etwaiger Löcher (innere
+    Ringe) – ein reines Außenring-Summieren würde Lochflächen doppelt
+    zählen statt sie abzuziehen."""
+    def rings_area(rings):
+        area = ring_area_m2(rings[0])
+        for hole in rings[1:]:
+            area -= ring_area_m2(hole)
+        return area
+
     t = geometry["type"]
     if t == "Polygon":
-        return [geometry["coordinates"][0]]
+        return rings_area(geometry["coordinates"])
     if t == "MultiPolygon":
-        return [p[0] for p in geometry["coordinates"]]
-    return []
+        return sum(rings_area(poly) for poly in geometry["coordinates"])
+    return 0.0
 
 
 def analyse_geojson(geojson_path, bounds):
@@ -162,8 +168,7 @@ def analyse_geojson(geojson_path, bounds):
         k = feat.get("properties", {}).get("klasse")
         if not k:
             continue
-        for ring in extract_outer_rings(feat["geometry"]):
-            klasse_area[k] = klasse_area.get(k, 0.0) + ring_area_m2(ring)
+        klasse_area[k] = klasse_area.get(k, 0.0) + polygon_area_m2(feat["geometry"])
 
     present         = []
     absent_optional = []

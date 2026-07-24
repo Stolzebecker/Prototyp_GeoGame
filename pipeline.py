@@ -6,7 +6,10 @@ Doppelklick-Pipeline für Windows (via Verarbeitung_starten.bat).
 Was passiert automatisch:
   1. TIFs aus input/ einlesen (jede Datei genau einmal)
   2. Auf 4:3 zentriert zuschneiden → 1024×768 px PNG
-  3. OSM-Hitboxes via Overpass API (bewährter Ansatz)
+  3. Hitboxes für 4 Klassen (Wald, Acker, Gebäude, Wasser):
+     OSM/Overpass ist die bevorzugte Quelle (höhere Auflösung); das
+     ESA-WorldCover-10m-Landbedeckungsraster füllt nur echte Lücken (wo OSM
+     buchstäblich nichts hat) und dient als Gegenprobe auf Widersprüche.
   4. Polygon-Reduktion via geopandas dissolve
   5. data/config.json aktualisieren
 
@@ -35,12 +38,10 @@ ASPECT         = TARGET_W / TARGET_H
 AREA_THRESHOLD = 0.05
 
 ALL_LABELS = [
-    {"id": "Wald",     "text": "Wald",     "icon": "🌲"},
-    {"id": "Fluss",    "text": "Fluss",    "icon": "🌊"},
-    {"id": "Siedlung", "text": "Siedlung", "icon": "🏘️"},
-    {"id": "Acker",    "text": "Acker",    "icon": "🌾"},
-    {"id": "Straße",   "text": "Straße",   "icon": "🛣️"},
-    {"id": "See",      "text": "See",      "icon": "💧"},
+    {"id": "Wald",    "text": "Wald",                  "icon": "🌲"},
+    {"id": "Acker",   "text": "Acker",                 "icon": "🌾"},
+    {"id": "Gebäude", "text": "Gebäude/Infrastruktur",  "icon": "🏘️"},
+    {"id": "Wasser",  "text": "Wasser",                "icon": "💧"},
 ]
 ALL_LABEL_IDS = {l["id"] for l in ALL_LABELS}
 
@@ -50,11 +51,13 @@ OVERPASS_ENDPOINTS = [
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 
-# Optimierte OSM-Klassen-Definition
-# – See/Fluss strikt getrennt (kein doppeltes Mapping von Wasserflächen)
-# – Siedlung ohne building-Tag (Einzelgebäude im Wald/Acker ausgeschlossen)
+# OSM-Klassen-Definition (bevorzugte/primäre Quelle für alle 4 Klassen)
+# – Wasser vereint frühere See+Fluss-Filter (Unterscheidung fließend/stehend
+#   war mit den verfügbaren Quellen zu unsicher, daher eine gemeinsame Klasse)
+# – Gebäude (vormals Siedlung) ohne building-Tag (Einzelgebäude im Wald/Acker
+#   ausgeschlossen) – Lücken bei nur-Gebäude-ohne-Landuse gemappten Orten
+#   werden durch das WorldCover-Raster gefüllt, siehe fetch_worldcover_window()
 # – Acker ohne grass (urbane Grünflächen ausgeschlossen)
-# – Straße ohne track/service (verhindert Buffer-Overload auf Feldwegen)
 OSM_CLASSES = {
     "Wald": {
         "filters": [
@@ -63,21 +66,15 @@ OSM_CLASSES = {
         ],
         "buffer_m": None,
     },
-    "See": {
+    "Wasser": {
         "filters": [
-            '["natural"="water"]["water"!~"^(river|stream|canal|lock|ditch|drain)$"]',
+            '["natural"="water"]',
+            '["waterway"~"^(river|stream|canal|drain|ditch)$"]',
             '["landuse"~"^(reservoir|basin)$"]',
         ],
-        "buffer_m": None,
+        "buffer_m": 50,   # wirkt nur auf LineStrings (waterway), Polygone unangetastet
     },
-    "Fluss": {
-        "filters": [
-            '["waterway"~"^(river|stream|canal|drain|ditch)$"]',
-            '["natural"="water"]["water"~"^(river|stream|canal|lock)$"]',
-        ],
-        "buffer_m": 50,
-    },
-    "Siedlung": {
+    "Gebäude": {
         "filters": [
             '["landuse"~"^(residential|commercial|industrial|retail|construction|garages)$"]',
         ],
@@ -90,21 +87,22 @@ OSM_CLASSES = {
         ],
         "buffer_m": None,
     },
-    "Straße": {
-        "filters": [
-            '["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|road)$"]',
-        ],
-        "buffer_m": 50,
-    },
 }
 
-# Fallback für Siedlung: viele kleinere Ortschaften sind in OSM nur als einzelne
-# building-Umrisse erfasst, ganz ohne umschließendes landuse=residential-Polygon
-# (der Haupt-Filter oben findet solche Orte daher nicht). Als Ergänzung werden
-# alle Gebäude gepuffert+dissolved; nur Cluster oberhalb einer Mindestfläche
-# zählen als Siedlung – das filtert einzelne Gebäude im Wald/Acker weiterhin raus.
-SIEDLUNG_BUILDING_BUFFER_M   = 15
-SIEDLUNG_BUILDING_MIN_AREA_M2 = 3000
+# ── ESA WorldCover 10m (Lückenfüller + Gegenprobe, siehe fetch_worldcover_window) ──
+# Öffentlicher S3-Bucket, kein Login/API-Key nötig. COGs in EPSG:4326 –
+# kein Reprojizieren nötig, Level-Bboxen sind immer << 3° groß (Grid-Kachelgröße).
+WORLDCOVER_GRID_URL = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v100/2020/esa_worldcover_2020_grid.geojson"
+WORLDCOVER_BASE_URL = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map"
+# Klasse → Tupel der zugehörigen WorldCover-Pixelwerte
+# (10 Tree cover, 30 Grassland, 40 Cropland, 50 Built-up, 80 Permanent water bodies)
+WORLDCOVER_RECLASS = {
+    "Wald":    (10,),
+    "Acker":   (30, 40),
+    "Gebäude": (50,),
+    "Wasser":  (80,),
+}
+WORLDCOVER_CONTRADICTION_THRESHOLD = 0.5  # >50% abweichende Pixel → Warnung loggen
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -331,45 +329,80 @@ def elements_to_polygons(elements: list, bbox_wgs84: tuple, buffer_m=None):
     return result
 
 
-def fetch_building_cluster_polygons(bbox_wgs84, app=None):
-    """Fallback-Layer für Siedlung: dissolved Gebäude-Cluster oberhalb einer
-    Mindestfläche (siehe SIEDLUNG_BUILDING_*). Fängt Orte auf, die in OSM nur
-    über einzelne building-Umrisse ohne landuse=residential erfasst sind.
-    Gibt ein leeres GeoDataFrame zurück, wenn die Anfrage fehlschlägt oder
-    keine Cluster über der Mindestfläche liegen (kein harter Fehler)."""
+_worldcover_grid_cache = None  # Modul-Cache: Grid-GeoJSON nur einmal pro Lauf laden
+
+
+def _load_worldcover_grid():
+    global _worldcover_grid_cache
+    if _worldcover_grid_cache is None:
+        import geopandas as gpd
+        _worldcover_grid_cache = gpd.read_file(WORLDCOVER_GRID_URL)
+    return _worldcover_grid_cache
+
+
+def fetch_worldcover_window(bbox_wgs84, app=None):
+    """Lädt den ESA-WorldCover-10m-Ausschnitt für die gegebene bbox (west,
+    south, east, north) und gibt (numpy-Array, affine Transform) zurück –
+    beide in EPSG:4326, direkt kompatibel mit den bbox-Koordinaten der
+    Pipeline. Schlägt der Abruf fehl, wird eine Exception geworfen (analog
+    zum Overpass-Hartfehler: das Level wird dann komplett übersprungen,
+    statt mit einer stillschweigend leeren/falschen Maske weiterzumachen)."""
+    import rasterio
+    from rasterio.windows import from_bounds
+    from shapely.geometry import box
+
+    west, south, east, north = bbox_wgs84
+    grid = _load_worldcover_grid()
+    hit  = grid[grid.geometry.intersects(box(west, south, east, north))]
+    if hit.empty:
+        raise RuntimeError(f"Keine WorldCover-Kachel für bbox {bbox_wgs84} gefunden")
+
+    tile_arrays = []
+    transform   = None
+    for tile in hit["ll_tile"]:
+        url = f"{WORLDCOVER_BASE_URL}/ESA_WorldCover_10m_2021_v200_{tile}_Map.tif"
+        try:
+            with rasterio.open(f"/vsicurl/{url}") as ds:
+                window = from_bounds(west, south, east, north, ds.transform)
+                arr    = ds.read(1, window=window)
+                transform = ds.window_transform(window)
+                tile_arrays.append(arr)
+        except Exception as e:
+            raise RuntimeError(f"WorldCover-Kachel {tile} nicht abrufbar: {e}")
+
+    if len(tile_arrays) == 1:
+        return tile_arrays[0], transform
+
+    # Seltener Fall: bbox liegt auf einer Kachelgrenze → einfach überlagern
+    # (Level-Bboxen sind immer << 3° groß, i.d.R. genau 1 Treffer).
+    import numpy as np
+    merged = tile_arrays[0].copy()
+    for arr in tile_arrays[1:]:
+        mask = merged == 0
+        merged[mask] = arr[mask]
+    return merged, transform
+
+
+def raster_mask_to_polygons(array, transform, values):
+    """Vektorisiert alle Pixel mit Wert in `values` zu einem GeoDataFrame
+    (EPSG:4326), leicht geglättet um die 10m-Treppenstufen-Optik zu mildern."""
+    import numpy as np
     import geopandas as gpd
+    from rasterio.features import shapes as rio_shapes
+    from shapely.geometry import shape as shp_shape
 
-    query  = build_query(bbox_wgs84, ['["building"]'])
-    result = overpass_request(query, app)
-    if result is None:
-        if app: app.log_write("   ⚠ Siedlung-Fallback (Gebäude): keine Antwort", "warn")
+    mask = np.isin(array, values)
+    if not mask.any():
         return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
 
-    elements = result.get("elements", [])
-    gdf = elements_to_polygons(elements, bbox_wgs84, buffer_m=None)
-    if gdf.empty:
-        return gdf
-
-    # Gebäude leicht aufblasen, damit benachbarte Häuser eines Orts verschmelzen,
-    # dann zu einem einzigen Cluster-Polygon vereinigen.
-    utm = gdf.estimate_utm_crs()
-    gdf_m = gdf.to_crs(utm)
-    buffered = gdf_m.geometry.buffer(SIEDLUNG_BUILDING_BUFFER_M)
-    merged   = buffered.union_all() if hasattr(buffered, "union_all") else buffered.unary_union
-
-    from shapely.geometry import MultiPolygon
-    polys = list(merged.geoms) if merged.geom_type == "MultiPolygon" else [merged]
-    # Zurück auf die ursprüngliche Gebäudefläche schrumpfen (Puffer nur zum
-    # Verschmelzen genutzt), dann nach Mindestfläche filtern.
-    clusters = [p.buffer(-SIEDLUNG_BUILDING_BUFFER_M) for p in polys]
-    clusters = [c for c in clusters if not c.is_empty and c.area >= SIEDLUNG_BUILDING_MIN_AREA_M2]
-
-    if not clusters:
+    polys = [
+        shp_shape(geom).simplify(0.00003, preserve_topology=True)
+        for geom, val in rio_shapes(mask.astype(np.uint8), mask=mask, transform=transform)
+    ]
+    polys = [p for p in polys if p.is_valid and not p.is_empty]
+    if not polys:
         return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
-
-    result_gdf = gpd.GeoDataFrame(geometry=clusters, crs=utm).to_crs("EPSG:4326")
-    if app: app.log_write(f"   [Siedlung-Fallback] {len(result_gdf)} Gebäude-Cluster ≥ {SIEDLUNG_BUILDING_MIN_AREA_M2} m²", "ok")
-    return result_gdf
+    return gpd.GeoDataFrame(geometry=polys, crs="EPSG:4326")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -496,6 +529,7 @@ def run_pipeline(app):
         app.log_write("   OSM-Daten abrufen …")
         layers = []
 
+        by_klasse = {}
         try:
             for klasse, cfg in OSM_CLASSES.items():
                 app.log_write(f"   Klasse: {klasse}")
@@ -513,13 +547,7 @@ def run_pipeline(app):
                 elements = result.get("elements", [])
                 app.log_write(f"   [{klasse}] {len(elements)} Elemente")
                 gdf = elements_to_polygons(elements, bbox_wgs84, cfg["buffer_m"])
-
-                if klasse == "Siedlung":
-                    fallback = fetch_building_cluster_polygons(bbox_wgs84, app)
-                    time.sleep(3)
-                    if not fallback.empty:
-                        gdf = gpd.pd.concat([gdf, fallback], ignore_index=True) \
-                              if not gdf.empty else fallback
+                by_klasse[klasse] = gdf
 
                 if not gdf.empty:
                     gdf["klasse"] = klasse
@@ -528,6 +556,56 @@ def run_pipeline(app):
                 else:
                     app.log_write(f"   [{klasse}] → keine Polygone")
                 time.sleep(3)
+
+            # ── WorldCover: Lückenfüller + Gegenprobe (OSM bleibt bevorzugt) ──
+            app.log_write("   WorldCover-Raster abrufen (Lückenfüller + Gegenprobe) …")
+            wc_array, wc_transform = fetch_worldcover_window(bbox_wgs84, app)
+
+            all_osm_geoms = [g for gdf in by_klasse.values() if not gdf.empty for g in gdf.geometry]
+            osm_geoms = gpd.GeoSeries(all_osm_geoms, crs="EPSG:4326") if all_osm_geoms else None
+            osm_union = (osm_geoms.union_all() if hasattr(osm_geoms, "union_all")
+                         else osm_geoms.unary_union) if osm_geoms is not None else None
+
+            n_checked = n_contradict = 0
+            for klasse in OSM_CLASSES:
+                wc_gdf = raster_mask_to_polygons(wc_array, wc_transform, WORLDCOVER_RECLASS[klasse])
+                own_gdf = by_klasse.get(klasse)
+
+                # Gegenprobe: eigene OSM-Polygone gegen WorldCover-Mehrheitsfläche prüfen.
+                # OSM bleibt maßgeblich – bei Abweichung wird nur geloggt, nichts überschrieben.
+                if own_gdf is not None and not own_gdf.empty and not wc_gdf.empty:
+                    wc_class_union = (wc_gdf.geometry.union_all() if hasattr(wc_gdf.geometry, "union_all")
+                                       else wc_gdf.geometry.unary_union)
+                    for geom in own_gdf.geometry:
+                        if geom.area <= 0:
+                            continue
+                        n_checked += 1
+                        agree = geom.intersection(wc_class_union).area / geom.area
+                        if agree < (1 - WORLDCOVER_CONTRADICTION_THRESHOLD):
+                            n_contradict += 1
+                            c = geom.centroid
+                            app.log_write(
+                                f"   ⚠ Widerspruch [{klasse}]: OSM-Polygon bei "
+                                f"({c.y:.5f}, {c.x:.5f}) stimmt nur zu {agree*100:.0f}% "
+                                f"mit WorldCover überein", "warn")
+
+                # Lückenfüllung: WorldCover-Fläche dieser Klasse, die von KEINER
+                # OSM-Klasse beansprucht wird (nicht nur der eigenen) – so
+                # überschreibt WorldCover nie eine bereits anders klassifizierte
+                # OSM-Fläche.
+                if not wc_gdf.empty:
+                    gap = wc_gdf.geometry if osm_union is None else wc_gdf.geometry.difference(osm_union)
+                    gap = gap[~gap.is_empty & gap.is_valid]
+                    if not gap.empty:
+                        gap_gdf = gpd.GeoDataFrame(geometry=gap.values, crs="EPSG:4326")
+                        gap_gdf["klasse"] = klasse
+                        layers.append(gap_gdf)
+                        app.log_write(f"   [{klasse}] WorldCover-Lückenfüller: +{len(gap_gdf)} Polygone", "ok")
+
+            if n_checked:
+                app.log_write(
+                    f"   Gegenprobe: {n_contradict}/{n_checked} OSM-Polygone wichen von WorldCover ab",
+                    "warn" if n_contradict else "ok")
         except RuntimeError as e:
             app.log_write(f"   ✗ {bname} übersprungen: {e}", "err")
             app.log_write(
@@ -655,11 +733,22 @@ def image_area_m2(bounds):
     x1, y1 = to_mercator(bounds[1][1], bounds[1][0])
     return abs(x1 - x0) * abs(y1 - y0)
 
-def extract_outer_rings(geom):
+def polygon_area_m2(geom):
+    """Fläche eines Polygon/MultiPolygon abzüglich etwaiger Löcher (innere
+    Ringe) – wichtig für WorldCover-vektorisierte Flächen, die häufig
+    verschachtelte Löcher haben (z. B. eine andere Klasse mitten im Wald)."""
+    def rings_area(rings):
+        area = ring_area_m2(rings[0])
+        for hole in rings[1:]:
+            area -= ring_area_m2(hole)
+        return area
+
     t = geom["type"]
-    if t == "Polygon":      return [geom["coordinates"][0]]
-    if t == "MultiPolygon": return [p[0] for p in geom["coordinates"]]
-    return []
+    if t == "Polygon":
+        return rings_area(geom["coordinates"])
+    if t == "MultiPolygon":
+        return sum(rings_area(poly) for poly in geom["coordinates"])
+    return 0.0
 
 def compute_areas(geojson, bounds):
     img_area    = image_area_m2(bounds)
@@ -667,8 +756,7 @@ def compute_areas(geojson, bounds):
     for feat in geojson.get("features", []):
         k = feat.get("properties", {}).get("klasse")
         if not k: continue
-        for ring in extract_outer_rings(feat["geometry"]):
-            klasse_area[k] = klasse_area.get(k, 0.0) + ring_area_m2(ring)
+        klasse_area[k] = klasse_area.get(k, 0.0) + polygon_area_m2(feat["geometry"])
     present = []; absent_opt = []; areas = {}
     for k, area in klasse_area.items():
         ratio    = area / img_area if img_area > 0 else 0

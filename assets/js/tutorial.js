@@ -54,8 +54,8 @@ const TUT_TEXTS = {
       },
     ],
     practiceTitle:   'Jetzt bist du dran!',
-    practiceBody:    'Markiere den Fluss auf dem Bild. Ziehe das Label "Fluss" auf den Bereich mit dem Fließgewässer.',
-    practiceWrong:   'Versuche es mit dem Label "Fluss".',
+    practiceBody:    'Markiere das Wasser auf dem Bild. Ziehe das Label "Wasser" auf einen See oder Fluss.',
+    practiceWrong:   'Versuche es mit dem Label "Wasser".',
     practiceSuccess: 'Sehr gut! Du hast die Spielmechanik verstanden.',
     practiceBtn:     'Weiter zum Experiment',
     nextBtn:         'Weiter',
@@ -109,8 +109,8 @@ const TUT_TEXTS = {
       },
     ],
     practiceTitle:   'Your turn!',
-    practiceBody:    'Mark the river in the image. Drag the label "Fluss" onto the area with the waterway.',
-    practiceWrong:   'Try the label "Fluss".',
+    practiceBody:    'Mark the water in the image. Drag the label "Wasser" onto a lake or river.',
+    practiceWrong:   'Try the label "Wasser".',
     practiceSuccess: 'Well done! You have understood the game mechanics.',
     practiceBtn:     'Continue to Experiment',
     nextBtn:         'Next',
@@ -322,7 +322,7 @@ function tutPracticeCheck(droppedId, hitKlasse) {
   if (!window._tutPracticeActive) { return false; }
   var texts = TUT_TEXTS[tutLang];
 
-  if (droppedId === 'Fluss' && hitKlasse === 'Fluss') {
+  if (droppedId === 'Wasser' && hitKlasse === 'Wasser') {
     window._tutPracticeActive = false;
     markChipUsed(droppedId);
 
@@ -339,7 +339,7 @@ function tutPracticeCheck(droppedId, hitKlasse) {
     return true;
   }
 
-  if (droppedId !== 'Fluss') {
+  if (droppedId !== 'Wasser') {
     var tooltip2 = document.getElementById('tut-tooltip');
     var p = tooltip2.querySelector('p');
     if (p) { p.textContent = texts.practiceWrong; }
