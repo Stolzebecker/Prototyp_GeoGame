@@ -14,12 +14,21 @@
  *   Drop_Versuche   -- 1 Zeile pro einzelnem Ablage-Versuch (inkl. Fehlversuche)
  */
 
-// Muss exakt mit SUBMIT_TOKEN in assets/js/app.js uebereinstimmen; bei
+// Muss exakt mit SUBMIT_TOKEN in assets/js/telemetry.js uebereinstimmen; bei
 // Aenderung dort UND hier anpassen und neu bereitstellen (Bereitstellungen
 // verwalten -> Version bearbeiten -> Neue Version). Kein Schutz gegen
 // jemanden, der den Client-Quelltext liest -- nur gegen zufaellige/
 // automatisierte Requests ohne den Token (siehe TIER-List-README).
 var SUBMIT_TOKEN = "gg_5f2a9c14e8b6d0317f4a2c9e6b8d1053";
+
+// Separater Token NUR fuers Dashboard (doGet, siehe unten) -- bewusst
+// verschieden vom SUBMIT_TOKEN oben: SUBMIT_TOKEN steht oeffentlich im
+// Client-Code des Spiels (jeder kann ihn im Quelltext lesen), READ_TOKEN
+// dagegen nur im (privat gehosteten) Auswertungs-Dashboard. Mit dem
+// SUBMIT_TOKEN liesse sich nur SCHREIBEN; mit dem READ_TOKEN kann man
+// Personendaten (Alter, Bildungsabschluss, ...) LESEN -- das braucht daher
+// einen eigenen, nicht oeffentlich im Spiel sichtbaren Token.
+var READ_TOKEN = "gg_read_9d3f7a1c58b0e42691dc7f5a0b3e8462";
 
 // EINTRAGEN nach dem manuellen Erstellen des Google Sheets (Datei > Freigeben
 // > ID aus der URL kopieren). Siehe README.md, Abschnitt "Deployment".
@@ -41,6 +50,35 @@ function doPost(e) {
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
   }
+}
+
+// Liest alle vier Tabs und liefert sie als JSON ans (privat gehostete)
+// Auswertungs-Dashboard -- das Sheet selbst bleibt dabei komplett privat,
+// nur dieser eine, durch READ_TOKEN geschuetzte Endpunkt gibt Daten heraus.
+// Aufruf: <Web-App-URL>?token=<READ_TOKEN>
+function doGet(e) {
+  if (!e || e.parameter.token !== READ_TOKEN) {
+    return jsonOut_({ ok: false, error: "invalid token" });
+  }
+  var ss = getSpreadsheet_();
+  var tabs = ["Personendaten", "Durchlaeufe", "Level_Ergebnisse", "Drop_Versuche"];
+  var data = {};
+  tabs.forEach(function (name) {
+    var sheet = ss.getSheetByName(name);
+    data[name] = sheet ? sheetToObjects_(sheet) : [];
+  });
+  return jsonOut_({ ok: true, data: data });
+}
+
+function sheetToObjects_(sheet) {
+  var values = sheet.getDataRange().getValues();
+  if (values.length < 1) return [];
+  var header = values[0];
+  return values.slice(1).map(function (row) {
+    var obj = {};
+    header.forEach(function (h, i) { obj[h] = row[i]; });
+    return obj;
+  });
 }
 
 function jsonOut_(obj) {
