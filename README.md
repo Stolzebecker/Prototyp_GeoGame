@@ -80,6 +80,10 @@ Muss **einmalig manuell** eingerichtet werden, bevor echte Daten erhoben werden 
 
 Solange `SUBMIT_URL` noch den Platzhalter enthält, werden Telemetrie-Payloads nur per `console.warn` geloggt statt gesendet — das Spiel bleibt dabei voll funktionsfähig (siehe `sendToBackend_()` in `telemetry.js`).
 
+**Fallstrick:** Das Sheet-eigene Menü "Erweiterungen → Apps Script" öffnet ein *anderes*, leeres, nie deploytes Projekt — das echte Backend ist das **eigenständige** Apps-Script-Projekt "GeoGame Backend", zu finden über script.google.com/home/my (blauer Pfeil-Icon, nicht das grüne Sheet-Icon).
+
+`Code.gs` enthält neben `doPost` (Schreiben, siehe oben) auch `doGet` mit einem eigenen `READ_TOKEN` — liefert alle vier Tabs als JSON fürs Auswertungs-Dashboard (`00_Tests und AdHoc/VisualComplexity_Game/Auswertung/GeoGame_Dashboard.html`), ohne dass das Sheet selbst öffentlich freigegeben werden muss. Der `READ_TOKEN` gehört **nicht** in den öffentlichen Client-Code.
+
 ---
 
 ## Konfiguration
@@ -127,17 +131,25 @@ Im laufenden Experiment **D** drücken:
 - Checkbox pro Klasse (mit Flächenanteil in %)  
 - Level-Navigation (‹ ›) zum Wechseln zwischen Bildern
 
+Für Teilnehmende gibt es zusätzlich den Knopf **"Ich komme nicht weiter ›"** (unten links, während eines Levels sichtbar) — zeigt nur die Hitbox-Umrisse, ohne das restliche Debug-Panel zu öffnen. Wird separat als `hinweis_genutzt` erfasst (siehe CLAUDE.md).
+
 ---
 
 ## CI / Design
 
-| Token         | Hex       | Verwendung             |
-|---------------|-----------|------------------------|
-| Primary Blue  | `#0a3f70` | Hintergrund, Panels    |
-| Light Blue    | `#0ca4d1` | Borders, Akzente       |
-| Gold          | `#fdc300` | Buttons, Pin, Lupe     |
-| Orange        | `#ec6608` | Akzent                 |
-| Red           | `#b71918` | Fehler, Warn           |
-| Grey          | `#c6c6c6` | Muted Text             |
+Seit 2026-08-25 helles Theme (an TIER-List angenähert), auch auf der Spielbühne selbst:
+
+| Token         | Hex       | Verwendung                          |
+|---------------|-----------|--------------------------------------|
+| Primary Blue  | `#0a3f70` | Text, Buttons, Rahmen                |
+| Light Blue    | `#0ca4d1` | Borders, Akzente                     |
+| Gold          | `#fdc300` | CTA-Buttons (Start/Weiter/Bereit)    |
+| Orange        | `#ec6608` | Akzent                                |
+| Red           | `#b71918` | Fehler, Warn                         |
+| Grey          | `#c6c6c6` / `#eef1f4` | Muted Text / helle Flächen |
 
 Schrift: **Segoe UI Semibold** (Titel), **Segoe UI** (Fließtext)
+
+## Auswertung
+
+`00_Tests und AdHoc/VisualComplexity_Game/Auswertung/GeoGame_Dashboard.html` — Level-Schwierigkeit, Objektklassen-Fehlerraten, Demografie, GIS-Erfahrung↔Leistung, live aus den per `doGet()` geholten Rohdaten berechnet (kein Live-Fetch im Dashboard selbst). Details/Update-Workflow: Memory-Referenz `reference_geogame_dashboard`.
