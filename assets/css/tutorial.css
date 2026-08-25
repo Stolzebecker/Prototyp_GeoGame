@@ -1,6 +1,9 @@
 /*
  * tutorial.css
  * EO Visual Complexity Experiment – Tutorial
+ * Helles Theme (siehe style.css) – die Spotlight-Abdunklung des
+ * Overlay-Tutorials bleibt bewusst dunkel (funktional notwendig fuers
+ * Hervorheben), die Karten/Panels selbst sind hell.
  */
 
 /* ── Language Selection ─────────────────────────────────── */
@@ -12,12 +15,13 @@
 .lang-panel{
   display:flex;flex-direction:column;align-items:center;gap:28px;
   padding:52px 60px;
-  background:rgba(10,63,112,0.82);backdrop-filter:blur(10px);
-  border:1px solid var(--border);border-top:3px solid var(--accent2);
-  box-shadow:0 12px 48px rgba(0,0,0,.6);
+  background:#fff;
+  border:1px solid var(--line);border-top:3px solid var(--accent2);
+  border-radius:10px;
+  box-shadow:0 12px 48px rgba(0,0,0,.12);
 }
 .lang-panel h2{
-  font-size:22px;color:#fff;font-weight:700;letter-spacing:.02em;
+  font-size:22px;color:#0a3f70;font-weight:700;letter-spacing:.02em;
   text-align:center;
 }
 .lang-buttons{display:flex;gap:16px;}
@@ -33,21 +37,23 @@
   box-shadow:0 8px 24px rgba(253,195,0,.5),inset 0 1px 0 rgba(255,255,255,.5);}
 .lang-btn:active{transform:translateY(1px);border-bottom-width:1px;}
 
-/* ── Info screens (fullscreen) ───────────────────────────── */
+/* ── Info-/Consent-/Formular-Screens (fullscreen, gemeinsames Grundgeruest) ── */
 #tutorial-info-screen{
   position:fixed;inset:0;z-index:3500;
   display:none;
   align-items:center;justify-content:center;
-  background:linear-gradient(160deg,#212348 0%,#0a3f70 100%);
+  background:var(--bg);
+  padding:32px 20px;overflow:auto;
 }
 #tutorial-info-screen.active{display:flex;}
 
 .tut-info-panel{
   width:min(680px,88vw);
   padding:44px 48px;
-  background:rgba(10,63,112,0.75);backdrop-filter:blur(12px);
-  border:1px solid rgba(12,164,209,.4);border-top:3px solid var(--accent2);
-  box-shadow:0 12px 48px rgba(0,0,0,.6);
+  background:#fff;
+  border:1px solid var(--line);border-top:3px solid var(--accent2);
+  border-radius:10px;
+  box-shadow:0 12px 48px rgba(0,0,0,.12);
   display:flex;flex-direction:column;gap:18px;
 }
 .tut-step-badge{
@@ -56,14 +62,14 @@
   text-transform:uppercase;
 }
 .tut-info-panel h2{
-  font-size:26px;color:#fff;font-weight:700;line-height:1.15;margin:0;
+  font-size:26px;color:#0a3f70;font-weight:700;line-height:1.15;margin:0;
 }
 .tut-info-panel .tut-subtitle{
-  font-size:13px;color:var(--accent2);font-weight:600;letter-spacing:.04em;
+  font-size:13px;color:#8a6500;font-weight:600;letter-spacing:.04em;
   margin-bottom:-8px;
 }
 .tut-info-panel p{
-  font-size:14px;color:rgba(255,255,255,.82);line-height:1.7;margin:0;
+  font-size:14px;color:#2a2a2a;line-height:1.7;margin:0;
 }
 .tut-info-panel .tut-note{
   font-size:12px;color:var(--muted);
@@ -75,7 +81,7 @@
 }
 .tut-progress-dot{
   width:8px;height:8px;border-radius:50%;
-  background:var(--border);transition:background .3s;
+  background:var(--line);transition:background .3s;
 }
 .tut-progress-dot.active{background:var(--accent2);}
 .tut-btn-row{
@@ -91,13 +97,35 @@
 }
 .tut-btn:hover{transform:translateY(-2px);}
 .tut-btn:active{transform:translateY(1px);border-bottom-width:1px;}
+.tut-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .tut-btn-skip{
   padding:11px 20px;border:1px solid var(--border);border-radius:4px;
   background:transparent;color:var(--muted);
   font-family:var(--font-ui);font-size:13px;cursor:pointer;
   transition:border-color .15s,color .15s;
 }
-.tut-btn-skip:hover{border-color:var(--accent);color:var(--text);}
+.tut-btn-skip:hover{border-color:var(--accent);color:#0a3f70;}
+
+/* ── Einwilligung (Consent-Screen) ───────────────────────── */
+.tut-consent-label{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:0.92rem;line-height:1.5;color:#2a2a2a;cursor:pointer;
+}
+.tut-consent-label input{
+  margin-top:3px;flex:0 0 auto;width:18px;height:18px;
+  accent-color:#0a3f70;
+}
+
+/* ── Personendaten-Formular ───────────────────────────────── */
+.tut-form-row{display:flex;flex-direction:column;gap:6px;}
+.tut-form-row label{font-weight:600;font-size:0.88rem;color:#2a2a2a;}
+.tut-form-row input,
+.tut-form-row select{
+  padding:8px 10px;border:1px solid var(--line);border-radius:6px;
+  font-family:inherit;font-size:0.92rem;background:#fff;color:#1a1a1a;
+}
+.tut-form-row input:focus,
+.tut-form-row select:focus{outline:2px solid var(--accent);outline-offset:-1px;}
 
 /* ── Overlay tutorial (over satellite image) ─────────────── */
 #tutorial-overlay{
@@ -106,33 +134,33 @@
 }
 #tutorial-overlay.active{display:block;pointer-events:all;}
 
-/* Dark veil behind everything except the spotlight */
+/* Dark veil behind everything except the spotlight – bewusst dunkel
+   belassen (funktional fuers Spotlight-Hervorheben, siehe Kommentar oben). */
 #tut-veil{
   position:fixed;inset:0;
-  background:rgba(0,0,0,.62);
+  background:rgba(0,0,0,.55);
   pointer-events:none;
   z-index:3000;
 }
 
-/* Tooltip card – above veil */
+/* Tooltip card – helle Karte ueber dem abgedunkelten Hintergrund */
 #tut-tooltip{
   position:fixed;
   z-index:3200;
   width:min(420px,82vw);
   padding:20px 24px;
-  background:rgba(8,48,96,0.98);
-  backdrop-filter:blur(12px);
+  background:#fff;
   border:2px solid var(--accent2);
   border-top:3px solid var(--accent2);
-  box-shadow:0 0 0 1px rgba(0,212,255,.3), 0 12px 40px rgba(0,0,0,.85);
+  box-shadow:0 0 0 1px rgba(12,164,209,.2), 0 12px 40px rgba(0,0,0,.4);
   pointer-events:all;
 }
 #tut-tooltip h3{
-  font-size:15px;color:var(--accent2);font-weight:700;
+  font-size:15px;color:#0a3f70;font-weight:700;
   margin-bottom:8px;letter-spacing:.02em;
 }
 #tut-tooltip p{
-  font-size:13px;color:rgba(255,255,255,.85);line-height:1.65;margin:0 0 14px;
+  font-size:13px;color:#2a2a2a;line-height:1.65;margin:0 0 14px;
 }
 
 /* Blinking arrow pointer */
@@ -142,7 +170,7 @@
   pointer-events:none;
   animation:tut-blink 1s ease-in-out infinite;
   z-index:3150;
-  filter:drop-shadow(0 2px 6px rgba(0,0,0,.8));
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
 @keyframes tut-blink{
   0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1);}
@@ -153,7 +181,7 @@
 .tut-spotlight{
   position:fixed;
   border:2px solid var(--accent2);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.62);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55);
   pointer-events:none;
   border-radius:4px;
   z-index:3100;
@@ -163,22 +191,22 @@
 #tut-practice-banner{
   position:absolute;
   top:12px;left:50%;transform:translateX(-50%);
-  background:rgba(10,63,112,.92);border:1px solid var(--accent2);
+  background:#fff;border:1px solid var(--accent2);
   padding:8px 20px;
-  font-family:var(--font-ui);font-size:12px;color:var(--accent2);
+  font-family:var(--font-ui);font-size:12px;color:#8a6500;
   letter-spacing:.12em;pointer-events:none;z-index:2900;
   display:none;
-  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
 }
 #tut-practice-banner.active{display:block;}
 
 #tut-success-msg{
   position:fixed;top:70px;left:50%;transform:translateX(-50%);
-  background:rgba(10,63,112,.95);border:1px solid var(--accent2);
+  background:#fff;border:1px solid var(--accent2);
   padding:10px 24px;
-  font-family:var(--font-ui);font-size:14px;color:var(--accent2);font-weight:600;
+  font-family:var(--font-ui);font-size:14px;color:#0a3f70;font-weight:600;
   z-index:3200;display:none;
-  box-shadow:0 4px 20px rgba(0,255,157,.25);
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
 }
 
 /* ── Transition ──────────────────────────────────────────── */

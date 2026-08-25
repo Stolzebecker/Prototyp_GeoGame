@@ -40,6 +40,31 @@ let currentLevel = 0, results = [];
 let levelOrder = [], orderPos = 0;
 let draggingId = null, feedbackTimer = null;
 
+// Telemetrie pro Level (siehe telemetry.js für die Übertragung ans Backend).
+// null solange kein "echtes" Level läuft (Übungsrunde nutzt loadLevelSilent()
+// statt loadLevel() und initialisiert dies bewusst nicht – siehe
+// resetLevelTelemetry()/handleStageDrop()).
+let levelTelemetry = null;
+let _lastMouseX = null, _lastMouseY = null;
+
+function resetLevelTelemetry(){
+  const attempts = {};
+  CONFIG.labels.forEach(l => { attempts[l.id] = {count:0, misKarte:0, misPapierkorb:0, doneTime:null}; });
+  levelTelemetry = {
+    attempts,
+    dropLog: [],
+    assignmentOrder: [],
+    tabSwitches: 0,
+    mouseDistance: 0,
+    debugTriggered: false,
+  };
+  _lastMouseX = null; _lastMouseY = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden && levelTelemetry) levelTelemetry.tabSwitches++;
+});
+
 // Debug state
 let debugMode   = false;
 let debugActive = {};   // klasse → boolean (checkbox state)
@@ -106,6 +131,7 @@ function startExperiment(){
 async function loadLevel(i){
   currentLevel=i; currentErrors=0;
   zones=[]; zoneFilled={}; trashFilled={}; draggingId=null;
+  resetLevelTelemetry();
   stopTimer();
   document.getElementById('stat-err-val').textContent='0';
   document.getElementById('stat-time').textContent='0.00';
@@ -360,6 +386,7 @@ function redrawDebug(){
 }
 
 function toggleDebug(){
+  if(levelTelemetry) levelTelemetry.debugTriggered = true;
   debugMode=!debugMode;
   document.getElementById('debug-panel').style.display=debugMode?'block':'none';
   elDebugCanvas.style.display=debugMode?'block':'none';
@@ -407,6 +434,12 @@ function positionFloatChip(cx,cy){
 // ── Mouse events ─────────────────────────────────────────────
 function setupMouseEvents(){
   document.addEventListener('mousemove',e=>{
+    if(levelTelemetry){
+      if(_lastMouseX!==null){
+        levelTelemetry.mouseDistance += Math.hypot(e.clientX-_lastMouseX, e.clientY-_lastMouseY);
+      }
+      _lastMouseX=e.clientX; _lastMouseY=e.clientY;
+    }
     if(draggingId) positionFloatChip(e.clientX,e.clientY);
     // imgRect: actual rendered image position (accounts for black bars)
     // stageRect: full #stage container
@@ -554,6 +587,34 @@ function pointHitsZone(fx,fy,ring){
     .some(([sx,sy])=>pointInRing(sx,sy,ring));
 }
 
+// ── Telemetrie: ein Ablage-Versuch (korrekt oder nicht) ────────
+// Wird für "echte" Level (levelTelemetry != null) je Drop protokolliert;
+// die Übungsrunde (loadLevelSilent() statt loadLevel()) initialisiert
+// levelTelemetry bewusst nicht und wird dadurch automatisch ausgeklammert.
+function logDropAttempt(label, ziel, xFrac, yFrac, getroffeneKlassenArr, korrekt){
+  if(!levelTelemetry) return;
+  const a = levelTelemetry.attempts[label];
+  if(!a) return;
+  a.count++;
+  if(korrekt){
+    a.doneTime = Date.now()-levelStartTime;
+    levelTelemetry.assignmentOrder.push(label);
+  } else if(ziel==='karte'){
+    a.misKarte++;
+  } else {
+    a.misPapierkorb++;
+  }
+  levelTelemetry.dropLog.push({
+    label, ziel,
+    xFrac: ziel==='karte' ? xFrac : null,
+    yFrac: ziel==='karte' ? yFrac : null,
+    getroffeneKlassen: getroffeneKlassenArr,
+    korrekt,
+    versuchNrFuerLabel: a.count,
+    zeitSeitLevelstartMs: Date.now()-levelStartTime,
+  });
+}
+
 // ── Drop on stage ────────────────────────────────────────────
 function handleStageDrop(fx,fy,localX,localY){
   const hitKlassen=new Set();
@@ -572,12 +633,14 @@ function handleStageDrop(fx,fy,localX,localY){
   }
 
   if(hitKlassen.size===0){
+    logDropAttempt(draggingId, 'karte', fx, fy, [], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent=currentErrors;
     showFeedback('✗ Kein Bereich getroffen – erneut versuchen','err');
     return;
   }
   if(hitKlassen.has(draggingId)){
+    logDropAttempt(draggingId, 'karte', fx, fy, [...hitKlassen], true);
     const lv2 = CONFIG.levels[currentLevel];
     const absentOpt = lv2.absent_optional || [];
     const isOptional = absentOpt.includes(draggingId);
@@ -598,6 +661,7 @@ function handleStageDrop(fx,fy,localX,localY){
     if(debugMode) redrawDebug();
     checkLevelComplete();
   } else {
+    logDropAttempt(draggingId, 'karte', fx, fy, [...hitKlassen], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
     showFeedback('✗ Falsches Label für diesen Bereich', 'err');
@@ -610,11 +674,13 @@ function handleTrashDrop(){
   const absentOpt = lv.absent_optional || [];
   // Accept: truly absent OR too small (absent_optional)
   if(lv.absent.includes(draggingId) || absentOpt.includes(draggingId)){
+    logDropAttempt(draggingId, 'papierkorb', null, null, [], true);
     trashFilled[draggingId] = true;
     markChipUsed(draggingId);
     showFeedback('✓ Korrekt entfernt', 'ok');
     checkLevelComplete();
   } else {
+    logDropAttempt(draggingId, 'papierkorb', null, null, [], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
     showFeedback('✗ Element ist sichtbar – auf die Karte ziehen', 'err');
@@ -647,8 +713,36 @@ function checkLevelComplete(){
   if(zonesOk && trashOk){
     stopTimer();
     results.push({image:lv.id, imgSrc:lv.imgSrc, time:Date.now()-levelStartTime, errors:currentErrors});
+    submitLevelTelemetry(lv.id);
     document.getElementById('btn-next').style.display='block';
   }
+}
+
+// Baut aus dem levelTelemetry-Zustand die Level_Ergebnisse-Zeilen (1 je
+// Label) und übergibt sie zusammen mit den rohen Drop_Versuche-Zeilen an
+// telemetry.js – wird automatisch nach jedem gelösten Level gesendet
+// (siehe Q8: robust gegen Abbruch, kein gesammeltes Absenden am Ende).
+function submitLevelTelemetry(levelId){
+  if(!levelTelemetry) return;
+  const labelResults = CONFIG.labels.map(l=>{
+    const a = levelTelemetry.attempts[l.id];
+    return {
+      label: l.id,
+      gesamtzeitMs: a.doneTime,
+      versuche: a.count,
+      reihenfolgePosition: levelTelemetry.assignmentOrder.indexOf(l.id)+1,
+      fehlwuerfeKarte: a.misKarte,
+      fehlwuerfePapierkorb: a.misPapierkorb,
+    };
+  });
+  submitLevelResult({
+    level: levelId,
+    tabWechsel: levelTelemetry.tabSwitches,
+    gesamtMausweg: Math.round(levelTelemetry.mouseDistance),
+    debugAusgeloest: levelTelemetry.debugTriggered,
+    labelResults,
+    dropVersuche: levelTelemetry.dropLog,
+  });
 }
 function nextLevel(){
   orderPos++;
@@ -757,17 +851,6 @@ function showResults(){
   body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
 }
-function exportCSV(){
-  download('eo_results.csv',
-    ['image,time_ms,time_s,errors',...results.map(r=>
-      `${r.image},${r.time},${(r.time/1000).toFixed(3)},${r.errors}`)].join('\n'),'text/csv');
-}
-function exportJSON(){ download('eo_results.json',JSON.stringify(results,null,2),'application/json'); }
-function download(name,content,type){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type}));
-  a.download=name; a.click();
-}
 
 // ── Image preview / zoom (results table) ──────────────────────
 const PREVIEW_MIN_ZOOM = 1, PREVIEW_MAX_ZOOM = 8;
@@ -841,6 +924,17 @@ function onPreviewDragEnd(){
   if(!previewDragging) return;
   previewDragging = false;
   elPreviewImg.style.cursor = previewZoom > 1 ? 'grab' : 'zoom-in';
+}
+
+// ── Rechtliche Modals (Impressum/Datenschutz/Quellen) ──────────
+// name entspricht dem id-Suffix "<name>-modal" in index.html.
+function openLegalModal(name){
+  const el = document.getElementById(name+'-modal');
+  if(el) el.classList.add('active');
+}
+function closeLegalModal(name){
+  const el = document.getElementById(name+'-modal');
+  if(el) el.classList.remove('active');
 }
 
 document.addEventListener('DOMContentLoaded', boot);

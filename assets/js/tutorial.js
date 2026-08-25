@@ -61,6 +61,23 @@ const TUT_TEXTS = {
     nextBtn:         'Weiter',
     skipBtn:         'Tutorial überspringen',
     practiceHint:    'ÜBUNGSRUNDE – Zeit läuft nicht',
+    consentTitle:    'Bevor Sie teilnehmen',
+    consentBody:     'Diese Studie wird im Rahmen einer Promotion an der Pädagogischen Hochschule Heidelberg (Research Group for Earth Observation, rgeo) durchgeführt. Die Teilnahme ist freiwillig und kann jederzeit ohne Angabe von Gründen und ohne Nachteile abgebrochen werden.',
+    consentBody2:    'Erhoben werden: Ihre Angaben aus dem folgenden kurzen Fragebogen (nur beim ersten Spielen), Ihre Interaktionen während des Spiels (u. a. abgelegte Objekte, Zeiten, Fehlversuche) sowie technische Geräte-/Browserdaten. Es werden keine Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erfasst; ein zufällig erzeugter, nicht auf Sie zurückführbarer Kennwert dient lediglich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen. Die Daten werden in einer Google-Tabelle gespeichert, die nur der Studienleitung zugänglich ist (Details siehe Datenschutzerklärung).',
+    consentCheckbox: 'Ich habe die Hinweise gelesen und stimme der Verarbeitung meiner Angaben wie beschrieben zu.',
+    consentContinue: 'Weiter',
+    formTitle:       'Ein paar Angaben zu Ihnen',
+    formIntro:       'Diese Angaben helfen bei der Auswertung der Studie. Sie erscheinen nur beim allerersten Spielen – bei erneutem Spielen auf diesem Gerät werden sie nicht noch einmal abgefragt.',
+    formAlter:       'Alter',
+    formBildung:     'Höchster Bildungs-/akademischer Abschluss',
+    formStudienfach: 'Studienfach (falls zutreffend)',
+    formGis:         'Vorerfahrung mit Kartenlesen / GIS / Fernerkundung',
+    formGeschlecht:  'Geschlecht',
+    formOptionLeer:  'Keine Angabe',
+    formContinue:    'Weiter zum Tutorial',
+    formBildungOptions: ['Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
+    formGisOptions: ['Keine Erfahrung','Grundkenntnisse','Fortgeschritten','Experte'],
+    formGeschlechtOptions: ['Männlich','Weiblich','Divers'],
   },
   en: {
     info: [
@@ -116,6 +133,23 @@ const TUT_TEXTS = {
     nextBtn:         'Next',
     skipBtn:         'Skip tutorial',
     practiceHint:    'PRACTICE ROUND – Timer not running',
+    consentTitle:    'Before you participate',
+    consentBody:     'This study is conducted as part of a doctoral thesis at Heidelberg University of Education (Research Group for Earth Observation, rgeo). Participation is voluntary and can be discontinued at any time without giving reasons and without any disadvantages.',
+    consentBody2:    'The following is collected: your answers from the short questionnaire below (only the first time you play), your interactions during the game (e.g. objects placed, timings, incorrect attempts), and technical device/browser data. No names, addresses, e-mail addresses, IP addresses or location data are collected; a randomly generated identifier that cannot be traced back to you is used only to link your data across multiple play sessions. Data is stored in a Google spreadsheet accessible only to the study lead (see privacy policy for details).',
+    consentCheckbox: 'I have read the information above and agree to the processing of my data as described.',
+    consentContinue: 'Continue',
+    formTitle:       'A few questions about you',
+    formIntro:       'These details help with the analysis of the study. They only appear the very first time you play – on repeat plays on this device you will not be asked again.',
+    formAlter:       'Age',
+    formBildung:     'Highest educational / academic qualification',
+    formStudienfach: 'Field of study (if applicable)',
+    formGis:         'Prior experience with map reading / GIS / remote sensing',
+    formGeschlecht:  'Gender',
+    formOptionLeer:  'Prefer not to say',
+    formContinue:    'Continue to tutorial',
+    formBildungOptions: ['Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
+    formGisOptions: ['No experience','Basic knowledge','Advanced','Expert'],
+    formGeschlechtOptions: ['Male','Female','Non-binary'],
   },
 };
 
@@ -194,8 +228,98 @@ function nextInfoScreen() {
     showInfoScreen(tutInfoStep + 1);
   } else {
     document.getElementById('tutorial-info-screen').classList.remove('active');
+    showConsentScreen();
+  }
+}
+
+// ── 2b. Einwilligung ──────────────────────────────────────────────────────────
+function showConsentScreen() {
+  var texts = TUT_TEXTS[tutLang];
+  var screen = document.getElementById('tutorial-info-screen');
+  screen.classList.add('active');
+  screen.innerHTML =
+    '<div class="tut-info-panel">' +
+      '<h2>' + texts.consentTitle + '</h2>' +
+      '<p>' + texts.consentBody + '</p>' +
+      '<p>' + texts.consentBody2 + ' <a href="#" id="consent-datenschutz-link" onclick="openLegalModal(\'datenschutz\');return false;">' +
+        (tutLang === 'de' ? 'Datenschutzerklärung' : 'privacy policy') + '</a></p>' +
+      '<label class="tut-consent-label">' +
+        '<input type="checkbox" id="tut-consent-checkbox" onchange="onConsentCheckboxChange()">' +
+        ' ' + texts.consentCheckbox +
+      '</label>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn" id="tut-consent-continue-btn" disabled onclick="onConsentContinue()">' + texts.consentContinue + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function onConsentCheckboxChange() {
+  var cb  = document.getElementById('tut-consent-checkbox');
+  var btn = document.getElementById('tut-consent-continue-btn');
+  btn.disabled = !cb.checked;
+}
+
+function onConsentContinue() {
+  document.getElementById('tutorial-info-screen').classList.remove('active');
+  // Muss VOR submitLaufStart() geprüft werden: submitLaufStart() ruft
+  // getParticipantId() auf, was bei allerersten Besuch den participant_id
+  // in localStorage anlegt – danach würde isFirstEverVisit() faelschlich
+  // "nicht mehr der erste Besuch" liefern und das Formular überspringen.
+  var firstVisit = isFirstEverVisit();
+  // Neuer Durchlauf beginnt hier (auch bei Wiederholungsspielern) – siehe
+  // Q8/Q2: robust gegen Abbruch, jeder Versuch ab hier zählt als eigener
+  // lauf_id/durchlauf_nr, unabhängig davon, ob das Formular noch folgt.
+  newRunToken();
+  submitLaufStart();
+  if (firstVisit) {
+    showPersonFormScreen();
+  } else {
     startOverlayTutorial();
   }
+}
+
+// ── 2c. Personendaten-Formular (nur beim allerersten Durchlauf) ──────────────
+function showPersonFormScreen() {
+  var texts = TUT_TEXTS[tutLang];
+  var screen = document.getElementById('tutorial-info-screen');
+  screen.classList.add('active');
+
+  function opts(list) {
+    var html = '<option value="">' + texts.formOptionLeer + '</option>';
+    list.forEach(function (o) { html += '<option value="' + o + '">' + o + '</option>'; });
+    return html;
+  }
+
+  screen.innerHTML =
+    '<div class="tut-info-panel">' +
+      '<h2>' + texts.formTitle + '</h2>' +
+      '<p>' + texts.formIntro + '</p>' +
+      '<div class="tut-form-row"><label>' + texts.formAlter + '</label>' +
+        '<input type="number" id="pf-alter" min="0" max="120"></div>' +
+      '<div class="tut-form-row"><label>' + texts.formBildung + '</label>' +
+        '<select id="pf-bildung">' + opts(texts.formBildungOptions) + '</select></div>' +
+      '<div class="tut-form-row"><label>' + texts.formStudienfach + '</label>' +
+        '<input type="text" id="pf-studienfach"></div>' +
+      '<div class="tut-form-row"><label>' + texts.formGis + '</label>' +
+        '<select id="pf-gis">' + opts(texts.formGisOptions) + '</select></div>' +
+      '<div class="tut-form-row"><label>' + texts.formGeschlecht + '</label>' +
+        '<select id="pf-geschlecht">' + opts(texts.formGeschlechtOptions) + '</select></div>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function onPersonFormContinue() {
+  submitPersonData({
+    alter: document.getElementById('pf-alter').value,
+    bildungsabschluss: document.getElementById('pf-bildung').value,
+    studienfach: document.getElementById('pf-studienfach').value,
+    gisErfahrung: document.getElementById('pf-gis').value,
+    geschlecht: document.getElementById('pf-geschlecht').value,
+  });
+  document.getElementById('tutorial-info-screen').classList.remove('active');
+  startOverlayTutorial();
 }
 
 // ── 3. Overlay tutorial ───────────────────────────────────────────────────────

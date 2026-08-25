@@ -48,6 +48,49 @@
   </div>
 </div>
 
+<footer id="app-footer" class="app-footer">
+  <span>Hintergrundbild Startbildschirm mit Google Gemini erstellt.</span>
+  <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
+  <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
+  <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
+</footer>
+
+<div id="impressum-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Impressum</h1>
+    <p><strong>Verantwortlich für diese Studie und Ansprechperson für Rückfragen:</strong><br>
+      Julian Stolz<br>
+      Pädagogische Hochschule Heidelberg<br>
+      Research Group for Earth Observation (rgeo)<br>
+      Czernyring 22/10-12<br>
+      69115 Heidelberg<br>
+      Telefon: 06221.477.795<br>
+      E-Mail: <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a></p>
+    <button type="button" onclick="closeLegalModal('impressum')">Schließen</button>
+  </div>
+</div>
+
+<div id="datenschutz-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Datenschutzerklärung</h1>
+    <p><strong>Verantwortliche Stelle:</strong> Julian Stolz, Pädagogische Hochschule Heidelberg (rgeo), Telefon 06221.477.795, E-Mail <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a> — zugleich Ansprechperson für Rückfragen zu dieser Studie.</p>
+    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
+    <p><strong>Speicherung:</strong> Die Daten werden über eine Google-Apps-Script-Anwendung in eine Google-Tabelle im Konto der Studienleitung übertragen und dort gespeichert; nur die Studienleitung hat Zugriff.</p>
+    <p><strong>Lokale Speicherung (localStorage):</strong> Ihr Browser speichert den oben genannten zufälligen Kennwert sowie einen Hinweis darauf, ob Sie den Fragebogen bereits ausgefüllt haben, technisch notwendig lokal auf Ihrem Gerät (kein Cookie, kein Tracking, keine Übertragung an Dritte). Diese Daten können Sie jederzeit über die Einstellungen Ihres Browsers löschen.</p>
+    <p><strong>Freiwilligkeit &amp; Widerruf:</strong> Die Teilnahme ist freiwillig. Solange Ihre Angaben über den zufälligen Kennwert noch zuordenbar sind, können Sie deren Löschung jederzeit formlos bei der oben genannten Ansprechperson verlangen.</p>
+    <button type="button" onclick="closeLegalModal('datenschutz')">Schließen</button>
+  </div>
+</div>
+
+<div id="quellen-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Quellenangaben</h1>
+    <p>Satellitenbilder: Enthalten modifizierte Copernicus-Sentinel-Daten, Sentinel-2 L2A, Copernicus Data Space Ecosystem. Rechtsgrundlage: Legal notice on the use of Copernicus Sentinel Data and Service Information (VO (EU) 377/2014, Delegierte VO (EU) 1159/2013).</p>
+    <p>Hintergrundbild Startbildschirm: mit Google Gemini erstellt (KI-generiertes Bild, keine reale Aufnahme).</p>
+    <button type="button" onclick="closeLegalModal('quellen')">Schließen</button>
+  </div>
+</div>
+
 <div id="topbar">
   <div class="brand">EO · EXPERIMENT</div>
   <div id="progress-wrap">
@@ -149,9 +192,8 @@
     <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th></tr></thead>
     <tbody id="results-body"></tbody>
   </table>
+  <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
   <div class="results-actions">
-    <button onclick="exportCSV()">↓ CSV</button>
-    <button onclick="exportJSON()">↓ JSON</button>
     <button class="primary" onclick="location.reload()">Neustart</button>
   </div>
 </div>
@@ -195,6 +237,7 @@
 <!-- Practice success message -->
 <div id="tut-success-msg"></div>
 
+<script src="assets/js/telemetry.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/tutorial.js"></script>
 </body>

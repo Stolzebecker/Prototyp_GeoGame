@@ -61,10 +61,24 @@ Ausgabe: `data/config.json`
 
 Die Konsole zeigt dabei für jedes Bild die Flächenanteile aller Klassen und kennzeichnet Klassen unter dem Schwellenwert (5 % der Bildfläche) als `absent_optional`.
 
-### 4. Deployment
+### 4. Deployment (Frontend)
 
 Alle Dateien auf GitHub Pages hochladen. GitHub Pages liefert statische Dateien –  
 Python-Scripts laufen **lokal**, nie auf dem Server.
+
+### 5. Deployment (Backend — Google Sheet + Apps Script)
+
+Muss **einmalig manuell** eingerichtet werden, bevor echte Daten erhoben werden können:
+
+1. Neues Google Sheet anlegen (leer, Name z. B. "GeoGame Ergebnisse"). Die vier Tabs (Personendaten, Durchlaeufe, Level_Ergebnisse, Drop_Versuche) werden beim ersten Request automatisch mit Kopfzeile angelegt — nichts manuell vorbereiten.
+2. Im Sheet: Erweiterungen → Apps Script. Den Inhalt von `apps-script/Code.gs` einfügen.
+3. In `Code.gs`: `SPREADSHEET_ID` eintragen (aus der Sheet-URL zwischen `/d/` und `/edit`).
+4. Bereitstellen → Neue Bereitstellung → Web-App. Ausführen als "Ich", Zugriff "Jeder". Deployen, die ausgegebene Web-App-URL kopieren.
+5. In `assets/js/telemetry.js`: `SUBMIT_URL` auf diese URL setzen.
+6. `SUBMIT_TOKEN` ist in `Code.gs` und `telemetry.js` bereits identisch vorbelegt — beim Ändern in **beiden** Dateien synchron halten.
+7. Nach jeder Änderung an `Code.gs`: erneut "Neue Bereitstellung" bzw. "Bereitstellungen verwalten → Version bearbeiten → Neue Version", sonst wird die alte Version weiter ausgeführt.
+
+Solange `SUBMIT_URL` noch den Platzhalter enthält, werden Telemetrie-Payloads nur per `console.warn` geloggt statt gesendet — das Spiel bleibt dabei voll funktionsfähig (siehe `sendToBackend_()` in `telemetry.js`).
 
 ---
 
