@@ -46,14 +46,13 @@
     </div>
     <button id="btn-start" onclick="startTutorial()">Experiment starten ›</button>
   </div>
+  <footer id="app-footer" class="app-footer">
+    <span>Hintergrundbild Startbildschirm mit Google Gemini erstellt.</span>
+    <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
+    <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
+    <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
+  </footer>
 </div>
-
-<footer id="app-footer" class="app-footer">
-  <span>Hintergrundbild Startbildschirm mit Google Gemini erstellt.</span>
-  <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
-  <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
-  <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
-</footer>
 
 <div id="impressum-modal" class="legal-modal">
   <div class="legal-modal-card">
@@ -183,6 +182,7 @@
 </div>
 
 <div id="float-chip"></div>
+<button id="btn-hint" onclick="showHint()">Ich komme nicht weiter ›</button>
 <button id="btn-next" onclick="nextLevel()">WEITER ›</button>
 <div id="feedback"></div>
 

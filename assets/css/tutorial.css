@@ -13,8 +13,8 @@
   background:var(--bg);
 }
 .lang-panel{
-  display:flex;flex-direction:column;align-items:center;gap:28px;
-  padding:52px 60px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  padding:32px 40px;
   background:#fff;
   border:1px solid var(--line);border-top:3px solid var(--accent2);
   border-radius:10px;
@@ -43,18 +43,18 @@
   display:none;
   align-items:center;justify-content:center;
   background:var(--bg);
-  padding:32px 20px;overflow:auto;
+  padding:20px;overflow:auto;
 }
 #tutorial-info-screen.active{display:flex;}
 
 .tut-info-panel{
-  width:min(680px,88vw);
-  padding:44px 48px;
+  width:min(640px,88vw);
+  padding:28px 32px;
   background:#fff;
   border:1px solid var(--line);border-top:3px solid var(--accent2);
   border-radius:10px;
   box-shadow:0 12px 48px rgba(0,0,0,.12);
-  display:flex;flex-direction:column;gap:18px;
+  display:flex;flex-direction:column;gap:12px;
 }
 .tut-step-badge{
   font-family:var(--font-ui);font-size:10px;

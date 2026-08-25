@@ -28,7 +28,7 @@ const TUT_TEXTS = {
         title:    'Was wird gemessen?',
         subtitle: 'Bearbeitungszeit & Datenschutz',
         body:     'Während der Bearbeitung wird die benötigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen.',
-        note:     'Die Teilnahme erfolgt anonym. Es werden keine personenbezogenen Daten erfasst oder gespeichert. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.',
+        note:     'Die Teilnahme erfolgt anonym: Vor dem ersten Spielen werden einmalig ein paar demografische Angaben erhoben (z. B. Alter, Bildungsabschluss), die sich nicht auf Ihre Identität zurückführen lassen. Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.',
       },
     ],
     overlay: [
@@ -100,7 +100,7 @@ const TUT_TEXTS = {
         title:    'What is being measured?',
         subtitle: 'Processing Time & Privacy',
         body:     'Your processing time is recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.',
-        note:     'Participation is completely anonymous. No personal data is collected or stored. All data is used exclusively for scientific research purposes.',
+        note:     'Participation is anonymous: before your first play, a few demographic details are collected once (e.g. age, educational background) that cannot be traced back to your identity. No names, addresses, or e-mail addresses are collected. All data is used exclusively for scientific research purposes.',
       },
     ],
     overlay: [

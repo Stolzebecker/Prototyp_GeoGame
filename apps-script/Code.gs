@@ -101,7 +101,7 @@ function handleLevel_(data) {
     "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
     "level", "label", "gesamtzeit_ms", "versuche", "reihenfolge_position",
     "fehlwuerfe_karte", "fehlwuerfe_papierkorb",
-    "tab_wechsel_count", "gesamt_mausweg_px", "debug_modus_ausgeloest",
+    "tab_wechsel_count", "gesamt_mausweg_px", "debug_modus_ausgeloest", "hinweis_genutzt",
   ]);
   (data.labelResults || []).forEach(function (r) {
     levelSheet.appendRow([
@@ -115,6 +115,7 @@ function handleLevel_(data) {
       data.tabWechsel != null ? data.tabWechsel : "",
       data.gesamtMausweg != null ? data.gesamtMausweg : "",
       !!data.debugAusgeloest,
+      !!data.hinweisGenutzt,
     ]);
   });
 

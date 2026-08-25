@@ -57,6 +57,7 @@ function resetLevelTelemetry(){
     tabSwitches: 0,
     mouseDistance: 0,
     debugTriggered: false,
+    hintUsed: false,
   };
   _lastMouseX = null; _lastMouseY = null;
 }
@@ -139,6 +140,7 @@ async function loadLevel(i){
   document.getElementById('trash-count').textContent='';
   elLoupe.style.display=elPin.style.display=elFloatChip.style.display='none';
   elStage.querySelectorAll('.zone-ok').forEach(el=>el.remove());
+  elDebugCanvas.style.display = debugMode ? 'block' : 'none';
 
   const lv=CONFIG.levels[i];
   // Progress display follows the shuffled play position, not the raw config
@@ -391,6 +393,18 @@ function toggleDebug(){
   document.getElementById('debug-panel').style.display=debugMode?'block':'none';
   elDebugCanvas.style.display=debugMode?'block':'none';
   if(debugMode) redrawDebug();
+}
+
+// "Ich komme nicht weiter"-Knopf: zeigt nur die Hitbox-Overlay-Zeichnung
+// (ohne das volle Debug-Panel mit Checkboxen/Level-Navigation, das für
+// Teilnehmende nicht gedacht ist). Wird separat von debugTriggered erfasst,
+// da eine genutzte Lösungshilfe inhaltlich etwas anderes ist als
+// versehentlich ausgelöster Debug-Modus (siehe CLAUDE.md).
+function showHint(){
+  if(levelTelemetry) levelTelemetry.hintUsed = true;
+  elDebugCanvas.style.display = 'block';
+  redrawDebug();
+  showFeedback('Lösung wird angezeigt', 'ok');
 }
 
 document.addEventListener('keydown',e=>{
@@ -740,6 +754,7 @@ function submitLevelTelemetry(levelId){
     tabWechsel: levelTelemetry.tabSwitches,
     gesamtMausweg: Math.round(levelTelemetry.mouseDistance),
     debugAusgeloest: levelTelemetry.debugTriggered,
+    hinweisGenutzt: levelTelemetry.hintUsed,
     labelResults,
     dropVersuche: levelTelemetry.dropLog,
   });
@@ -772,6 +787,7 @@ function showReadyOverlay(lv){
   elSatImg.style.visibility    = 'hidden';
   document.getElementById('label-bar').style.visibility = 'hidden';
   elTrash.style.visibility     = 'hidden';
+  document.getElementById('btn-hint').style.visibility = 'hidden';
 
   const overlay = document.getElementById('ready-overlay');
   const tot = levelOrder.length || CONFIG.levels.length;
@@ -805,6 +821,7 @@ function runCountdown(n){
     elSatImg.style.visibility    = 'visible';
     document.getElementById('label-bar').style.visibility = 'visible';
     elTrash.style.visibility     = 'visible';
+    document.getElementById('btn-hint').style.visibility = 'visible';
     startTimer();
     return;
   }
