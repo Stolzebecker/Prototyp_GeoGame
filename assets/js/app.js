@@ -1228,34 +1228,37 @@ let _lastMyRank = null;
 //
 // whatsapp=true nutzt WhatsApps eigene *fett*/_kursiv_-Textsyntax (rendert
 // NUR bei WhatsApp, ueberall sonst blieben die Sternchen/Unterstriche als
-// literale Zeichen sichtbar, siehe unten). Emojis bleiben in BEIDEN
-// Varianten erhalten.
-// Wichtig (Diagnose 2026-08-26): WhatsApps eigener wa.me/api.whatsapp.com
-// "In WhatsApp teilen"-Vorschau-Link (?text=...) zeigt Emojis dort als "�"
-// an, obwohl die URL nachweislich korrekt UTF-8-kodiert ist (Round-Trip-
-// Test in JS bestand) - das ist ein Bug auf dieser Vorschau-Seite selbst.
-// Fuegt man denselben Text stattdessen per Kopieren/Einfuegen direkt in
-// WhatsApp ein (von Julian am echten Handy verifiziert), erscheinen die
-// Emojis einwandfrei. Deshalb nutzt der WhatsApp-Button unten NICHT den
-// ?text=-Link, sondern denselben "kopieren + App oeffnen"-Ablauf wie
-// Instagram/TikTok (copyThenOpen_) - das umgeht den Bug komplett.
+// literale Zeichen sichtbar, siehe unten) - UND laesst Emojis bewusst WEG.
+// Grund (Diagnose 2026-08-26): WhatsApps eigener wa.me/?text=-Link ist der
+// EINZIGE Weg, der beim Klick direkt die Kontaktauswahl mit bereits
+// eingetipptem Text oeffnet (von Julian live bestaetigt) - ein Umweg ueber
+// "Text kopieren + WhatsApp Web oeffnen" verlangt vom Nutzer stattdessen,
+// selbst einen Chat zu suchen und manuell einzufuegen, klar schlechter.
+// Dieser ?text=-Link hat aber einen bestaetigten Bug: Emojis kommen dort
+// als "�" an, selbst bei nachweislich korrektem UTF-8-Encoding (auf
+// WhatsApps eigener Seite direkt reproduziert) - *fett*/_kursiv_-Markdown
+// und Umlaute funktionieren im selben Link einwandfrei. Deshalb: fuer
+// WhatsApp Emojis weglassen, Markdown behalten - der bessere Kompromiss
+// als der volle Funktionsverlust der Kontaktauswahl.
 // Echtes Unterstreichen gibt es in keinem der Kanaele als reiner Text -
 // technisch nicht moeglich, nicht umgesetzt.
 function buildShareText_(whatsapp){
   const en = (typeof tutLang !== 'undefined' && tutLang === 'en');
   const b = whatsapp ? '*' : '';   // WhatsApp-"fett"
   const i = whatsapp ? '_' : '';   // WhatsApp-"kursiv"
+  const e = whatsapp ? {wave:'',sat:'',watch:'',flex:'',lab:'',pray:''}
+                      : {wave:' 👋',sat:' 🛰️',watch:' ⏱️',flex:' 💪',lab:' 🔬',pray:' 🙏'};
 
   const intro = _lastMyRank
     ? (en
-        ? `Hey! 👋 I just set a ${b}personal best${b} in SCOPE 🛰️: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} seconds${b} ⏱️. Think you can beat it? 💪`
-        : `Hi! 👋 Ich habe gerade bei SCOPE 🛰️ einen ${b}persönlichen Bestwert${b} aufgestellt: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} Sekunden${b} ⏱️. Schaffst du das auch? 💪`)
+        ? `Hey!${e.wave} I just set a ${b}personal best${b} in SCOPE${e.sat}: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} seconds${b}${e.watch}. Think you can beat it?${e.flex}`
+        : `Hi!${e.wave} Ich habe gerade bei SCOPE${e.sat} einen ${b}persönlichen Bestwert${b} aufgestellt: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} Sekunden${b}${e.watch}. Schaffst du das auch?${e.flex}`)
     : (en
-        ? `Hey! 👋 I just played SCOPE 🛰️ – give it a try!`
-        : `Hi! 👋 Ich habe gerade SCOPE 🛰️ gespielt – probier's auch mal aus!`);
+        ? `Hey!${e.wave} I just played SCOPE${e.sat} – give it a try!`
+        : `Hi!${e.wave} Ich habe gerade SCOPE${e.sat} gespielt – probier's auch mal aus!`);
   const about = en
-    ? `${i}SCOPE${i} is an online game and part of a scientific study 🔬 run by the Research Group for Earth Observation (rgeo) at Heidelberg University of Education, as part of a doctoral thesis. It investigates how people perceive and recognise different landscape features in satellite imagery. By playing, you support ${b}real research${b} 🙏 – and it only takes a few minutes.`
-    : `${i}SCOPE${i} ist ein Online-Spiel und Teil einer wissenschaftlichen Studie 🔬 der Research Group for Earth Observation (rgeo) an der Pädagogischen Hochschule Heidelberg, im Rahmen einer Promotion. Untersucht wird, wie Menschen unterschiedliche Landschaftselemente in Satellitenbildern wahrnehmen und erkennen. Mit deiner Teilnahme unterstützt du ${b}echte Forschung${b} 🙏 – und es dauert nur wenige Minuten.`;
+    ? `${i}SCOPE${i} is an online game and part of a scientific study${e.lab} run by the Research Group for Earth Observation (rgeo) at Heidelberg University of Education, as part of a doctoral thesis. It investigates how people perceive and recognise different landscape features in satellite imagery. By playing, you support ${b}real research${b}${e.pray} – and it only takes a few minutes.`
+    : `${i}SCOPE${i} ist ein Online-Spiel und Teil einer wissenschaftlichen Studie${e.lab} der Research Group for Earth Observation (rgeo) an der Pädagogischen Hochschule Heidelberg, im Rahmen einer Promotion. Untersucht wird, wie Menschen unterschiedliche Landschaftselemente in Satellitenbildern wahrnehmen und erkennen. Mit deiner Teilnahme unterstützt du ${b}echte Forschung${b}${e.pray} – und es dauert nur wenige Minuten.`;
   return intro + '\n\n' + about;
 }
 
@@ -1271,6 +1274,8 @@ function shareChallenge(){
 
 function openShareFallbackModal_(text, url){
   document.getElementById('share-fallback-text').textContent = text;
+  document.getElementById('share-whatsapp').href =
+    'https://wa.me/?text=' + encodeURIComponent(buildShareText_(true) + '\n\n👉 ' + url);
   document.getElementById('share-twitter').href =
     'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
   // mailto: kann keine Link-Vorschaukarte zeigen (reiner Text) - Link daher
@@ -1280,13 +1285,11 @@ function openShareFallbackModal_(text, url){
     'mailto:?subject=' + encodeURIComponent('SCOPE – mach mit!') +
     '&body=' + encodeURIComponent(text + '\n\n👉 ' + emailIntro + ' ' + url);
 
-  // WhatsApp/Instagram/TikTok haben keine zuverlaessige Web-Share-URL mit
-  // vorausgefuelltem Text (WhatsApps eigener ?text=-Link zeigt Emojis dort
-  // als "�" an, siehe buildShareText_) - stattdessen Text in die
-  // Zwischenablage kopieren und die Plattform in einem neuen Tab oeffnen.
+  // Instagram/TikTok haben keine oeffentliche Web-Share-URL mit vorausgefuelltem
+  // Text (anders als WhatsApp/Twitter/E-Mail) - stattdessen Text in die
+  // Zwischenablage kopieren und die Plattform in einem neuen Tab oeffnen, statt
+  // eines Buttons, der nichts vorausfuellen kann.
   const clipboardText = text + '\n\n👉 ' + emailIntro + ' ' + url;
-  const whatsappClipboardText = buildShareText_(true) + '\n\n👉 ' + emailIntro + ' ' + url;
-  document.getElementById('share-whatsapp').onclick = () => copyThenOpen_(whatsappClipboardText, 'https://web.whatsapp.com/', 'WhatsApp');
   document.getElementById('share-instagram').onclick = () => copyThenOpen_(clipboardText, 'https://www.instagram.com/direct/inbox/', 'Instagram');
   document.getElementById('share-tiktok').onclick = () => copyThenOpen_(clipboardText, 'https://www.tiktok.com/', 'TikTok');
   document.getElementById('share-copy-hint').style.display = 'none';
