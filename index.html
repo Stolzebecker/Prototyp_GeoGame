@@ -63,9 +63,10 @@
   <div class="legal-modal-card">
     <h1>Datenschutzerklärung</h1>
     <p><strong>Verantwortliche Stelle:</strong> Julian Stolz, Pädagogische Hochschule Heidelberg (rgeo), Telefon 06221.477.795, E-Mail <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a> — zugleich Ansprechperson für Rückfragen zu dieser Studie.</p>
-    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
-    <p><strong>Speicherung:</strong> Die Daten werden über eine Google-Apps-Script-Anwendung in eine Google-Tabelle im Konto der Studienleitung übertragen und dort gespeichert; nur die Studienleitung hat Zugriff.</p>
-    <p><strong>Lokale Speicherung (localStorage):</strong> Ihr Browser speichert den oben genannten zufälligen Kennwert sowie einen Hinweis darauf, ob Sie den Fragebogen bereits ausgefüllt haben, technisch notwendig lokal auf Ihrem Gerät (kein Cookie, kein Tracking, keine Übertragung an Dritte). Diese Daten können Sie jederzeit über die Einstellungen Ihres Browsers löschen.</p>
+    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht, Endgerät, optional ein selbst gewählter Alias — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
+    <p><strong>Bestenliste (öffentlich sichtbar):</strong> Anders als die übrigen Daten sind Ihre Gesamtzeit sowie Ihr selbst gewählter Alias (ersatzweise der oben genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste <strong>für andere Teilnehmende sichtbar</strong> — Durchläufe mit mehr als 5 Fehlern erscheinen dort nicht. Bitte wählen Sie einen Alias, der keine Rückschlüsse auf Ihre Identität zulässt; ein selbst gewählter Alias kann je nach Formulierung theoretisch dennoch Rückschlüsse ermöglichen, wofür wir keine Verantwortung übernehmen können.</p>
+    <p><strong>Speicherung:</strong> Die Daten werden über eine Google-Apps-Script-Anwendung in eine Google-Tabelle im Konto der Studienleitung übertragen und dort gespeichert; mit Ausnahme der oben genannten, öffentlich sichtbaren Bestenliste hat nur die Studienleitung Zugriff.</p>
+    <p><strong>Lokale Speicherung (localStorage):</strong> Ihr Browser speichert den oben genannten zufälligen Kennwert, Ihren gewählten Alias (falls vergeben) sowie einen Hinweis darauf, ob Sie den Fragebogen bereits ausgefüllt haben, technisch notwendig lokal auf Ihrem Gerät (kein Cookie, kein Tracking, keine Übertragung an Dritte). Diese Daten können Sie jederzeit über die Einstellungen Ihres Browsers löschen.</p>
     <p><strong>Freiwilligkeit &amp; Widerruf:</strong> Die Teilnahme ist freiwillig. Solange Ihre Angaben über den zufälligen Kennwert noch zuordenbar sind, können Sie deren Löschung jederzeit formlos bei der oben genannten Ansprechperson verlangen.</p>
     <button type="button" onclick="closeLegalModal('datenschutz')">Schließen</button>
   </div>
@@ -186,13 +187,38 @@
 <div id="results-screen">
   <h1>Experiment abgeschlossen</h1>
   <table>
-    <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th></tr></thead>
+    <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th><th>Perzentil</th></tr></thead>
     <tbody id="results-body"></tbody>
   </table>
+
+  <!-- Bestenliste (seit 2026-08-26) -->
+  <div id="leaderboard-panel">
+    <h2>Bestenliste</h2>
+    <p id="leaderboard-disqualified-note" style="display:none">Dieser Durchlauf hat mehr als 5 Fehler und erscheint daher nicht in der Bestenliste.</p>
+    <p id="leaderboard-own-rank"></p>
+    <table id="leaderboard-table">
+      <thead><tr><th>#</th><th>Alias</th><th>Gesamtzeit (s)</th><th>Fehler</th></tr></thead>
+      <tbody id="leaderboard-body"></tbody>
+    </table>
+    <button type="button" class="secondary" id="leaderboard-full-btn" onclick="openFullLeaderboard()">Vollständige Liste anzeigen ›</button>
+  </div>
+
   <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
   <div class="results-actions">
     <button class="secondary" onclick="openFeedbackModal()">Feedback geben ›</button>
     <button class="primary" onclick="location.reload()">Neustart</button>
+  </div>
+</div>
+
+<!-- Vollstaendige Bestenliste (Modal) -->
+<div id="leaderboard-full-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Vollständige Bestenliste</h1>
+    <table id="leaderboard-full-table">
+      <thead><tr><th>#</th><th>Alias</th><th>Gesamtzeit (s)</th><th>Fehler</th></tr></thead>
+      <tbody id="leaderboard-full-body"></tbody>
+    </table>
+    <button type="button" onclick="closeFullLeaderboard()">Schließen</button>
   </div>
 </div>
 

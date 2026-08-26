@@ -27,8 +27,8 @@ const TUT_TEXTS = {
         badge:    '03 / Messung',
         title:    'Was wird gemessen?',
         subtitle: 'Bearbeitungszeit & Datenschutz',
-        body:     'Während der Bearbeitung wird die benötigte Zeit gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen.',
-        note:     'Die Teilnahme erfolgt anonym: Vor dem ersten Spielen werden einmalig ein paar demografische Angaben erhoben (z. B. Alter, Bildungsabschluss), die sich nicht auf Ihre Identität zurückführen lassen. Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen ausschließlich wissenschaftlichen Zwecken.',
+        body:     'Während der Bearbeitung werden Zeit und Fehlversuche gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen. Am Ende siehst du deine Zeit im Vergleich zu anderen sowie eine Bestenliste – dort zählt nicht nur Geschwindigkeit, sondern auch Genauigkeit: Durchläufe mit mehr als 5 Fehlern erscheinen nicht in der Bestenliste.',
+        note:     'Die Teilnahme erfolgt anonym: Vor dem ersten Spielen werden einmalig ein paar demografische Angaben erhoben (z. B. Alter, Bildungsabschluss), die sich nicht auf Ihre Identität zurückführen lassen. Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen wissenschaftlichen Zwecken; Gesamtzeit und Alias werden zusätzlich in der Bestenliste für andere Teilnehmende sichtbar.',
       },
     ],
     overlay: [
@@ -63,7 +63,7 @@ const TUT_TEXTS = {
     practiceHint:    'ÜBUNGSRUNDE – Zeit läuft nicht',
     consentTitle:    'Bevor Sie teilnehmen',
     consentBody:     'Diese Studie wird im Rahmen einer Promotion an der Pädagogischen Hochschule Heidelberg (Research Group for Earth Observation, rgeo) durchgeführt. Die Teilnahme ist freiwillig und kann jederzeit ohne Angabe von Gründen und ohne Nachteile abgebrochen werden.',
-    consentBody2:    'Erhoben werden: Ihre Angaben aus dem folgenden kurzen Fragebogen (nur beim ersten Spielen), Ihre Interaktionen während des Spiels (u. a. abgelegte Objekte, Zeiten, Fehlversuche) sowie technische Geräte-/Browserdaten. Es werden keine Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erfasst; ein zufällig erzeugter, nicht auf Sie zurückführbarer Kennwert dient lediglich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen. Die Daten werden in einer Google-Tabelle gespeichert, die nur der Studienleitung zugänglich ist (Details siehe Datenschutzerklärung).',
+    consentBody2:    'Erhoben werden: Ihre Angaben aus dem folgenden kurzen Fragebogen (nur beim ersten Spielen), Ihre Interaktionen während des Spiels (u. a. abgelegte Objekte, Zeiten, Fehlversuche) sowie technische Geräte-/Browserdaten. Es werden keine Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erfasst; ein zufällig erzeugter, nicht auf Sie zurückführbarer Kennwert dient lediglich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen. Zusätzlich werden Ihre Gesamtzeit sowie ein von Ihnen gewählter Alias (ersatzweise der genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste angezeigt, die für andere Teilnehmende sichtbar ist – bitte wählen Sie einen Alias, der keine Rückschlüsse auf Ihre Identität zulässt; ein selbst gewählter Alias kann je nach Formulierung theoretisch dennoch Rückschlüsse ermöglichen, wofür wir keine Verantwortung übernehmen können. Alle übrigen Angaben werden ausschließlich in einer Google-Tabelle gespeichert, die nur der Studienleitung zugänglich ist (Details siehe Datenschutzerklärung).',
     consentCheckbox: 'Ich habe die Hinweise gelesen und stimme der Verarbeitung meiner Angaben wie beschrieben zu.',
     consentContinue: 'Weiter',
     formTitle:       'Ein paar Angaben zu Ihnen',
@@ -74,6 +74,8 @@ const TUT_TEXTS = {
     formGis:         'Vorerfahrung mit Kartenlesen / GIS / Fernerkundung',
     formGeschlecht:  'Geschlecht',
     formGeraet:      'Womit nehmen Sie teil?',
+    formAlias:       'Alias für die Bestenliste (optional, für andere sichtbar)',
+    formAliasPlaceholder: 'z. B. Spitzname – ohne Angabe wird Ihr anonymer Kennwert genutzt',
     formOptionLeer:  'Keine Angabe',
     formContinue:    'Weiter zum Tutorial',
     formBildungOptions: ['Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
@@ -101,8 +103,8 @@ const TUT_TEXTS = {
         badge:    '03 / Measurement',
         title:    'What is being measured?',
         subtitle: 'Processing Time & Privacy',
-        body:     'Your processing time is recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions.',
-        note:     'Participation is anonymous: before your first play, a few demographic details are collected once (e.g. age, educational background) that cannot be traced back to your identity. No names, addresses, or e-mail addresses are collected. All data is used exclusively for scientific research purposes.',
+        body:     'Your time and mistakes are recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions. At the end you\'ll see your time compared to others and a leaderboard – accuracy counts there too, not just speed: runs with more than 5 mistakes don\'t appear in the leaderboard.',
+        note:     'Participation is anonymous: before your first play, a few demographic details are collected once (e.g. age, educational background) that cannot be traced back to your identity. No names, addresses, or e-mail addresses are collected. Data is used for scientific purposes; total time and alias are additionally shown to other participants in the leaderboard.',
       },
     ],
     overlay: [
@@ -137,7 +139,7 @@ const TUT_TEXTS = {
     practiceHint:    'PRACTICE ROUND – Timer not running',
     consentTitle:    'Before you participate',
     consentBody:     'This study is conducted as part of a doctoral thesis at Heidelberg University of Education (Research Group for Earth Observation, rgeo). Participation is voluntary and can be discontinued at any time without giving reasons and without any disadvantages.',
-    consentBody2:    'The following is collected: your answers from the short questionnaire below (only the first time you play), your interactions during the game (e.g. objects placed, timings, incorrect attempts), and technical device/browser data. No names, addresses, e-mail addresses, IP addresses or location data are collected; a randomly generated identifier that cannot be traced back to you is used only to link your data across multiple play sessions. Data is stored in a Google spreadsheet accessible only to the study lead (see privacy policy for details).',
+    consentBody2:    'The following is collected: your answers from the short questionnaire below (only the first time you play), your interactions during the game (e.g. objects placed, timings, incorrect attempts), and technical device/browser data. No names, addresses, e-mail addresses, IP addresses or location data are collected; a randomly generated identifier that cannot be traced back to you is used only to link your data across multiple play sessions. Your total time and a self-chosen alias (or, failing that, the anonymous identifier mentioned above) will additionally be shown in a leaderboard visible to other participants at the end of the game – please choose an alias that does not allow conclusions about your identity; depending on how it is phrased, a self-chosen alias could theoretically still allow this, and we cannot take responsibility for that. All other data is stored exclusively in a Google spreadsheet accessible only to the study lead (see privacy policy for details).',
     consentCheckbox: 'I have read the information above and agree to the processing of my data as described.',
     consentContinue: 'Continue',
     formTitle:       'A few questions about you',
@@ -148,6 +150,8 @@ const TUT_TEXTS = {
     formGis:         'Prior experience with map reading / GIS / remote sensing',
     formGeschlecht:  'Gender',
     formGeraet:      'What are you using to participate?',
+    formAlias:       'Alias for the leaderboard (optional, visible to others)',
+    formAliasPlaceholder: 'e.g. a nickname – if left blank, your anonymous identifier is used',
     formOptionLeer:  'Prefer not to say',
     formContinue:    'Continue to tutorial',
     formBildungOptions: ['Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
@@ -310,6 +314,8 @@ function showPersonFormScreen() {
         '<select id="pf-geschlecht">' + opts(texts.formGeschlechtOptions) + '</select></div>' +
       '<div class="tut-form-row"><label>' + texts.formGeraet + '</label>' +
         '<select id="pf-geraet">' + opts(texts.formGeraetOptions) + '</select></div>' +
+      '<div class="tut-form-row"><label>' + texts.formAlias + '</label>' +
+        '<input type="text" id="pf-alias" placeholder="' + texts.formAliasPlaceholder + '" maxlength="40"></div>' +
       '<div class="tut-btn-row">' +
         '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
       '</div>' +
@@ -324,6 +330,7 @@ function onPersonFormContinue() {
     gisErfahrung: document.getElementById('pf-gis').value,
     geschlecht: document.getElementById('pf-geschlecht').value,
     geraet: document.getElementById('pf-geraet').value,
+    alias: document.getElementById('pf-alias').value.trim(),
   });
   document.getElementById('tutorial-info-screen').classList.remove('active');
   startOverlayTutorial();

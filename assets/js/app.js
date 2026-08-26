@@ -836,13 +836,23 @@ function nextLevel(){
 
 // ── Randomised level order ───────────────────────────────────
 // Index 0 is reserved for the tutorial's silent preload/practice round and
-// never appears in the timed experiment – only 1..N-1 get shuffled.
+// never appears in the timed experiment. Since 2026-08-26 (Umstieg auf
+// echte Sentinel-2-Bilder, siehe CLAUDE.md/Memory project_geogame_real_
+// imagery): data/config.json haelt den vollen Bilderpool (Ziel: 60 Level),
+// nicht mehr nur die pro Durchlauf gezeigten - bei jedem App-Start werden
+// LEVELS_PER_SESSION rein zufaellig daraus gezogen (kein Gedaechtnis ueber
+// Sessions hinweg, bewusste Entscheidung, siehe Memory). Ein vollstaendiger
+// Fisher-Yates-Shuffle von 1..N-1, danach auf die ersten LEVELS_PER_SESSION
+// zugeschnitten, ist aequivalent zu einer zufaelligen K-Teilmenge in
+// zufaelliger Reihenfolge - kein separater Auswahlschritt noetig.
+const LEVELS_PER_SESSION = 8;
 function buildLevelOrder(){
-  levelOrder = CONFIG.levels.map((_, i) => i).slice(1);
-  for(let i=levelOrder.length-1; i>0; i--){
+  const pool = CONFIG.levels.map((_, i) => i).slice(1);
+  for(let i=pool.length-1; i>0; i--){
     const j = Math.floor(Math.random()*(i+1));
-    [levelOrder[i],levelOrder[j]] = [levelOrder[j],levelOrder[i]];
+    [pool[i],pool[j]] = [pool[j],pool[i]];
   }
+  levelOrder = pool.slice(0, LEVELS_PER_SESSION);
   orderPos = 0;
 }
 function startShuffledExperiment(){
@@ -1050,23 +1060,84 @@ function submitFeedbackForm(){
 }
 
 // ── Results ──────────────────────────────────────────────────
+const DISQUALIFY_ERROR_THRESHOLD = 5; // muss mit Code.gs (Server) uebereinstimmen
+
 function showResults(){
   stopTimer();
   const body=document.getElementById('results-body'); body.innerHTML='';
   let tm=0,te=0;
+  const percentileCells = {}; // level id -> <td>, zum spaeteren Befuellen
   results.forEach(r=>{
     tm+=r.time; te+=r.errors;
     const tr=document.createElement('tr');
     tr.className='results-row';
     tr.title='Klicken für Bildvorschau';
-    tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td>`;
+    tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td><td class="percentile-cell">…</td>`;
     tr.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
     body.appendChild(tr);
+    percentileCells[r.image] = tr.querySelector('.percentile-cell');
   });
   const s=document.createElement('tr');
-  s.innerHTML=`<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td>`;
+  s.innerHTML=`<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td><td></td>`;
   body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
+
+  submitRunSummary(tm, te);
+  loadLeaderboard_(percentileCells, te);
+}
+
+// ── Bestenliste (seit 2026-08-26) ───────────────────────────────
+function loadLeaderboard_(percentileCells, totalErrors){
+  const disqualified = totalErrors > DISQUALIFY_ERROR_THRESHOLD;
+  document.getElementById('leaderboard-disqualified-note').style.display = disqualified ? 'block' : 'none';
+
+  const levelTimes = results.map(r => ({level: r.image, timeMs: r.time}));
+  fetchLeaderboard(levelTimes).then(data => {
+    if(!data || !data.ok) return;
+
+    Object.keys(data.percentiles || {}).forEach(level=>{
+      const cell = percentileCells[level];
+      if(!cell) return;
+      const pct = data.percentiles[level];
+      cell.textContent = (pct == null) ? '–' : `schneller als ${pct}%`;
+    });
+
+    renderLeaderboardRows_('leaderboard-body', data.top10 || []);
+
+    const ownRankEl = document.getElementById('leaderboard-own-rank');
+    if(disqualified){
+      ownRankEl.textContent = '';
+    } else if(data.myRank){
+      ownRankEl.textContent = `Deine Platzierung: ${data.myRank.rank}. von ${data.fullCount} (${(data.myRank.totalTimeMs/1000).toFixed(2)} s, ${data.myRank.totalErrors} Fehler)`;
+    } else {
+      ownRankEl.textContent = '';
+    }
+  });
+}
+
+function renderLeaderboardRows_(tbodyId, rows){
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.rank}</td><td>${escapeHtml_(r.alias)}</td><td>${(r.totalTimeMs/1000).toFixed(2)}</td><td>${r.totalErrors}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function escapeHtml_(s){
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+function openFullLeaderboard(){
+  document.getElementById('leaderboard-full-modal').classList.add('active');
+  fetchLeaderboardFull().then(data=>{
+    if(data && data.ok) renderLeaderboardRows_('leaderboard-full-body', data.full || []);
+  });
+}
+function closeFullLeaderboard(){
+  document.getElementById('leaderboard-full-modal').classList.remove('active');
 }
 
 // ── Image preview / zoom (results table) ──────────────────────

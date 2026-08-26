@@ -326,6 +326,17 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 
 @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(253,195,0,0)}}
 
+/* ── BESTENLISTE (seit 2026-08-26) ── */
+#leaderboard-panel{max-width:520px;width:100%;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:10px;}
+#leaderboard-panel h2{font-size:18px;color:#0a3f70;letter-spacing:.02em;}
+#leaderboard-disqualified-note{color:var(--warn);font-size:13px;max-width:460px;}
+#leaderboard-own-rank{color:#0a3f70;font-weight:600;font-size:13px;min-height:1em;}
+#leaderboard-table,#leaderboard-full-table{min-width:400px;}
+#leaderboard-full-table{min-width:0;width:100%;max-height:60vh;}
+#leaderboard-full-modal .legal-modal-card{max-width:520px;max-height:80vh;overflow:auto;}
+.percentile-cell{color:var(--muted);font-size:12px;}
+
 /* ── IMAGE PREVIEW / ZOOM MODAL ──
    Backdrop bewusst dunkel (Lightbox-Konvention, unabhaengig vom Seiten-
    Theme – TIER-List behaelt seine eigene .lightbox aus demselben Grund

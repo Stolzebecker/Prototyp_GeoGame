@@ -15,6 +15,8 @@
  *   Bildwiedererkennung-- 1 Zeile pro als bekannt markiertem/benanntem Bild
  *   Post_Befragung     -- 1 Zeile pro lauf_id (Konzentration/Ort/Ablenkung/Wachheit)
  *   Feedback           -- 1 Zeile pro abgeschicktem Freitext-Feedback
+ *   Bestenliste        -- 1 Zeile pro Durchlauf (Alias/Gesamtzeit/Fehler/Disqualifikation,
+ *                          siehe Memory project_geogame_leaderboard)
  */
 
 // Muss exakt mit SUBMIT_TOKEN in assets/js/telemetry.js uebereinstimmen; bei
@@ -33,6 +35,14 @@ var SUBMIT_TOKEN = "gg_5f2a9c14e8b6d0317f4a2c9e6b8d1053";
 // einen eigenen, nicht oeffentlich im Spiel sichtbaren Token.
 var READ_TOKEN = "gg_read_9d3f7a1c58b0e42691dc7f5a0b3e8462";
 
+// Dritter Token (seit 2026-08-26, siehe Memory project_geogame_leaderboard):
+// oeffentlich im Client-Code (wie SUBMIT_TOKEN), aber gewaehrt NUR Lesezugriff
+// auf die Bestenliste (Alias + Gesamtzeit + Fehleranzahl) und Perzentil-Werte
+// pro Bild - NIE rohe Personendaten, participant_id anderer Nutzer oder
+// sonstige Tabelleninhalte. Bewusst nicht derselbe Token wie READ_TOKEN, da
+// READ_TOKEN privat bleiben soll (gibt Personendaten preis).
+var LEADERBOARD_TOKEN = "gg_board_71cf3e0a4d8b26f5913c6e0a8d4b2f17";
+
 // EINTRAGEN nach dem manuellen Erstellen des Google Sheets (Datei > Freigeben
 // > ID aus der URL kopieren). Siehe README.md, Abschnitt "Deployment".
 var SPREADSHEET_ID = "1lPCc6IVj4hputGpwTaA45DLjZLCBwrhM-Tim9ZCcY9I";
@@ -50,6 +60,7 @@ function doPost(e) {
       case "level":       return handleLevel_(data);
       case "familiarity": return handleFamiliarity_(data);
       case "post_survey": return handlePostSurvey_(data);
+      case "run_summary": return handleRunSummary_(data);
       case "feedback":    return handleFeedback_(data);
       default:            return jsonOut_({ ok: false, error: "unknown type: " + data.type });
     }
@@ -58,17 +69,34 @@ function doPost(e) {
   }
 }
 
-// Liest alle vier Tabs und liefert sie als JSON ans (privat gehostete)
-// Auswertungs-Dashboard -- das Sheet selbst bleibt dabei komplett privat,
-// nur dieser eine, durch READ_TOKEN geschuetzte Endpunkt gibt Daten heraus.
-// Aufruf: <Web-App-URL>?token=<READ_TOKEN>
+// Zwei oeffentliche Zwecke unter derselben doGet-Weiche:
+//   ?mode=leaderboard&token=<LEADERBOARD_TOKEN>&...  -- oeffentlich, vom
+//     Spiel-Client selbst aufgerufen (siehe handleLeaderboardRead_), liefert
+//     NUR aggregierte/anonyme Werte.
+//   ?token=<READ_TOKEN>  -- privat, nur fuers Auswertungs-Dashboard, liefert
+//     alle Tabs vollstaendig (inkl. Personendaten). Das Sheet selbst bleibt
+//     dabei komplett privat, nur dieser Endpunkt gibt Daten heraus.
+// Bewusst als GET (nicht doPost) implementiert: einfache GET-Requests loesen
+// im Browser keinen CORS-Preflight aus und die Antwort ist normal lesbar
+// (anders als die no-cors-POSTs in telemetry.js, deren Antwort bewusst
+// opak/ungelesen bleibt) - siehe reference_geogame_dashboard-Memory, dieses
+// Muster ist schon fuers Dashboard erprobt.
 function doGet(e) {
-  if (!e || e.parameter.token !== READ_TOKEN) {
+  if (!e) return jsonOut_({ ok: false, error: "invalid token" });
+
+  if (e.parameter.mode === "leaderboard") {
+    if (e.parameter.token !== LEADERBOARD_TOKEN) {
+      return jsonOut_({ ok: false, error: "invalid token" });
+    }
+    return handleLeaderboardRead_(e);
+  }
+
+  if (e.parameter.token !== READ_TOKEN) {
     return jsonOut_({ ok: false, error: "invalid token" });
   }
   var ss = getSpreadsheet_();
   var tabs = ["Personendaten", "Durchlaeufe", "Level_Ergebnisse", "Drop_Versuche",
-              "Bildwiedererkennung", "Post_Befragung", "Feedback"];
+              "Bildwiedererkennung", "Post_Befragung", "Feedback", "Bestenliste"];
   var data = {};
   tabs.forEach(function (name) {
     var sheet = ss.getSheetByName(name);
@@ -120,6 +148,12 @@ function handlePerson_(data) {
   // gleiches Muster wie bekanntheit_status in handleLauf_ (siehe dort).
   var geraetCol = ensureColumn_(sheet, "geraet");
   sheet.getRange(sheet.getLastRow(), geraetCol).setValue(data.geraet || "");
+  // Alias fuer die Bestenliste (seit 2026-08-26) - leer, wenn keiner
+  // vergeben wurde; der Client faellt dann selbst auf participant_id zurueck
+  // (siehe Memory project_geogame_leaderboard), hier wird nur festgehalten,
+  // was tatsaechlich eingegeben wurde.
+  var aliasCol = ensureColumn_(sheet, "alias");
+  sheet.getRange(sheet.getLastRow(), aliasCol).setValue(data.alias || "");
   return jsonOut_({ ok: true });
 }
 
@@ -289,6 +323,110 @@ function handleFeedback_(data) {
     run.laufId, run.durchlaufNr, data.feedbackText || "",
   ]);
   return jsonOut_({ ok: true });
+}
+
+// ── Bestenliste (einmalig pro lauf_id, beim Erreichen des Ergebnis-Screens)
+// ── Alias + Gesamtzeit + Gesamtfehler, wie sie im bestehenden GESAMT-Feld
+// der Ergebnistabelle ohnehin schon clientseitig berechnet werden (siehe
+// showResults() in app.js) - hier nur zusaetzlich abgeschickt. disqualifiziert
+// = mehr als 5 Fehler im gesamten Durchlauf (Julians Entscheidung, siehe
+// Memory project_geogame_leaderboard: Genauigkeit soll auch zaehlen, nicht
+// nur Geschwindigkeit).
+var DISQUALIFY_ERROR_THRESHOLD = 5;
+function handleRunSummary_(data) {
+  var run = resolveRun_(data.participantId, data.runToken);
+  var sheet = getOrCreateTab_("Bestenliste", [
+    "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
+    "alias", "total_time_ms", "total_errors", "disqualifiziert",
+  ]);
+  var totalErrors = data.totalErrors != null ? data.totalErrors : 0;
+  sheet.appendRow([
+    new Date(), data.timestampClient || "", data.participantId || "",
+    run.laufId, run.durchlaufNr,
+    data.alias || data.participantId || "", data.totalTimeMs || 0, totalErrors,
+    totalErrors > DISQUALIFY_ERROR_THRESHOLD,
+  ]);
+  return jsonOut_({ ok: true });
+}
+
+// ── Bestenliste + Perzentile lesen (oeffentlich, LEADERBOARD_TOKEN) ────────
+// Liefert NUR aggregierte/anonyme Werte: Top-10 (oder volle Liste bei
+// full=1), die eigene Platzierung (ueber runToken -> resolveRun_ -> lauf_id
+// wiedergefunden, da der Client wegen no-cors-POSTs seine eigene lauf_id
+// sonst nie erfaehrt), und Perzentile fuer die angefragten Level-IDs
+// (berechnet aus Level_Ergebnisse, max(gesamtzeit_ms) je Lauf+Level - siehe
+// reference_geogame_dashboard-Memory zur selben Aggregationslogik).
+function handleLeaderboardRead_(e) {
+  var ss = getSpreadsheet_();
+  var bestSheet = ss.getSheetByName("Bestenliste");
+  var rows = bestSheet ? sheetToObjects_(bestSheet) : [];
+  var qualifying = rows.filter(function (r) { return !r.disqualifiziert; });
+
+  // Bester (schnellster) Lauf je participant_id - NICHT je Alias, da Aliase
+  // nicht eindeutig sein muessen (siehe Memory project_geogame_leaderboard).
+  var bestByParticipant = {};
+  qualifying.forEach(function (r) {
+    var pid = r.participant_id;
+    if (!bestByParticipant[pid] || r.total_time_ms < bestByParticipant[pid].total_time_ms) {
+      bestByParticipant[pid] = r;
+    }
+  });
+  var sorted = Object.keys(bestByParticipant)
+    .map(function (pid) { return bestByParticipant[pid]; })
+    .sort(function (a, b) { return a.total_time_ms - b.total_time_ms; });
+
+  function toEntry(r, i) {
+    return { rank: i + 1, alias: r.alias, totalTimeMs: r.total_time_ms, totalErrors: r.total_errors };
+  }
+
+  var result = { ok: true, top10: sorted.slice(0, 10).map(toEntry), fullCount: sorted.length };
+  if (e.parameter.full === "1") {
+    result.full = sorted.map(toEntry);
+  }
+
+  var participantId = e.parameter.participantId;
+  var runToken = e.parameter.runToken;
+  if (participantId && runToken) {
+    var run = resolveRun_(participantId, runToken);
+    var myRow = qualifying.filter(function (r) {
+      return r.participant_id === participantId && Number(r.lauf_id) === run.laufId;
+    })[0];
+    if (myRow) {
+      var idx = sorted.indexOf(bestByParticipant[participantId]);
+      result.myRank = { rank: idx + 1, alias: myRow.alias, totalTimeMs: myRow.total_time_ms, totalErrors: myRow.total_errors };
+    } else {
+      result.myRank = null; // nicht in der Bestenliste (disqualifiziert oder noch nicht abgeschickt)
+    }
+  }
+
+  var levelIds = (e.parameter.levels || "").split(",").filter(function (s) { return s; });
+  var myTimes = (e.parameter.times || "").split(",").map(Number);
+  var percentiles = {};
+  if (levelIds.length) {
+    var levelSheet = ss.getSheetByName("Level_Ergebnisse");
+    var levelRows = levelSheet ? sheetToObjects_(levelSheet) : [];
+    var maxByRun = {};
+    levelRows.forEach(function (r) {
+      var key = r.participant_id + "|" + r.lauf_id + "|" + r.level;
+      var t = Number(r.gesamtzeit_ms) || 0;
+      if (!maxByRun[key] || t > maxByRun[key]) maxByRun[key] = t;
+    });
+    var timesByLevel = {};
+    Object.keys(maxByRun).forEach(function (key) {
+      var level = key.split("|")[2];
+      (timesByLevel[level] = timesByLevel[level] || []).push(maxByRun[key]);
+    });
+    levelIds.forEach(function (level, i) {
+      var myTime = myTimes[i];
+      var others = timesByLevel[level] || [];
+      if (!others.length || !myTime) { percentiles[level] = null; return; }
+      var slower = others.filter(function (t) { return t > myTime; }).length;
+      percentiles[level] = Math.round((slower / others.length) * 100);
+    });
+  }
+  result.percentiles = percentiles;
+
+  return jsonOut_(result);
 }
 
 /**

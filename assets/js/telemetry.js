@@ -23,8 +23,14 @@
 const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbydDqFT3-vS0V7j41QcJEONnzzPsAtGTRLeJIyhF7tRcW74Xhx1cYo8u2K_aMJR_O9heQ/exec";
 // Muss exakt mit SUBMIT_TOKEN in apps-script/Code.gs uebereinstimmen.
 const SUBMIT_TOKEN = "gg_5f2a9c14e8b6d0317f4a2c9e6b8d1053";
+// Oeffentlicher Lese-Token nur fuer die Bestenliste (seit 2026-08-26) - muss
+// exakt mit LEADERBOARD_TOKEN in apps-script/Code.gs uebereinstimmen. Anders
+// als SUBMIT_TOKEN erlaubt dieser NUR das Lesen aggregierter/anonymer Werte,
+// nie Rohdaten - siehe Code.gs-Kommentar.
+const LEADERBOARD_TOKEN = "gg_board_71cf3e0a4d8b26f5913c6e0a8d4b2f17";
 
 const LS_PARTICIPANT_ID = "geogame_participant_id";
+const LS_ALIAS = "geogame_alias";
 
 // ── Testmodus (geheim, per Taste T + Passwort) ────────────────
 // Unterdrueckt jede Uebertragung ans Backend, damit QA-/Testlaeufe nicht in
@@ -38,6 +44,7 @@ const LS_PARTICIPANT_ID = "geogame_participant_id";
 const TEST_MODE_PASSWORD = "Claudius";
 let _testModeActive = false;
 let _testParticipantId = null;
+let _testAlias = null;
 let _testModeBannerEl = null;
 
 function isTestModeActive(){
@@ -67,6 +74,7 @@ function toggleTestMode(){
   if(_testModeActive){
     _testModeActive = false;
     _testParticipantId = null;
+    _testAlias = null;
     hideTestModeBanner_();
     return;
   }
@@ -92,6 +100,20 @@ function getParticipantId(){
 function isFirstEverVisit(){
   if(_testModeActive) return true;
   return localStorage.getItem(LS_PARTICIPANT_ID) === null;
+}
+
+// ── Alias (Bestenliste, seit 2026-08-26) ──────────────────────
+// Wird einmalig im Personendaten-Formular vergeben (optional) und lokal
+// gespeichert, damit er bei Wiederholungsbesuchen automatisch wieder
+// angezeigt wird - kein neuer "ist das ein erneuter Durchlauf?"-Dialog
+// noetig, das haengt sich an die bestehende isFirstEverVisit()-Logik.
+function getAlias(){
+  if(_testModeActive) return _testAlias;
+  return localStorage.getItem(LS_ALIAS);
+}
+function setAlias(alias){
+  if(_testModeActive){ _testAlias = alias || null; return; }
+  if(alias) localStorage.setItem(LS_ALIAS, alias);
 }
 
 let _runToken = null;
@@ -148,6 +170,7 @@ function sendToBackend_(payload){
 
 // ── Oeffentliche Sende-Funktionen ────────────────────────────
 function submitPersonData(fields){
+  if(fields.alias) setAlias(fields.alias);
   sendToBackend_({
     type: 'person',
     participantId: getParticipantId(),
@@ -157,6 +180,7 @@ function submitPersonData(fields){
     gisErfahrung: fields.gisErfahrung,
     geschlecht: fields.geschlecht,
     geraet: fields.geraet,
+    alias: fields.alias,
   });
 }
 
@@ -205,4 +229,54 @@ function submitFeedback(feedbackText){
     runToken: _runToken,
     feedbackText: feedbackText,
   });
+}
+
+// ── Bestenliste (seit 2026-08-26) ─────────────────────────────
+// Einmalig beim Erreichen des Ergebnis-Screens abgeschickt (fire-and-forget
+// wie alle anderen Submissions). alias faellt auf die eigene participant_id
+// zurueck, wenn keiner vergeben wurde (die ist bereits anonym, siehe
+// Memory project_geogame_leaderboard).
+function submitRunSummary(totalTimeMs, totalErrors){
+  sendToBackend_({
+    type: 'run_summary',
+    participantId: getParticipantId(),
+    runToken: _runToken,
+    alias: getAlias() || getParticipantId(),
+    totalTimeMs: totalTimeMs,
+    totalErrors: totalErrors,
+  });
+}
+
+// Liest die Bestenliste + Perzentile - EINZIGE Stelle in telemetry.js, die
+// eine echte (nicht no-cors) Antwort braucht, da wir hier tatsaechlich Daten
+// zurueckbekommen wollen. Einfache GET-Requests loesen keinen CORS-Preflight
+// aus (siehe Code.gs-Kommentar zu doGet) - dasselbe Muster, mit dem das
+// Auswertungs-Dashboard das Sheet schon erfolgreich per curl liest.
+// levelTimes: [{level, timeMs}, ...] - die eigenen, bereits bekannten
+// Pro-Level-Zeiten dieses Durchlaufs (aus app.js' results[]); der Server
+// gibt dafuer NUR die Perzentil-Zahl zurueck, nie fremde Rohzeiten.
+function fetchLeaderboard(levelTimes){
+  if(!SUBMIT_URL || SUBMIT_URL.indexOf('TRAGE_HIER') === 0) return Promise.resolve(null);
+  const params = new URLSearchParams({
+    mode: 'leaderboard',
+    token: LEADERBOARD_TOKEN,
+    participantId: getParticipantId(),
+    runToken: _runToken || '',
+    levels: levelTimes.map(l => l.level).join(','),
+    times: levelTimes.map(l => l.timeMs).join(','),
+  });
+  return fetch(SUBMIT_URL + '?' + params.toString())
+    .then(r => r.json())
+    .catch(err => { console.warn('[telemetry] Bestenliste konnte nicht geladen werden:', err); return null; });
+}
+
+function fetchLeaderboardFull(){
+  if(!SUBMIT_URL || SUBMIT_URL.indexOf('TRAGE_HIER') === 0) return Promise.resolve(null);
+  const params = new URLSearchParams({
+    mode: 'leaderboard', token: LEADERBOARD_TOKEN, full: '1',
+    participantId: getParticipantId(), runToken: _runToken || '',
+  });
+  return fetch(SUBMIT_URL + '?' + params.toString())
+    .then(r => r.json())
+    .catch(err => { console.warn('[telemetry] Vollstaendige Bestenliste konnte nicht geladen werden:', err); return null; });
 }
