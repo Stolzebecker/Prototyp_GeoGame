@@ -493,6 +493,19 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 }
 .legal-modal-card button.warn:hover{background:rgba(183,25,24,.08);}
 
+/* ── TEILEN-FALLBACK (seit 2026-08-26) ── */
+.share-platform-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+.share-platform-row .share-platform-btn{flex:1 1 100px;text-align:center;padding:10px 14px;
+  margin-top:0;text-decoration:none;cursor:pointer;font-weight:600;
+  font-family:var(--font-ui);font-size:13px;
+  background:var(--panel-soft);color:#0a3f70;
+  border:1px solid var(--accent);border-bottom:3px solid #0a3f70;
+  border-radius:4px;transition:all .12s;}
+.share-platform-row .share-platform-btn:hover{background:var(--panel-soft);border-color:var(--accent2);color:#8a6500;
+  transform:translateY(-1px);}
+.share-copy-hint{color:var(--accent);font-size:12px;margin-bottom:8px;}
+#share-fallback-text{white-space:pre-line;}
+
 /* ── HINT-LAYERS-PANEL ── schlanke Ebenenumschaltung fuer "Ich komme nicht
    weiter" (siehe buildHintLayerChecks() in app.js) – teilt sich die
    Checkbox-Zeilen-Optik mit #debug-panel, aber blauer statt roter Akzent,

@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>SCOPE — rgeo</title>
 
+  <!-- Open-Graph/Twitter-Card-Vorschau (seit 2026-08-26): sorgt dafuer, dass
+       WhatsApp/X/iMessage/Slack/Facebook etc. beim Teilen des Links eine
+       Vorschaukarte (Titel/Beschreibung/Bild) statt der nackten URL zeigen -
+       siehe app.js: shareChallenge()/buildShareText_(). mailto: (E-Mail)
+       kann so etwas grundsaetzlich nicht darstellen (reiner Text), Instagram/
+       TikTok generieren beim manuellen Einfuegen ebenfalls keine Vorschau. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SCOPE – Spatial Complexity Observation and Perception Experiment">
+  <meta property="og:description" content="Ordne Landschaftselemente in echten Satellitenbildern zu und miss dich mit anderen – als Teil einer wissenschaftlichen Studie der Research Group for Earth Observation (rgeo), PH Heidelberg.">
+  <meta property="og:image" content="https://stolzebecker.github.io/Bilder/Deko_und_UI/Startscreen.png">
+  <meta property="og:url" content="https://stolzebecker.github.io/">
+  <meta name="twitter:card" content="summary_large_image">
+
   <!--
     EO Visual Complexity Experiment
     Research Group for Earth Observation (rgeo)
@@ -225,7 +238,27 @@
   <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
   <div class="results-actions">
     <button class="secondary" onclick="openFeedbackModal()">Feedback geben ›</button>
+    <button class="secondary" onclick="shareChallenge()">Freund*in herausfordern ›</button>
     <button class="primary" onclick="location.reload()">Neustart</button>
+  </div>
+</div>
+
+<!-- Teilen-Fallback (seit 2026-08-26): nur fuer Browser ohne Web-Share-API
+     (die meisten Desktop-Browser) - shareChallenge() versucht zuerst
+     navigator.share(), oeffnet dieses Modal nur als Fallback. -->
+<div id="share-fallback-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Freund*in herausfordern</h1>
+    <p id="share-fallback-text"></p>
+    <div class="share-platform-row">
+      <button type="button" id="share-whatsapp" class="share-platform-btn">WhatsApp</button>
+      <a id="share-twitter" class="share-platform-btn" target="_blank" rel="noopener">X / Twitter</a>
+      <a id="share-email" class="share-platform-btn" target="_blank" rel="noopener">E-Mail</a>
+      <button type="button" id="share-instagram" class="share-platform-btn">Instagram</button>
+      <button type="button" id="share-tiktok" class="share-platform-btn">TikTok</button>
+    </div>
+    <p id="share-copy-hint" class="share-copy-hint" style="display:none">Text in die Zwischenablage kopiert – beim Einfügen in {PLATTFORM} bereit.</p>
+    <button type="button" onclick="closeShareFallbackModal()">Schließen</button>
   </div>
 </div>
 

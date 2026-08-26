@@ -1202,10 +1202,113 @@ function loadLeaderboard_(percentileCells, totalErrors){
       ownRankEl.textContent = '';
     } else if(data.myRank){
       ownRankEl.textContent = `Deine Platzierung: ${data.myRank.rank}. von ${data.fullCount} (${(data.myRank.totalTimeMs/1000).toFixed(2)} s, ${data.myRank.totalErrors} Fehler)`;
+      _lastMyRank = data.myRank;
     } else {
       ownRankEl.textContent = '';
     }
   });
+}
+
+// ── "Freund herausfordern" (seit 2026-08-26) ────────────────────
+// _lastMyRank wird in loadLeaderboard_() gesetzt, sobald ein gueltiger
+// (nicht disqualifizierter) eigener Bestwert vom Server zurueckkommt -
+// bleibt null, wenn noch keiner existiert (z. B. erster, disqualifizierter
+// Durchlauf) - dann faellt buildShareText_() bewusst auf eine generische
+// Nachricht ohne Zeitangabe zurueck (Julians Entscheidung), statt den
+// Button ganz zu verstecken.
+let _lastMyRank = null;
+
+// tutLang (aus tutorial.js, globale Variable) bestimmt die Sprache - so
+// bekommt ein Teilnehmer, der die englische Version gespielt hat, auch eine
+// englische Teilen-Nachricht statt hartkodiertem Deutsch. Zweiter Absatz mit
+// Studien-/rgeo-Kontext auf Julians Wunsch (2026-08-26) ergaenzt, damit die
+// Nachricht seriöser wirkt statt wie eine reine Spiele-Einladung - Fakten
+// (rgeo, PH Heidelberg, Promotion) decken sich bewusst mit dem Consent-Text
+// in tutorial.js (TUT_TEXTS.consentBody), nicht neu erfunden.
+//
+// whatsapp=true nutzt WhatsApps eigene *fett*/_kursiv_-Textsyntax (rendert
+// NUR bei WhatsApp, ueberall sonst blieben die Sternchen/Unterstriche als
+// literale Zeichen sichtbar, siehe unten). Emojis bleiben in BEIDEN
+// Varianten erhalten.
+// Wichtig (Diagnose 2026-08-26): WhatsApps eigener wa.me/api.whatsapp.com
+// "In WhatsApp teilen"-Vorschau-Link (?text=...) zeigt Emojis dort als "�"
+// an, obwohl die URL nachweislich korrekt UTF-8-kodiert ist (Round-Trip-
+// Test in JS bestand) - das ist ein Bug auf dieser Vorschau-Seite selbst.
+// Fuegt man denselben Text stattdessen per Kopieren/Einfuegen direkt in
+// WhatsApp ein (von Julian am echten Handy verifiziert), erscheinen die
+// Emojis einwandfrei. Deshalb nutzt der WhatsApp-Button unten NICHT den
+// ?text=-Link, sondern denselben "kopieren + App oeffnen"-Ablauf wie
+// Instagram/TikTok (copyThenOpen_) - das umgeht den Bug komplett.
+// Echtes Unterstreichen gibt es in keinem der Kanaele als reiner Text -
+// technisch nicht moeglich, nicht umgesetzt.
+function buildShareText_(whatsapp){
+  const en = (typeof tutLang !== 'undefined' && tutLang === 'en');
+  const b = whatsapp ? '*' : '';   // WhatsApp-"fett"
+  const i = whatsapp ? '_' : '';   // WhatsApp-"kursiv"
+
+  const intro = _lastMyRank
+    ? (en
+        ? `Hey! 👋 I just set a ${b}personal best${b} in SCOPE 🛰️: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} seconds${b} ⏱️. Think you can beat it? 💪`
+        : `Hi! 👋 Ich habe gerade bei SCOPE 🛰️ einen ${b}persönlichen Bestwert${b} aufgestellt: ${b}${(_lastMyRank.totalTimeMs/1000).toFixed(2)} Sekunden${b} ⏱️. Schaffst du das auch? 💪`)
+    : (en
+        ? `Hey! 👋 I just played SCOPE 🛰️ – give it a try!`
+        : `Hi! 👋 Ich habe gerade SCOPE 🛰️ gespielt – probier's auch mal aus!`);
+  const about = en
+    ? `${i}SCOPE${i} is an online game and part of a scientific study 🔬 run by the Research Group for Earth Observation (rgeo) at Heidelberg University of Education, as part of a doctoral thesis. It investigates how people perceive and recognise different landscape features in satellite imagery. By playing, you support ${b}real research${b} 🙏 – and it only takes a few minutes.`
+    : `${i}SCOPE${i} ist ein Online-Spiel und Teil einer wissenschaftlichen Studie 🔬 der Research Group for Earth Observation (rgeo) an der Pädagogischen Hochschule Heidelberg, im Rahmen einer Promotion. Untersucht wird, wie Menschen unterschiedliche Landschaftselemente in Satellitenbildern wahrnehmen und erkennen. Mit deiner Teilnahme unterstützt du ${b}echte Forschung${b} 🙏 – und es dauert nur wenige Minuten.`;
+  return intro + '\n\n' + about;
+}
+
+function shareChallenge(){
+  const text = buildShareText_(false);
+  const url = location.origin + location.pathname;
+  if(navigator.share){
+    navigator.share({title:'SCOPE', text, url}).catch(()=>{}); // AbortError bei Nutzerabbruch bewusst ignoriert
+  } else {
+    openShareFallbackModal_(text, url);
+  }
+}
+
+function openShareFallbackModal_(text, url){
+  document.getElementById('share-fallback-text').textContent = text;
+  document.getElementById('share-twitter').href =
+    'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+  // mailto: kann keine Link-Vorschaukarte zeigen (reiner Text) - Link daher
+  // wenigstens klar mit Hinweistext eingerahmt statt "nackt" im Body.
+  const emailIntro = (typeof tutLang !== 'undefined' && tutLang === 'en') ? 'Play here:' : 'Hier geht’s zum Spiel:';
+  document.getElementById('share-email').href =
+    'mailto:?subject=' + encodeURIComponent('SCOPE – mach mit!') +
+    '&body=' + encodeURIComponent(text + '\n\n👉 ' + emailIntro + ' ' + url);
+
+  // WhatsApp/Instagram/TikTok haben keine zuverlaessige Web-Share-URL mit
+  // vorausgefuelltem Text (WhatsApps eigener ?text=-Link zeigt Emojis dort
+  // als "�" an, siehe buildShareText_) - stattdessen Text in die
+  // Zwischenablage kopieren und die Plattform in einem neuen Tab oeffnen.
+  const clipboardText = text + '\n\n👉 ' + emailIntro + ' ' + url;
+  const whatsappClipboardText = buildShareText_(true) + '\n\n👉 ' + emailIntro + ' ' + url;
+  document.getElementById('share-whatsapp').onclick = () => copyThenOpen_(whatsappClipboardText, 'https://wa.me/', 'WhatsApp');
+  document.getElementById('share-instagram').onclick = () => copyThenOpen_(clipboardText, 'https://www.instagram.com/', 'Instagram');
+  document.getElementById('share-tiktok').onclick = () => copyThenOpen_(clipboardText, 'https://www.tiktok.com/upload', 'TikTok');
+  document.getElementById('share-copy-hint').style.display = 'none';
+
+  document.getElementById('share-fallback-modal').classList.add('active');
+}
+
+function copyThenOpen_(text, platformUrl, platformName){
+  const done = () => {
+    const hint = document.getElementById('share-copy-hint');
+    hint.textContent = `Text in die Zwischenablage kopiert – beim Einfügen in ${platformName} bereit.`;
+    hint.style.display = 'block';
+    window.open(platformUrl, '_blank', 'noopener');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(done);
+  } else {
+    done();
+  }
+}
+function closeShareFallbackModal(){
+  document.getElementById('share-fallback-modal').classList.remove('active');
 }
 
 function renderLeaderboardRows_(tbodyId, rows){
