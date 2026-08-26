@@ -175,3 +175,23 @@ function submitLevelResult(levelPayload){
     runToken: _runToken,
   }, levelPayload));
 }
+
+// status: 'ja' | 'nein'. markedImages: [{level, name}, ...] (leer bei 'nein').
+function submitFamiliarity(status, markedImages){
+  sendToBackend_({
+    type: 'familiarity',
+    participantId: getParticipantId(),
+    runToken: _runToken,
+    status: status,
+    markedImages: markedImages || [],
+  });
+}
+
+function submitFeedback(feedbackText){
+  sendToBackend_({
+    type: 'feedback',
+    participantId: getParticipantId(),
+    runToken: _runToken,
+    feedbackText: feedbackText,
+  });
+}

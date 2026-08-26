@@ -71,6 +71,16 @@ let debugMode   = false;
 let debugActive = {};   // klasse → boolean (checkbox state)
 let klasseColour = {};  // klasse → {fill, stroke}
 
+// Hint-Overlay-Ebenenumschaltung ("Ich komme nicht weiter" – siehe showHint()):
+// nutzt dieselbe debugActive-Klassenauswahl wie der Debug-Modus, zeigt aber
+// nur die Checkboxen (kein QA-Bedienfeld) und ist eigenstaendig vom D-Modus.
+let hintActive = false;
+
+// Familiarity-Check + Feedback am Spielende (siehe finishExperiment())
+let familiarityStatus = null;     // 'ja' | 'nein' | null
+let familiarityMarks = {};        // level id → {name}
+let familiarityEditingLevel = null;
+
 // DOM refs
 let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
     elPin, elFloatChip, elTrash, elDebugCanvas, elDebugCtx;
@@ -104,8 +114,6 @@ async function boot(){
   document.getElementById('loading').remove();
   const ss = document.getElementById('start-screen');
   ss.style.display = 'flex';
-  document.getElementById('level-count-text').textContent =
-    CONFIG.levels.length + ' Level';
 
   setupImagePreview();
 }
@@ -141,6 +149,8 @@ async function loadLevel(i){
   elLoupe.style.display=elPin.style.display=elFloatChip.style.display='none';
   elStage.querySelectorAll('.zone-ok').forEach(el=>el.remove());
   elDebugCanvas.style.display = debugMode ? 'block' : 'none';
+  hintActive = false;
+  updateHintLayersVisibility();
 
   const lv=CONFIG.levels[i];
   // Progress display follows the shuffled play position, not the raw config
@@ -169,6 +179,7 @@ async function loadLevel(i){
 
   buildZones(geojson, lv.bounds);
   buildDebugPanel();
+  buildHintLayerChecks();
   if(debugMode) redrawDebug();
 
   renderLabels(lv);
@@ -308,6 +319,53 @@ function buildDebugPanel(){
   debugUpdateNav();
 }
 
+// Vereinfachte Variante von buildDebugPanel() fuer die Ebenenumschaltung im
+// Hinweis-Overlay: nur Farb-Swatch + Name + Checkbox, keine Flaechen-% oder
+// QA-Steuerung. Teilt sich debugActive/klasseColour mit dem Debug-Modus, so
+// dass beide Ansichten immer denselben Ebenen-Zustand zeigen.
+function buildHintLayerChecks(){
+  const allLabels = CONFIG.labels.map(l => l.id);
+  const presentKlassen = new Set(zones.map(z => z.klasse));
+  const container = document.getElementById('hint-layers-checks');
+  if(!container) return;
+  container.innerHTML = '';
+
+  allLabels.forEach(k=>{
+    const col     = klasseColour[k] || {stroke:'#4a6080'};
+    const present = presentKlassen.has(k);
+
+    const row = document.createElement('label');
+    row.className = 'debug-check-row';
+    if(!present) row.style.opacity = '0.38';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = debugActive[k];
+    cb.disabled = !present;
+    cb.addEventListener('change', ()=>{
+      debugActive[k] = cb.checked;
+      if(hintActive || debugMode) redrawDebug();
+    });
+
+    const swatch = document.createElement('div');
+    swatch.className = 'debug-swatch';
+    swatch.style.background = col.stroke;
+
+    const name = document.createElement('span');
+    name.textContent = k;
+
+    row.appendChild(cb);
+    row.appendChild(swatch);
+    row.appendChild(name);
+    container.appendChild(row);
+  });
+}
+
+function updateHintLayersVisibility(){
+  const panel = document.getElementById('hint-layers-panel');
+  if(panel) panel.style.display = (hintActive && !debugMode) ? 'block' : 'none';
+}
+
 function debugSelectAll(val){
   Object.keys(debugActive).forEach(k=>{ debugActive[k]=val; });
   document.querySelectorAll('#debug-checks input[type=checkbox]')
@@ -393,17 +451,20 @@ function toggleDebug(){
   document.getElementById('debug-panel').style.display=debugMode?'block':'none';
   elDebugCanvas.style.display=debugMode?'block':'none';
   if(debugMode) redrawDebug();
+  updateHintLayersVisibility();
 }
 
-// "Ich komme nicht weiter"-Knopf: zeigt nur die Hitbox-Overlay-Zeichnung
-// (ohne das volle Debug-Panel mit Checkboxen/Level-Navigation, das für
-// Teilnehmende nicht gedacht ist). Wird separat von debugTriggered erfasst,
-// da eine genutzte Lösungshilfe inhaltlich etwas anderes ist als
+// "Ich komme nicht weiter"-Knopf: zeigt die Hitbox-Overlay-Zeichnung plus eine
+// schlanke Ebenenumschaltung (Checkboxen ohne QA-Steuerung/Level-Navigation,
+// die für Teilnehmende nicht gedacht ist). Wird separat von debugTriggered
+// erfasst, da eine genutzte Lösungshilfe inhaltlich etwas anderes ist als
 // versehentlich ausgelöster Debug-Modus (siehe CLAUDE.md).
 function showHint(){
   if(levelTelemetry) levelTelemetry.hintUsed = true;
+  hintActive = true;
   elDebugCanvas.style.display = 'block';
   redrawDebug();
+  updateHintLayersVisibility();
   showFeedback('Lösung wird angezeigt', 'ok');
 }
 
@@ -769,7 +830,7 @@ function submitLevelTelemetry(levelId){
 function nextLevel(){
   orderPos++;
   if(orderPos < levelOrder.length) loadLevel(levelOrder[orderPos]);
-  else showResults();
+  else finishExperiment();
 }
 
 // ── Randomised level order ───────────────────────────────────
@@ -854,6 +915,120 @@ function showFeedback(msg,type){
   const f=document.getElementById('feedback');
   f.textContent=msg; f.className='show '+type;
   clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>f.className='',1500);
+}
+
+// ── Familiarity-Check (Wiedererkennung bekannter Landschaften) ──────────────
+// Läuft nach dem letzten Level, bevor das eigentliche Abschlusspopup
+// (results-screen) erscheint. debugJumpToResults() (QA-Shortcut) umgeht das
+// bewusst und ruft showResults() direkt auf.
+function finishExperiment(){
+  stopTimer();
+  document.getElementById('familiarity-modal').classList.add('active');
+}
+
+function familiarityAnswer(yes){
+  document.getElementById('familiarity-modal').classList.remove('active');
+  if(yes){
+    familiarityStatus = 'ja';
+    openFamiliarityGallery();
+  } else {
+    familiarityStatus = 'nein';
+    finalizeFamiliarityAndShowResults();
+  }
+}
+
+function openFamiliarityGallery(){
+  const grid = document.getElementById('familiarity-gallery-grid');
+  grid.innerHTML = '';
+  results.forEach(r=>{
+    const cell = document.createElement('div');
+    cell.className = 'familiarity-cell';
+    cell.id = 'familiarity-cell-'+r.image;
+
+    const img = document.createElement('img');
+    img.src = r.imgSrc; img.alt = r.image; img.draggable = false;
+
+    const zoomBtn = document.createElement('button');
+    zoomBtn.className = 'familiarity-zoom-btn';
+    zoomBtn.type = 'button'; zoomBtn.title = 'Vergrößern';
+    zoomBtn.textContent = '🔍';
+    zoomBtn.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
+
+    const markBtn = document.createElement('button');
+    markBtn.className = 'familiarity-mark-btn';
+    markBtn.type = 'button'; markBtn.title = 'Als bekannt markieren';
+    markBtn.textContent = '✓';
+    markBtn.addEventListener('click', ()=>openFamiliarityNaming(r.image));
+
+    cell.appendChild(img);
+    cell.appendChild(zoomBtn);
+    cell.appendChild(markBtn);
+    grid.appendChild(cell);
+    refreshFamiliarityCellState(r.image);
+  });
+  document.getElementById('familiarity-gallery-screen').classList.add('active');
+}
+
+function refreshFamiliarityCellState(levelId){
+  const cell = document.getElementById('familiarity-cell-'+levelId);
+  if(!cell) return;
+  cell.classList.toggle('marked', !!familiarityMarks[levelId]);
+}
+
+function openFamiliarityNaming(levelId){
+  familiarityEditingLevel = levelId;
+  const existing = familiarityMarks[levelId];
+  document.getElementById('familiarity-name-input').value = existing ? existing.name : '';
+  document.getElementById('familiarity-name-remove').style.display = existing ? 'inline-block' : 'none';
+  document.getElementById('familiarity-name-modal').classList.add('active');
+  document.getElementById('familiarity-name-input').focus();
+}
+function closeFamiliarityNaming(){
+  document.getElementById('familiarity-name-modal').classList.remove('active');
+  familiarityEditingLevel = null;
+}
+function confirmFamiliarityName(){
+  const name = document.getElementById('familiarity-name-input').value.trim();
+  if(!name) return;
+  familiarityMarks[familiarityEditingLevel] = {name};
+  const levelId = familiarityEditingLevel;
+  closeFamiliarityNaming();
+  refreshFamiliarityCellState(levelId);
+}
+function removeFamiliarityMark(){
+  const levelId = familiarityEditingLevel;
+  delete familiarityMarks[levelId];
+  closeFamiliarityNaming();
+  refreshFamiliarityCellState(levelId);
+}
+
+function finishFamiliarityGallery(){
+  document.getElementById('familiarity-gallery-screen').classList.remove('active');
+  finalizeFamiliarityAndShowResults();
+}
+
+function finalizeFamiliarityAndShowResults(){
+  const markedImages = Object.keys(familiarityMarks).map(level=>({level, name:familiarityMarks[level].name}));
+  submitFamiliarity(familiarityStatus, markedImages);
+  showResults();
+}
+
+// ── Feedback (aus dem Abschlusspopup) ───────────────────────────────────────
+function openFeedbackModal(){
+  document.getElementById('feedback-text').value = '';
+  document.getElementById('feedback-modal-body').style.display = 'block';
+  document.getElementById('feedback-modal-thanks').style.display = 'none';
+  document.getElementById('feedback-modal').classList.add('active');
+}
+function closeFeedbackModal(){
+  document.getElementById('feedback-modal').classList.remove('active');
+}
+function submitFeedbackForm(){
+  const text = document.getElementById('feedback-text').value.trim();
+  if(!text) return;
+  submitFeedback(text);
+  document.getElementById('feedback-modal-body').style.display = 'none';
+  document.getElementById('feedback-modal-thanks').style.display = 'block';
 }
 
 // ── Results ──────────────────────────────────────────────────

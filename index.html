@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>EO Visual Complexity Experiment — rgeo</title>
+  <title>SCOPE — rgeo</title>
 
   <!--
     EO Visual Complexity Experiment
@@ -32,18 +32,8 @@
 
 <div id="start-screen" style="display:none; background-image:url('./Bilder/Deko_und_UI/Startscreen.png'); background-size:cover; background-position:center;">
   <div class="start-panel">
-    <div class="start-kicker">EO · EXPERIMENT</div>
-    <h1>Visual Complexity<br>Experiment</h1>
-    <p>Ziehe die Labels auf die passenden Bereiche im Satellitenbild.<br>
-       Nicht sichtbare Elemente kommen in den Papierkorb.</p>
-    <div class="briefing-box">
-      <div><span>01 /</span> Arbeite so korrekt wie möglich</div>
-      <div><span>02 /</span> Zeit und Fehler werden gemessen</div>
-      <div><span>03 /</span> Timer startet erst nach Klick auf Start</div>
-      <div><span>04 /</span> Lupe erscheint beim Überfahren der Karte</div>
-      <div><span>05 /</span> Pin-Spitze zeigt den genauen Ablageort an</div>
-      <div><span>06 /</span> <span id="level-count-text">–</span> Level insgesamt</div>
-    </div>
+    <h1>SCOPE</h1>
+    <p class="start-subtitle">Spatial Complexity Observation and Perception Experiment</p>
     <button id="btn-start" onclick="startTutorial()">Experiment starten ›</button>
   </div>
   <footer id="app-footer" class="app-footer">
@@ -91,7 +81,7 @@
 </div>
 
 <div id="topbar">
-  <div class="brand">EO · EXPERIMENT</div>
+  <div class="brand">SCOPE</div>
   <div id="progress-wrap">
     <div id="progress-label">
       <span id="prog-text">LEVEL 1</span>
@@ -155,6 +145,13 @@
       </div>
     </div>
 
+    <!-- Ebenenumschaltung fuer den Hinweis-Button (schlanke Variante des
+         Debug-Panels, keine QA-Steuerung) -->
+    <div id="hint-layers-panel">
+      <div id="hint-layers-title">SICHTBARE EBENEN</div>
+      <div id="hint-layers-checks"></div>
+    </div>
+
     <div id="loupe">
       <canvas id="loupe-canvas" width="250" height="250"></canvas>
       <div id="loupe-badge">3×</div>
@@ -194,6 +191,7 @@
   </table>
   <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
   <div class="results-actions">
+    <button class="secondary" onclick="openFeedbackModal()">Feedback geben ›</button>
     <button class="primary" onclick="location.reload()">Neustart</button>
   </div>
 </div>
@@ -207,6 +205,66 @@
   </div>
   <div id="image-preview-viewport">
     <img id="image-preview-img" src="" alt="" draggable="false">
+  </div>
+</div>
+
+<!-- Familiarity-Check: Yes/No, nach dem letzten Level, vor dem Abschlusspopup -->
+<div id="familiarity-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Bekannte Landschaften?</h1>
+    <p>Kannten Sie eine oder mehrere der gezeigten Landschaften bereits, z.&nbsp;B. weil Sie den Ort schon einmal besucht oder das Gebiet schon einmal auf einer Karte/einem Foto gesehen haben?</p>
+    <div class="familiarity-modal-actions">
+      <button type="button" class="secondary" onclick="familiarityAnswer(false)">Nein</button>
+      <button type="button" class="primary" onclick="familiarityAnswer(true)">Ja</button>
+    </div>
+  </div>
+</div>
+
+<!-- Familiarity-Gallery: alle gezeigten Bilder, Lupe zum Vergrößern, Haken zum Markieren -->
+<div id="familiarity-gallery-screen">
+  <div id="familiarity-gallery-card">
+    <h1>Welche Landschaften kannten Sie bereits?</h1>
+    <p>Markieren Sie mit dem Haken jedes Bild, das Ihnen bereits bekannt war. Über die Lupe können Sie ein Bild vergrößern.</p>
+    <div id="familiarity-gallery-grid"></div>
+    <div class="results-actions">
+      <button type="button" class="primary" onclick="finishFamiliarityGallery()">Fertig ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- Namens-Popup nach dem Markieren eines bekannten Bildes -->
+<div id="familiarity-name-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <h1>Region/Ort benennen</h1>
+    <p>Wie heißt die Region oder der Ort, den Sie auf diesem Bild erkannt haben?</p>
+    <input type="text" id="familiarity-name-input" placeholder="z. B. Oberrheingraben">
+    <div class="familiarity-modal-actions">
+      <button type="button" id="familiarity-name-remove" class="warn" onclick="removeFamiliarityMark()">Markierung entfernen</button>
+      <button type="button" class="secondary" onclick="closeFamiliarityNaming()">Abbrechen</button>
+      <button type="button" class="primary" onclick="confirmFamiliarityName()">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback-Popup (aus dem Abschlusspopup) -->
+<div id="feedback-modal" class="legal-modal">
+  <div class="legal-modal-card">
+    <div id="feedback-modal-body">
+      <h1>Feedback</h1>
+      <p>Haben Sie Anmerkungen, Verbesserungsvorschläge oder ist Ihnen etwas aufgefallen? Wir freuen uns über Ihr Feedback.</p>
+      <textarea id="feedback-text" rows="5" placeholder="Ihr Feedback …"></textarea>
+      <div class="familiarity-modal-actions">
+        <button type="button" class="secondary" onclick="closeFeedbackModal()">Abbrechen</button>
+        <button type="button" class="primary" onclick="submitFeedbackForm()">Absenden</button>
+      </div>
+    </div>
+    <div id="feedback-modal-thanks" style="display:none">
+      <h1>Danke!</h1>
+      <p>Ihr Feedback wurde übermittelt.</p>
+      <div class="familiarity-modal-actions">
+        <button type="button" class="primary" onclick="closeFeedbackModal()">Schließen</button>
+      </div>
+    </div>
   </div>
 </div>
 

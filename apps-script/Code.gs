@@ -42,10 +42,12 @@ function doPost(e) {
     }
 
     switch (data.type) {
-      case "person": return handlePerson_(data);
-      case "lauf":   return handleLauf_(data);
-      case "level":  return handleLevel_(data);
-      default:       return jsonOut_({ ok: false, error: "unknown type: " + data.type });
+      case "person":      return handlePerson_(data);
+      case "lauf":        return handleLauf_(data);
+      case "level":       return handleLevel_(data);
+      case "familiarity": return handleFamiliarity_(data);
+      case "feedback":    return handleFeedback_(data);
+      default:            return jsonOut_({ ok: false, error: "unknown type: " + data.type });
     }
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -61,7 +63,8 @@ function doGet(e) {
     return jsonOut_({ ok: false, error: "invalid token" });
   }
   var ss = getSpreadsheet_();
-  var tabs = ["Personendaten", "Durchlaeufe", "Level_Ergebnisse", "Drop_Versuche"];
+  var tabs = ["Personendaten", "Durchlaeufe", "Level_Ergebnisse", "Drop_Versuche",
+              "Bildwiedererkennung", "Feedback"];
   var data = {};
   tabs.forEach(function (name) {
     var sheet = ss.getSheetByName(name);
@@ -128,7 +131,30 @@ function handleLauf_(data) {
     data.devicePixelRatio || "", data.language || "", data.timezone || "",
     data.inputType || "", data.pageLoadMs || "",
   ]);
+  // Default-Wert fuer den Familiarity-Check (siehe handleFamiliarity_):
+  // "abgebrochen" wird ueberschrieben, sobald die Frage tatsaechlich
+  // beantwortet wird (Ja/Nein) - bleibt sonst stehen, wenn der Durchlauf
+  // vorher abgebrochen wurde. ensureColumn_ haengt die Spalte bei Bedarf
+  // an ein bereits bestehendes (live) Sheet an, ohne dessen Header-Reihen-
+  // folge zu veraendern.
+  var statusCol = ensureColumn_(sheet, "bekanntheit_status"); // 1-basiert
+  sheet.getRange(sheet.getLastRow(), statusCol).setValue("abgebrochen");
   return jsonOut_({ ok: true, laufId: run.laufId, durchlaufNr: run.durchlaufNr });
+}
+
+// Stellt sicher, dass die Kopfzeile von `sheet` eine Spalte `colName` hat -
+// haengt sie bei Bedarf hinten an, statt bestehende Spalten zu verschieben
+// (wichtig fuer das bereits live laufende Durchlaeufe-Tab mit echten Daten).
+// Gibt den 1-basierten Spaltenindex zurueck.
+function ensureColumn_(sheet, colName) {
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  var header = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var idx = header.indexOf(colName);
+  if (idx === -1) {
+    idx = header.length;
+    sheet.getRange(1, idx + 1).setValue(colName);
+  }
+  return idx + 1;
 }
 
 // ── Level_Ergebnisse + Drop_Versuche (nach jedem abgeschlossenen Level) ────
@@ -176,6 +202,67 @@ function handleLevel_(data) {
   });
 
   return jsonOut_({ ok: true, laufId: run.laufId, durchlaufNr: run.durchlaufNr });
+}
+
+// ── Familiarity-Check (einmalig pro lauf_id, am Spielende) ─────────────────
+// Ueberschreibt den bei handleLauf_ gesetzten Default "abgebrochen" in der
+// Durchlaeufe-Zeile mit "ja"/"nein" und schreibt bei "ja" zusaetzlich eine
+// Zeile pro markiertem/benanntem Bild nach Bildwiedererkennung - damit Julian
+// diese Datenpunkte in der Level_Ergebnisse-Auswertung im Nachhinein gezielt
+// ausschliessen kann (siehe CLAUDE.md).
+function handleFamiliarity_(data) {
+  var run = resolveRun_(data.participantId, data.runToken);
+  var laufSheet = getOrCreateTab_("Durchlaeufe", [
+    "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
+    "user_agent", "screen_w", "screen_h", "viewport_w", "viewport_h",
+    "device_pixel_ratio", "sprache", "zeitzone", "input_typ", "page_load_ms",
+  ]);
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var statusCol = ensureColumn_(laufSheet, "bekanntheit_status");
+    var values = laufSheet.getDataRange().getValues();
+    var header = values[0];
+    var laufCol = header.indexOf("lauf_id");
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][laufCol] === run.laufId) {
+        laufSheet.getRange(i + 1, statusCol).setValue(data.status || "");
+        break;
+      }
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  var markedImages = data.markedImages || [];
+  if (markedImages.length) {
+    var sheet = getOrCreateTab_("Bildwiedererkennung", [
+      "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
+      "level", "region_name",
+    ]);
+    markedImages.forEach(function (m) {
+      sheet.appendRow([
+        new Date(), data.timestampClient || "", data.participantId || "",
+        run.laufId, run.durchlaufNr, m.level || "", m.name || "",
+      ]);
+    });
+  }
+  return jsonOut_({ ok: true });
+}
+
+// ── Feedback (optional, aus dem Abschlusspopup) ─────────────────────────────
+function handleFeedback_(data) {
+  var run = resolveRun_(data.participantId, data.runToken);
+  var sheet = getOrCreateTab_("Feedback", [
+    "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
+    "feedback_text",
+  ]);
+  sheet.appendRow([
+    new Date(), data.timestampClient || "", data.participantId || "",
+    run.laufId, run.durchlaufNr, data.feedbackText || "",
+  ]);
+  return jsonOut_({ ok: true });
 }
 
 /**
