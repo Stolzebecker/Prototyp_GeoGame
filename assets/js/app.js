@@ -1286,9 +1286,9 @@ function openShareFallbackModal_(text, url){
   // Zwischenablage kopieren und die Plattform in einem neuen Tab oeffnen.
   const clipboardText = text + '\n\n👉 ' + emailIntro + ' ' + url;
   const whatsappClipboardText = buildShareText_(true) + '\n\n👉 ' + emailIntro + ' ' + url;
-  document.getElementById('share-whatsapp').onclick = () => copyThenOpen_(whatsappClipboardText, 'https://wa.me/', 'WhatsApp');
-  document.getElementById('share-instagram').onclick = () => copyThenOpen_(clipboardText, 'https://www.instagram.com/', 'Instagram');
-  document.getElementById('share-tiktok').onclick = () => copyThenOpen_(clipboardText, 'https://www.tiktok.com/upload', 'TikTok');
+  document.getElementById('share-whatsapp').onclick = () => copyThenOpen_(whatsappClipboardText, 'https://web.whatsapp.com/', 'WhatsApp');
+  document.getElementById('share-instagram').onclick = () => copyThenOpen_(clipboardText, 'https://www.instagram.com/direct/inbox/', 'Instagram');
+  document.getElementById('share-tiktok').onclick = () => copyThenOpen_(clipboardText, 'https://www.tiktok.com/', 'TikTok');
   document.getElementById('share-copy-hint').style.display = 'none';
 
   document.getElementById('share-fallback-modal').classList.add('active');
