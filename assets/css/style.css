@@ -47,6 +47,17 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── VORLADE-OVERLAY (seit 2026-08-26) ── */
+#preload-overlay{position:fixed;inset:0;z-index:3600;display:none;flex-direction:column;
+  align-items:center;justify-content:center;background:var(--bg);gap:18px}
+#preload-overlay.active{display:flex}
+#preload-text{font-family:var(--font-ui);font-size:13px;
+  color:var(--muted);letter-spacing:.1em}
+#preload-bar-wrap{width:220px;height:6px;background:var(--panel-dark);
+  border-radius:3px;overflow:hidden;}
+#preload-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .3s ease;border-radius:3px;}
+
 #start-screen{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;
   justify-content:flex-end;transition:opacity .4s;
   /* background image set via inline style in index.html */
@@ -353,6 +364,7 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 #leaderboard-panel{text-align:center;}
 #leaderboard-disqualified-note{color:var(--warn);font-size:13px;}
 #leaderboard-own-rank{color:#0a3f70;font-weight:600;font-size:13px;min-height:1em;}
+.leaderboard-loading{text-align:center;color:var(--muted);font-style:italic;}
 #leaderboard-full-table{min-width:0;width:100%;}
 #leaderboard-full-modal .legal-modal-card{max-width:520px;max-height:80vh;overflow:auto;}
 .percentile-cell{color:var(--muted);font-size:12px;}

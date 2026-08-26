@@ -30,6 +30,15 @@
   <div id="loading-text">LADE KONFIGURATION …</div>
 </div>
 
+<!-- Vorlade-Overlay (seit 2026-08-26): laedt alle 8 Session-Level (Bild +
+     GeoJSON) VOR Spielbeginn, damit waehrend des Durchlaufs keine
+     Ladefehler-Meldung mehr auftreten kann - siehe app.js: preloadSessionLevels() -->
+<div id="preload-overlay">
+  <div class="spinner"></div>
+  <div id="preload-text">Level werden vorbereitet …</div>
+  <div id="preload-bar-wrap"><div id="preload-bar"></div></div>
+</div>
+
 <div id="start-screen" style="display:none; background-image:url('./Bilder/Deko_und_UI/Startscreen.png'); background-size:cover; background-position:center;">
   <div class="start-panel">
     <h1>SCOPE</h1>

@@ -168,14 +168,20 @@ async function loadLevel(i){
     elSatImg.src=lv.imgSrc;
   });
 
-  let geojson;
-  try{
-    const res=await fetch(lv.geojsonSrc);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    geojson=await res.json();
-  }catch(e){
-    showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
-    console.error(e); return;
+  // Normalfall: bereits von preloadSessionLevels() geladen+verifiziert, kein
+  // erneuter Fetch noetig. Fallback-Fetch bleibt als Sicherheitsnetz fuer
+  // Pfade, die preloadSessionLevels() nicht durchlaufen (Uebungsrunde via
+  // loadLevelSilent(), Debug-Panel-Levelnavigation auf beliebige Rohindizes).
+  let geojson = _preloadedGeojson[i];
+  if(!geojson){
+    try{
+      const res=await fetch(lv.geojsonSrc);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      geojson=await res.json();
+    }catch(e){
+      showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
+      console.error(e); return;
+    }
   }
 
   buildZones(geojson, lv.bounds);
@@ -846,18 +852,93 @@ function nextLevel(){
 // zugeschnitten, ist aequivalent zu einer zufaelligen K-Teilmenge in
 // zufaelliger Reihenfolge - kein separater Auswahlschritt noetig.
 const LEVELS_PER_SESSION = 8;
+let _fullShuffledPool = []; // voller Pool in Zufallsreihenfolge, ueber LEVELS_PER_SESSION
+                             // hinaus als Ersatzreserve fuer preloadSessionLevels()
 function buildLevelOrder(){
   const pool = CONFIG.levels.map((_, i) => i).slice(1);
   for(let i=pool.length-1; i>0; i--){
     const j = Math.floor(Math.random()*(i+1));
     [pool[i],pool[j]] = [pool[j],pool[i]];
   }
+  _fullShuffledPool = pool;
   levelOrder = pool.slice(0, LEVELS_PER_SESSION);
   orderPos = 0;
 }
-function startShuffledExperiment(){
+async function startShuffledExperiment(){
   buildLevelOrder();
+  await preloadSessionLevels();
   loadLevel(levelOrder[orderPos]);
+}
+
+// ── Vorladen der Session-Level (seit 2026-08-26) ────────────────
+// Laedt Bild + GeoJSON aller levelOrder-Eintraege VOR Spielbeginn und
+// verifiziert sie, statt das erst waehrend loadLevel() je Level zu tun -
+// verhindert eine Ladefehler-Meldung MITTEN im Durchlauf (Julians Testfund
+// 2026-08-26, siehe CLAUDE.md). Ein Level, das nach mehreren Versuchen
+// nicht laedt, wird durch ein anderes, noch nicht gezogenes Pool-Bild aus
+// _fullShuffledPool ersetzt; erst wenn auch der Ersatzvorrat erschoepft
+// ist, wird der Slot ersatzlos aus levelOrder entfernt (lieber ein Level
+// weniger als ein defekter Durchlauf).
+const _preloadedGeojson = {}; // level-index -> bereits geparstes GeoJSON (spart erneuten Fetch in loadLevel())
+
+function preloadImage_(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('Bild fehlgeschlagen: '+src));
+    img.src = src;
+  });
+}
+
+async function preloadOneLevel_(levelIdx){
+  const lv = CONFIG.levels[levelIdx];
+  const maxAttempts = 3;
+  for(let attempt=1; attempt<=maxAttempts; attempt++){
+    try{
+      const [geojson] = await Promise.all([
+        fetch(lv.geojsonSrc).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+        preloadImage_(lv.imgSrc),
+      ]);
+      _preloadedGeojson[levelIdx] = geojson;
+      return true;
+    }catch(e){
+      console.warn(`[preload] ${lv.id}: Versuch ${attempt}/${maxAttempts} fehlgeschlagen -`, e);
+      if(attempt < maxAttempts) await new Promise(r=>setTimeout(r, 600));
+    }
+  }
+  return false;
+}
+
+async function preloadSessionLevels(){
+  const overlay = document.getElementById('preload-overlay');
+  overlay.classList.add('active');
+  updatePreloadProgress_(0, levelOrder.length);
+
+  const replacementPool = _fullShuffledPool.slice(LEVELS_PER_SESSION);
+  let pos = 0;
+  while(pos < levelOrder.length){
+    const ok = await preloadOneLevel_(levelOrder[pos]);
+    if(ok){
+      pos++;
+      updatePreloadProgress_(pos, levelOrder.length);
+      continue;
+    }
+    if(replacementPool.length){
+      levelOrder[pos] = replacementPool.shift(); // gleicher Slot, neuer Versuch mit Ersatz-Level
+    } else {
+      levelOrder.splice(pos, 1); // kein Ersatz mehr da, Slot ersatzlos entfernen
+      updatePreloadProgress_(pos, levelOrder.length);
+    }
+  }
+
+  overlay.classList.remove('active');
+}
+
+function updatePreloadProgress_(done, total){
+  document.getElementById('preload-text').textContent =
+    `Level werden vorbereitet … (${done}/${total})`;
+  document.getElementById('preload-bar').style.width =
+    (total ? Math.round(done/total*100) : 0) + '%';
 }
 
 // ── Ready / Countdown ───────────────────────────────────────
@@ -1091,9 +1172,22 @@ function loadLeaderboard_(percentileCells, totalErrors){
   const disqualified = totalErrors > DISQUALIFY_ERROR_THRESHOLD;
   document.getElementById('leaderboard-disqualified-note').style.display = disqualified ? 'block' : 'none';
 
+  // Sichtbarer Ladezustand statt stiller Wartezeit (Julians Testfund
+  // 2026-08-26: die Bestenliste laedt spuerbar nach - Apps-Script-Latenz
+  // laesst sich nicht wegzaubern, aber ohne Hinweis wirkt das wie ein Fehler).
+  const ownRankEl = document.getElementById('leaderboard-own-rank');
+  ownRankEl.textContent = disqualified ? '' : 'Bestenliste wird geladen …';
+  document.getElementById('leaderboard-body').innerHTML =
+    '<tr><td colspan="4" class="leaderboard-loading">Lädt …</td></tr>';
+
   const levelTimes = results.map(r => ({level: r.image, timeMs: r.time}));
   fetchLeaderboard(levelTimes).then(data => {
-    if(!data || !data.ok) return;
+    if(!data || !data.ok){
+      document.getElementById('leaderboard-body').innerHTML =
+        '<tr><td colspan="4" class="leaderboard-loading">Bestenliste konnte nicht geladen werden.</td></tr>';
+      if(!disqualified) ownRankEl.textContent = '';
+      return;
+    }
 
     Object.keys(data.percentiles || {}).forEach(level=>{
       const cell = percentileCells[level];
@@ -1104,7 +1198,6 @@ function loadLeaderboard_(percentileCells, totalErrors){
 
     renderLeaderboardRows_('leaderboard-body', data.top10 || []);
 
-    const ownRankEl = document.getElementById('leaderboard-own-rank');
     if(disqualified){
       ownRankEl.textContent = '';
     } else if(data.myRank){
