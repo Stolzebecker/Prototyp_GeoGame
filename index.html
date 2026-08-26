@@ -186,21 +186,31 @@
 
 <div id="results-screen">
   <h1>Experiment abgeschlossen</h1>
-  <table>
-    <thead><tr><th>Bild</th><th>Zeit (ms)</th><th>Zeit (s)</th><th>Fehler</th><th>Perzentil</th></tr></thead>
-    <tbody id="results-body"></tbody>
-  </table>
 
-  <!-- Bestenliste (seit 2026-08-26) -->
-  <div id="leaderboard-panel">
-    <h2>Bestenliste</h2>
-    <p id="leaderboard-disqualified-note" style="display:none">Dieser Durchlauf hat mehr als 5 Fehler und erscheint daher nicht in der Bestenliste.</p>
-    <p id="leaderboard-own-rank"></p>
-    <table id="leaderboard-table">
-      <thead><tr><th>#</th><th>Alias</th><th>Gesamtzeit (s)</th><th>Fehler</th></tr></thead>
-      <tbody id="leaderboard-body"></tbody>
-    </table>
-    <button type="button" class="secondary" id="leaderboard-full-btn" onclick="openFullLeaderboard()">Vollständige Liste anzeigen ›</button>
+  <div id="results-tables-row">
+    <div class="results-col">
+      <h2>Deine Ergebnisse</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Bild</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th><th class="num">Perzentil</th></tr></thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bestenliste (seit 2026-08-26) -->
+    <div class="results-col" id="leaderboard-panel">
+      <h2>Bestenliste</h2>
+      <p id="leaderboard-disqualified-note" style="display:none">Dieser Durchlauf hat mehr als 5 Fehler und erscheint daher nicht in der Bestenliste.</p>
+      <p id="leaderboard-own-rank"></p>
+      <div class="table-scroll">
+        <table id="leaderboard-table">
+          <thead><tr><th class="num">#</th><th>Name</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th></tr></thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+      <button type="button" class="secondary" id="leaderboard-full-btn" onclick="openFullLeaderboard()">Vollständige Liste anzeigen ›</button>
+    </div>
   </div>
 
   <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
@@ -215,7 +225,7 @@
   <div class="legal-modal-card">
     <h1>Vollständige Bestenliste</h1>
     <table id="leaderboard-full-table">
-      <thead><tr><th>#</th><th>Alias</th><th>Gesamtzeit (s)</th><th>Fehler</th></tr></thead>
+      <thead><tr><th class="num">#</th><th>Name</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th></tr></thead>
       <tbody id="leaderboard-full-body"></tbody>
     </table>
     <button type="button" onclick="closeFullLeaderboard()">Schließen</button>

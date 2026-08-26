@@ -1072,13 +1072,13 @@ function showResults(){
     const tr=document.createElement('tr');
     tr.className='results-row';
     tr.title='Klicken für Bildvorschau';
-    tr.innerHTML=`<td>${r.image}</td><td>${r.time}</td><td>${(r.time/1000).toFixed(2)}</td><td>${r.errors}</td><td class="percentile-cell">…</td>`;
+    tr.innerHTML=`<td>${r.image}</td><td class="num">${(r.time/1000).toFixed(2)}</td><td class="num">${r.errors}</td><td class="num percentile-cell">…</td>`;
     tr.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
     body.appendChild(tr);
     percentileCells[r.image] = tr.querySelector('.percentile-cell');
   });
   const s=document.createElement('tr');
-  s.innerHTML=`<td>GESAMT</td><td>${tm}</td><td>${(tm/1000).toFixed(2)}</td><td>${te}</td><td></td>`;
+  s.innerHTML=`<td>GESAMT</td><td class="num">${(tm/1000).toFixed(2)}</td><td class="num">${te}</td><td></td>`;
   body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
 
@@ -1120,7 +1120,7 @@ function renderLeaderboardRows_(tbodyId, rows){
   tbody.innerHTML = '';
   rows.forEach(r=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.rank}</td><td>${escapeHtml_(r.alias)}</td><td>${(r.totalTimeMs/1000).toFixed(2)}</td><td>${r.totalErrors}</td>`;
+    tr.innerHTML = `<td class="num">${r.rank}</td><td>${escapeHtml_(r.alias)}</td><td class="num">${(r.totalTimeMs/1000).toFixed(2)}</td><td class="num">${r.totalErrors}</td>`;
     tbody.appendChild(tr);
   });
 }
