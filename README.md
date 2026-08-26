@@ -70,7 +70,7 @@ Python-Scripts laufen **lokal**, nie auf dem Server.
 
 Muss **einmalig manuell** eingerichtet werden, bevor echte Daten erhoben werden können:
 
-1. Neues Google Sheet anlegen (leer, Name z. B. "GeoGame Ergebnisse"). Die vier Tabs (Personendaten, Durchlaeufe, Level_Ergebnisse, Drop_Versuche) werden beim ersten Request automatisch mit Kopfzeile angelegt — nichts manuell vorbereiten.
+1. Neues Google Sheet anlegen (leer, Name z. B. "GeoGame Ergebnisse"). Die Tabs (Personendaten, Durchlaeufe, Level_Ergebnisse, Drop_Versuche, Bildwiedererkennung, Post_Befragung, Feedback) werden beim ersten Request automatisch mit Kopfzeile angelegt — nichts manuell vorbereiten.
 2. Im Sheet: Erweiterungen → Apps Script. Den Inhalt von `apps-script/Code.gs` einfügen.
 3. In `Code.gs`: `SPREADSHEET_ID` eintragen (aus der Sheet-URL zwischen `/d/` und `/edit`).
 4. Bereitstellen → Neue Bereitstellung → Web-App. Ausführen als "Ich", Zugriff "Jeder". Deployen, die ausgegebene Web-App-URL kopieren.
@@ -82,7 +82,7 @@ Solange `SUBMIT_URL` noch den Platzhalter enthält, werden Telemetrie-Payloads n
 
 **Fallstrick:** Das Sheet-eigene Menü "Erweiterungen → Apps Script" öffnet ein *anderes*, leeres, nie deploytes Projekt — das echte Backend ist das **eigenständige** Apps-Script-Projekt "GeoGame Backend", zu finden über script.google.com/home/my (blauer Pfeil-Icon, nicht das grüne Sheet-Icon).
 
-`Code.gs` enthält neben `doPost` (Schreiben, siehe oben) auch `doGet` mit einem eigenen `READ_TOKEN` — liefert alle vier Tabs als JSON fürs Auswertungs-Dashboard (`00_Tests und AdHoc/VisualComplexity_Game/Auswertung/GeoGame_Dashboard.html`), ohne dass das Sheet selbst öffentlich freigegeben werden muss. Der `READ_TOKEN` gehört **nicht** in den öffentlichen Client-Code.
+`Code.gs` enthält neben `doPost` (Schreiben, siehe oben) auch `doGet` mit einem eigenen `READ_TOKEN` — liefert alle Tabs als JSON fürs Auswertungs-Dashboard (`00_Tests und AdHoc/VisualComplexity_Game/Auswertung/GeoGame_Dashboard.html`), ohne dass das Sheet selbst öffentlich freigegeben werden muss. Der `READ_TOKEN` gehört **nicht** in den öffentlichen Client-Code.
 
 ---
 

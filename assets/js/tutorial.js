@@ -73,11 +73,13 @@ const TUT_TEXTS = {
     formStudienfach: 'Studienfach (falls zutreffend)',
     formGis:         'Vorerfahrung mit Kartenlesen / GIS / Fernerkundung',
     formGeschlecht:  'Geschlecht',
+    formGeraet:      'Womit nehmen Sie teil?',
     formOptionLeer:  'Keine Angabe',
     formContinue:    'Weiter zum Tutorial',
     formBildungOptions: ['Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
     formGisOptions: ['Keine Erfahrung','Grundkenntnisse','Fortgeschritten','Experte'],
     formGeschlechtOptions: ['Männlich','Weiblich','Divers'],
+    formGeraetOptions: ['Computer/Laptop','Tablet','Handy'],
   },
   en: {
     info: [
@@ -145,11 +147,13 @@ const TUT_TEXTS = {
     formStudienfach: 'Field of study (if applicable)',
     formGis:         'Prior experience with map reading / GIS / remote sensing',
     formGeschlecht:  'Gender',
+    formGeraet:      'What are you using to participate?',
     formOptionLeer:  'Prefer not to say',
     formContinue:    'Continue to tutorial',
     formBildungOptions: ['Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
     formGisOptions: ['No experience','Basic knowledge','Advanced','Expert'],
     formGeschlechtOptions: ['Male','Female','Non-binary'],
+    formGeraetOptions: ['Computer/Laptop','Tablet','Phone'],
   },
 };
 
@@ -304,6 +308,8 @@ function showPersonFormScreen() {
         '<select id="pf-gis">' + opts(texts.formGisOptions) + '</select></div>' +
       '<div class="tut-form-row"><label>' + texts.formGeschlecht + '</label>' +
         '<select id="pf-geschlecht">' + opts(texts.formGeschlechtOptions) + '</select></div>' +
+      '<div class="tut-form-row"><label>' + texts.formGeraet + '</label>' +
+        '<select id="pf-geraet">' + opts(texts.formGeraetOptions) + '</select></div>' +
       '<div class="tut-btn-row">' +
         '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
       '</div>' +
@@ -317,6 +323,7 @@ function onPersonFormContinue() {
     studienfach: document.getElementById('pf-studienfach').value,
     gisErfahrung: document.getElementById('pf-gis').value,
     geschlecht: document.getElementById('pf-geschlecht').value,
+    geraet: document.getElementById('pf-geraet').value,
   });
   document.getElementById('tutorial-info-screen').classList.remove('active');
   startOverlayTutorial();

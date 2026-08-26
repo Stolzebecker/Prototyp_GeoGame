@@ -1,6 +1,6 @@
 /**
  * Empfaengt die Ergebnisse des EO Visual Complexity Experiments (GeoGame) per
- * POST und schreibt sie in vier verknuepfte Tabs eines Google Sheets.
+ * POST und schreibt sie in verknuepfte Tabs eines Google Sheets.
  * Analoges Muster zum TIER-List-Backend (siehe
  * 03_Projektphasen/02_Empirische Datenerhebung/TIERList/apps-script/Code.gs),
  * aber mit eigenem Sheet, eigenem Token und einem zusaetzlichen
@@ -8,10 +8,13 @@
  * die Web-App-URL vom Browser der Probandin/des Probanden aufgerufen.
  *
  * Tabs:
- *   Personendaten   -- 1 Zeile pro participant_id (nur beim allerersten Formular)
- *   Durchlaeufe     -- 1 Zeile pro lauf_id (Geraete-/Browser-Metadaten je Durchlauf)
- *   Level_Ergebnisse-- 1 Zeile pro Level+Label (aggregierte Kennzahlen)
- *   Drop_Versuche   -- 1 Zeile pro einzelnem Ablage-Versuch (inkl. Fehlversuche)
+ *   Personendaten      -- 1 Zeile pro participant_id (nur beim allerersten Formular)
+ *   Durchlaeufe        -- 1 Zeile pro lauf_id (Geraete-/Browser-Metadaten je Durchlauf)
+ *   Level_Ergebnisse   -- 1 Zeile pro Level+Label (aggregierte Kennzahlen)
+ *   Drop_Versuche      -- 1 Zeile pro einzelnem Ablage-Versuch (inkl. Fehlversuche)
+ *   Bildwiedererkennung-- 1 Zeile pro als bekannt markiertem/benanntem Bild
+ *   Post_Befragung     -- 1 Zeile pro lauf_id (Konzentration/Ort/Ablenkung/Wachheit)
+ *   Feedback           -- 1 Zeile pro abgeschicktem Freitext-Feedback
  */
 
 // Muss exakt mit SUBMIT_TOKEN in assets/js/telemetry.js uebereinstimmen; bei
@@ -46,6 +49,7 @@ function doPost(e) {
       case "lauf":        return handleLauf_(data);
       case "level":       return handleLevel_(data);
       case "familiarity": return handleFamiliarity_(data);
+      case "post_survey": return handlePostSurvey_(data);
       case "feedback":    return handleFeedback_(data);
       default:            return jsonOut_({ ok: false, error: "unknown type: " + data.type });
     }
@@ -64,7 +68,7 @@ function doGet(e) {
   }
   var ss = getSpreadsheet_();
   var tabs = ["Personendaten", "Durchlaeufe", "Level_Ergebnisse", "Drop_Versuche",
-              "Bildwiedererkennung", "Feedback"];
+              "Bildwiedererkennung", "Post_Befragung", "Feedback"];
   var data = {};
   tabs.forEach(function (name) {
     var sheet = ss.getSheetByName(name);
@@ -112,6 +116,10 @@ function handlePerson_(data) {
     data.alter || "", data.bildungsabschluss || "", data.studienfach || "",
     data.gisErfahrung || "", data.geschlecht || "",
   ]);
+  // Geraetetyp (seit 2026-08-26) - per ensureColumn_ selbstheilend angehaengt,
+  // gleiches Muster wie bekanntheit_status in handleLauf_ (siehe dort).
+  var geraetCol = ensureColumn_(sheet, "geraet");
+  sheet.getRange(sheet.getLastRow(), geraetCol).setValue(data.geraet || "");
   return jsonOut_({ ok: true });
 }
 
@@ -248,6 +256,24 @@ function handleFamiliarity_(data) {
       ]);
     });
   }
+  return jsonOut_({ ok: true });
+}
+
+// ── Post-Befragung (einmalig pro lauf_id, zusammen mit dem Familiarity-Check
+// abgeschickt) ── Platzhalterfragen (Konzentration/Ort/Ablenkung/Wachheit),
+// bewusst austauschbar gegen literaturbasierte Items - siehe HTML-Kommentar
+// bei #familiarity-modal in index.html und CLAUDE.md.
+function handlePostSurvey_(data) {
+  var run = resolveRun_(data.participantId, data.runToken);
+  var sheet = getOrCreateTab_("Post_Befragung", [
+    "empfangen_am", "timestamp_client", "participant_id", "lauf_id", "durchlauf_nr",
+    "konzentration_1_5", "aufenthaltsort", "ablenkung_1_5", "wachheit_1_5",
+  ]);
+  sheet.appendRow([
+    new Date(), data.timestampClient || "", data.participantId || "",
+    run.laufId, run.durchlaufNr,
+    data.konzentration || "", data.ort || "", data.ablenkung || "", data.wachheit || "",
+  ]);
   return jsonOut_({ ok: true });
 }
 

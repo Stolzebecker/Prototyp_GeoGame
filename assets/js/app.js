@@ -76,10 +76,11 @@ let klasseColour = {};  // klasse → {fill, stroke}
 // nur die Checkboxen (kein QA-Bedienfeld) und ist eigenstaendig vom D-Modus.
 let hintActive = false;
 
-// Familiarity-Check + Feedback am Spielende (siehe finishExperiment())
+// Familiarity-Check + Post-Abfrage + Feedback am Spielende (siehe finishExperiment())
 let familiarityStatus = null;     // 'ja' | 'nein' | null
 let familiarityMarks = {};        // level id → {name}
 let familiarityEditingLevel = null;
+const POST_SURVEY_LIKERT_QUESTIONS = ['konzentration', 'ablenkung', 'wachheit'];
 
 // DOM refs
 let elStage, elSatImg, elLoupe, elLoupeCanvas, elLoupeCtx,
@@ -923,10 +924,27 @@ function showFeedback(msg,type){
 // bewusst und ruft showResults() direkt auf.
 function finishExperiment(){
   stopTimer();
+  document.querySelectorAll('#familiarity-modal input[type=radio]').forEach(r=>{ r.checked = false; });
+  document.getElementById('pq-ort').value = '';
   document.getElementById('familiarity-modal').classList.add('active');
 }
 
+// Liest die 4 Platzhalterfragen aus (siehe HTML-Kommentar bei #familiarity-modal:
+// austauschbar angelegt) und liefert sie zusammen mit dem Bekanntheits-Status an
+// submitPostSurvey() (telemetry.js) - fest an den Klick auf Nein/Ja gekoppelt,
+// da das dieselbe "Post-Abfrage" ist wie der Familiarity-Check.
+function readPostSurveyAnswers_(){
+  const answers = { ort: document.getElementById('pq-ort').value.trim() };
+  POST_SURVEY_LIKERT_QUESTIONS.forEach(q=>{
+    const checked = document.querySelector(`input[name="pq-${q}"]:checked`);
+    answers[q] = checked ? checked.value : '';
+  });
+  return answers;
+}
+
 function familiarityAnswer(yes){
+  const postSurveyAnswers = readPostSurveyAnswers_();
+  submitPostSurvey(postSurveyAnswers);
   document.getElementById('familiarity-modal').classList.remove('active');
   if(yes){
     familiarityStatus = 'ja';

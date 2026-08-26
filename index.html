@@ -37,7 +37,7 @@
     <button id="btn-start" onclick="startTutorial()">Experiment starten ›</button>
   </div>
   <footer id="app-footer" class="app-footer">
-    <span>Hintergrundbild Startbildschirm mit Google Gemini erstellt.</span>
+    <span>Hintergrundbild Startbildschirm mit OpenAI GPT-Image-2 erstellt.</span>
     <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
     <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
     <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
@@ -75,7 +75,7 @@
   <div class="legal-modal-card">
     <h1>Quellenangaben</h1>
     <p>Satellitenbilder: Enthalten modifizierte Copernicus-Sentinel-Daten, Sentinel-2 L2A, Copernicus Data Space Ecosystem. Rechtsgrundlage: Legal notice on the use of Copernicus Sentinel Data and Service Information (VO (EU) 377/2014, Delegierte VO (EU) 1159/2013).</p>
-    <p>Hintergrundbild Startbildschirm: mit Google Gemini erstellt (KI-generiertes Bild, keine reale Aufnahme).</p>
+    <p>Hintergrundbild Startbildschirm: mit OpenAI GPT-Image-2 erstellt (KI-generiertes Bild, keine reale Aufnahme).</p>
     <button type="button" onclick="closeLegalModal('quellen')">Schließen</button>
   </div>
 </div>
@@ -208,11 +208,61 @@
   </div>
 </div>
 
-<!-- Familiarity-Check: Yes/No, nach dem letzten Level, vor dem Abschlusspopup -->
+<!-- Post-Abfrage: Konzentration/Ablenkung/Ort (Platzhalterfragen) + Bekanntheit-Check,
+     nach dem letzten Level, vor dem Abschlusspopup. Die 4 Platzhalterfragen sind bewusst
+     austauschbar angelegt (siehe CLAUDE.md) - Fragetexte/Skalen können jederzeit durch
+     literaturbasierte Items ersetzt werden, ohne Markup/Logik drumherum anzufassen. -->
 <div id="familiarity-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Bekannte Landschaften?</h1>
-    <p>Kannten Sie eine oder mehrere der gezeigten Landschaften bereits, z.&nbsp;B. weil Sie den Ort schon einmal besucht oder das Gebiet schon einmal auf einer Karte/einem Foto gesehen haben?</p>
+    <h1>Noch ein paar Fragen zum Abschluss</h1>
+
+    <div class="pq-question">
+      <p class="pq-label">Wie konzentriert waren Sie während des Spiels? <span class="pq-placeholder-tag">Platzhalterfrage 1</span></p>
+      <div class="likert-row" data-question="konzentration">
+        <span class="likert-end">gar nicht</span>
+        <label><input type="radio" name="pq-konzentration" value="1">1</label>
+        <label><input type="radio" name="pq-konzentration" value="2">2</label>
+        <label><input type="radio" name="pq-konzentration" value="3">3</label>
+        <label><input type="radio" name="pq-konzentration" value="4">4</label>
+        <label><input type="radio" name="pq-konzentration" value="5">5</label>
+        <span class="likert-end">sehr</span>
+      </div>
+    </div>
+
+    <div class="pq-question">
+      <p class="pq-label">Wo befanden Sie sich während des Spielens? <span class="pq-placeholder-tag">Platzhalterfrage 2</span></p>
+      <input type="text" id="pq-ort" placeholder="z. B. zuhause am Schreibtisch, unterwegs, …">
+    </div>
+
+    <div class="pq-question">
+      <p class="pq-label">Wurden Sie während des Spiels unterbrochen oder abgelenkt (z.&nbsp;B. durch andere Personen, Geräusche, Benachrichtigungen)? <span class="pq-placeholder-tag">Platzhalterfrage 3</span></p>
+      <div class="likert-row" data-question="ablenkung">
+        <span class="likert-end">gar nicht</span>
+        <label><input type="radio" name="pq-ablenkung" value="1">1</label>
+        <label><input type="radio" name="pq-ablenkung" value="2">2</label>
+        <label><input type="radio" name="pq-ablenkung" value="3">3</label>
+        <label><input type="radio" name="pq-ablenkung" value="4">4</label>
+        <label><input type="radio" name="pq-ablenkung" value="5">5</label>
+        <span class="likert-end">sehr stark</span>
+      </div>
+    </div>
+
+    <div class="pq-question">
+      <p class="pq-label">Wie wach/ausgeruht waren Sie beim Spielen? <span class="pq-placeholder-tag">Platzhalterfrage 4</span></p>
+      <div class="likert-row" data-question="wachheit">
+        <span class="likert-end">sehr müde</span>
+        <label><input type="radio" name="pq-wachheit" value="1">1</label>
+        <label><input type="radio" name="pq-wachheit" value="2">2</label>
+        <label><input type="radio" name="pq-wachheit" value="3">3</label>
+        <label><input type="radio" name="pq-wachheit" value="4">4</label>
+        <label><input type="radio" name="pq-wachheit" value="5">5</label>
+        <span class="likert-end">hellwach</span>
+      </div>
+    </div>
+
+    <div class="pq-question">
+      <p class="pq-label">Kannten Sie eine oder mehrere der gezeigten Landschaften bereits, z.&nbsp;B. weil Sie den Ort schon einmal besucht oder das Gebiet schon einmal auf einer Karte/einem Foto gesehen haben?</p>
+    </div>
     <div class="familiarity-modal-actions">
       <button type="button" class="secondary" onclick="familiarityAnswer(false)">Nein</button>
       <button type="button" class="primary" onclick="familiarityAnswer(true)">Ja</button>

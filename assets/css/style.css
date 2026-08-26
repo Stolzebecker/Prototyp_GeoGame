@@ -426,6 +426,17 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 }
 .legal-modal-card input[type=text]:focus,
 .legal-modal-card textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.pq-question{margin-bottom:16px;text-align:left;}
+.pq-label{font-weight:600;font-size:0.92rem;color:#2a2a2a;margin-bottom:8px;line-height:1.5;}
+.pq-placeholder-tag{font-weight:400;font-size:0.72rem;color:var(--muted);
+  border:1px solid var(--line);border-radius:3px;padding:1px 6px;margin-left:4px;
+  white-space:nowrap;}
+.pq-question input[type=text]{margin-top:0;}
+.likert-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.likert-end{font-size:0.78rem;color:var(--muted);}
+.likert-row label{display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:0.78rem;color:var(--muted);cursor:pointer;}
+.likert-row input[type=radio]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
 .familiarity-modal-actions{display:flex;gap:10px;justify-content:flex-end;
   flex-wrap:wrap;margin-top:14px;}
 .familiarity-modal-actions button{margin-top:0;}

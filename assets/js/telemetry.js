@@ -156,6 +156,7 @@ function submitPersonData(fields){
     studienfach: fields.studienfach,
     gisErfahrung: fields.gisErfahrung,
     geschlecht: fields.geschlecht,
+    geraet: fields.geraet,
   });
 }
 
@@ -185,6 +186,16 @@ function submitFamiliarity(status, markedImages){
     status: status,
     markedImages: markedImages || [],
   });
+}
+
+// answers: {konzentration, ort, ablenkung, wachheit} (siehe POST_SURVEY_LIKERT_QUESTIONS
+// in app.js) - Platzhalter-Fragen, austauschbar gegen literaturbasierte Items.
+function submitPostSurvey(answers){
+  sendToBackend_(Object.assign({
+    type: 'post_survey',
+    participantId: getParticipantId(),
+    runToken: _runToken,
+  }, answers));
 }
 
 function submitFeedback(feedbackText){
