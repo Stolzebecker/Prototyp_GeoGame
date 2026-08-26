@@ -26,8 +26,62 @@ const SUBMIT_TOKEN = "gg_5f2a9c14e8b6d0317f4a2c9e6b8d1053";
 
 const LS_PARTICIPANT_ID = "geogame_participant_id";
 
+// ── Testmodus (geheim, per Taste T + Passwort) ────────────────
+// Unterdrueckt jede Uebertragung ans Backend, damit QA-/Testlaeufe nicht in
+// der echten Tabelle landen. Bewusst NICHT persistent (kein localStorage-Flag
+// fuer den Modus selbst) und mit einer frischen, rein speicherresidenten
+// Test-Identitaet pro Aktivierung, damit auch der Erstbesuch-Ablauf
+// (Formular/Tutorial) beliebig oft wiederholt getestet werden kann, ohne den
+// echten geraeteweiten participant_id-Zustand zu beruehren. Das ist keine
+// echte Sicherheitsmassnahme (Client-JS, per DevTools auslesbar) - nur ein
+// Schutz gegen versehentliches Ausloesen durch normale Spieler.
+const TEST_MODE_PASSWORD = "Claudius";
+let _testModeActive = false;
+let _testParticipantId = null;
+let _testModeBannerEl = null;
+
+function isTestModeActive(){
+  return _testModeActive;
+}
+
+function showTestModeBanner_(){
+  if(!_testModeBannerEl){
+    _testModeBannerEl = document.createElement('div');
+    _testModeBannerEl.textContent = 'TESTMODUS';
+    Object.assign(_testModeBannerEl.style, {
+      position: 'fixed', top: '8px', right: '8px', zIndex: 99999,
+      background: '#b71918', color: '#fff', fontFamily: "'Segoe UI', sans-serif",
+      fontWeight: '700', fontSize: '11px', letterSpacing: '.08em',
+      padding: '4px 10px', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      pointerEvents: 'none',
+    });
+    document.body.appendChild(_testModeBannerEl);
+  }
+  _testModeBannerEl.style.display = 'block';
+}
+function hideTestModeBanner_(){
+  if(_testModeBannerEl) _testModeBannerEl.style.display = 'none';
+}
+
+function toggleTestMode(){
+  if(_testModeActive){
+    _testModeActive = false;
+    _testParticipantId = null;
+    hideTestModeBanner_();
+    return;
+  }
+  const input = window.prompt('Passwort:');
+  if(input === TEST_MODE_PASSWORD){
+    _testModeActive = true;
+    _testParticipantId = 'test_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+    showTestModeBanner_();
+  }
+  // falsches Passwort: keine sichtbare Reaktion
+}
+
 // ── Teilnehmer-Identitaet ────────────────────────────────────
 function getParticipantId(){
+  if(_testModeActive) return _testParticipantId;
   let id = localStorage.getItem(LS_PARTICIPANT_ID);
   if(!id){
     id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
@@ -36,6 +90,7 @@ function getParticipantId(){
   return id;
 }
 function isFirstEverVisit(){
+  if(_testModeActive) return true;
   return localStorage.getItem(LS_PARTICIPANT_ID) === null;
 }
 
@@ -73,6 +128,10 @@ function collectDeviceMetadata(){
 
 // ── Low-level Uebertragung ───────────────────────────────────
 function sendToBackend_(payload){
+  if(_testModeActive){
+    console.log('[TESTMODUS] Übertragung unterdrückt:', payload);
+    return;
+  }
   if(!SUBMIT_URL || SUBMIT_URL.indexOf('TRAGE_HIER') === 0){
     console.warn('[telemetry] SUBMIT_URL noch nicht konfiguriert – Payload nur geloggt:', payload);
     return;

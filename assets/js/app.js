@@ -407,8 +407,15 @@ function showHint(){
   showFeedback('Lösung wird angezeigt', 'ok');
 }
 
+function isTypingTarget_(target){
+  if(!target) return false;
+  const tag = target.tagName;
+  return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || target.isContentEditable;
+}
+
 document.addEventListener('keydown',e=>{
   if(e.key==='d'||e.key==='D') toggleDebug();
+  if((e.key==='t'||e.key==='T') && !isTypingTarget_(e.target)) toggleTestMode();
 });
 
 // ── Render labels ───────────────────────────────────────────
