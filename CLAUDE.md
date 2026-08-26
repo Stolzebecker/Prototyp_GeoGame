@@ -45,6 +45,12 @@ Impressum-/Datenschutz-/Quellen-Modals sitzen in `index.html` (`#impressum-modal
 
 **Wichtiger Fallstrick beim Ändern der Formular-Skip-Logik:** `isFirstEverVisit()` muss immer VOR jedem Aufruf geprüft werden, der `getParticipantId()` transitiv aufruft (z. B. `submitLaufStart()`) — sonst legt der Metadaten-Versand den `participant_id` bereits an, bevor die Erstbesuch-Prüfung läuft, und das Formular wird fälschlich übersprungen (realer Bug, der beim Testen dieser Umsetzung auftrat und in `onConsentContinue()` gefixt wurde, indem `firstVisit` vorab in einer Variable festgehalten wird).
 
+**Zwei verschiedene "Tutorial überspringen"-Buttons — nicht verwechseln (Bug gefunden von Julian, gefixt 2026-08-26):** Es gibt zwei Stellen mit einem Skip-Button, die NICHT dieselbe Funktion aufrufen dürfen, obwohl sie denselben Text/dieselbe CSS-Klasse (`tut-btn-skip`) teilen:
+- Auf den **Info-Screens** (vor der Einwilligung, `showInfoScreen()`): ruft `skipInfoScreens()` auf — springt nur zu `showConsentScreen()`, NIEMALS direkt ins Spiel. Einwilligung + Formular bleiben Pflicht, unabhängig davon, ob das Tutorial übersprungen wird.
+- Im **Overlay-Tutorial** (nach Einwilligung/Formular, `showOverlayStep()`): ruft weiterhin `skipTutorial()` auf — springt direkt ins Spiel (`startShuffledExperiment()`), das ist an dieser Stelle korrekt, da Einwilligung/Formular laut `onConsentContinue()` zu diesem Zeitpunkt bereits erledigt sind.
+
+Vor 2026-08-26 riefen beide Buttons `skipTutorial()` auf — der Info-Screen-Button umging damit versehentlich auch die Einwilligung. Bei künftigen Änderungen an der Tutorial-/Onboarding-Reihenfolge: sicherstellen, dass jeder neue "Überspringen"-Button klar einem der beiden Fälle zugeordnet bleibt.
+
 ## Optik (seit 2026-08-25)
 
 Komplettumstellung von einem dunklen Navy-Spiel-Theme auf das helle rgeo-CI-Theme der TIER-List-Anwendung (`--bg`/`--panel`/`--panel-dark`/`--text`/`--muted` in `:root` wurden auf helle Werte umgestellt, siehe Kommentar am Anfang von `style.css`) — **probeweise**, auf ausdrücklichen Wunsch auch auf die Spielbühne selbst angewendet, nicht nur auf Onboarding-Screens. Bewusste Ausnahmen, die dunkel/unverändert blieben, weil sie über dem Satellitenbild selbst liegen (nicht über der Seiten-Chrome) und unabhängig vom Seiten-Theme funktionieren müssen: `.zone-ok`-Badges, der Tutorial-Spotlight-Veil, und der dunkle Lightbox-Backdrop des Bildvorschau-Modals (letzteres analog zu TIER-Lists eigener `.lightbox`, die trotz hellem Seiten-Theme ebenfalls dunkel bleibt).

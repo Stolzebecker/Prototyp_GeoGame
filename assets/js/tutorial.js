@@ -224,10 +224,23 @@ function showInfoScreen(step) {
       (s.note ? '<div class="tut-note">' + s.note + '</div>' : '') +
       '<div class="tut-progress">' + dots + '</div>' +
       '<div class="tut-btn-row">' +
-        '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+        '<button class="tut-btn-skip" onclick="skipInfoScreens()">' + texts.skipBtn + '</button>' +
         '<button class="tut-btn" onclick="nextInfoScreen()">' + texts.nextBtn + '</button>' +
       '</div>' +
     '</div>';
+}
+
+// "Tutorial überspringen" auf den Info-Screens (VOR der Einwilligung) darf
+// nur die restlichen Info-Screens ueberspringen, NIEMALS die Einwilligung/
+// das Formular selbst - echter Bug bis 2026-08-26, gefunden von Julian:
+// beide Skip-Buttons (hier und im Overlay-Tutorial nach der Einwilligung)
+// riefen dieselbe skipTutorial() auf, die direkt ins Spiel sprang und damit
+// hier auch Consent+Formular ausliess. Der Overlay-Skip (skipTutorial(),
+// s.u.) bleibt unveraendert korrekt, da zu diesem Zeitpunkt Consent/
+// Formular laut onConsentContinue() bereits erledigt sind.
+function skipInfoScreens() {
+  document.getElementById('tutorial-info-screen').classList.remove('active');
+  showConsentScreen();
 }
 
 function nextInfoScreen() {
