@@ -383,6 +383,81 @@ def fetch_worldcover_window(bbox_wgs84, app=None):
     return merged, transform
 
 
+EROSION_MIN_WIDTH_M = 60.0  # siehe Memory project_geogame_visibility_erosion_idea
+
+
+def native_geom_to_pixel_fraction(geom, win_bounds):
+    """Wie wgs84_geom_to_pixel_fraction, aber fuer eine Geometrie, die
+    bereits im nativen Raster-CRS vorliegt -- reine affine Skalierung, kein
+    CRS-Transform noetig. Schneller, wenn (wie in run_pipeline/
+    build_real_pool.py) ohnehin schon das ganze dissolved-GeoDataFrame per
+    geopandas.to_crs() auf einmal reprojiziert wurde, statt jedes Feature
+    einzeln per pyproj zu transformieren."""
+    import numpy as np
+    from shapely.ops import transform as shp_transform
+
+    left, bottom, right, top = win_bounds
+    span_x, span_y = right - left, top - bottom
+
+    def _fn(x, y, z=None):
+        x = np.asarray(x); y = np.asarray(y)
+        fx = np.clip((x - left) / span_x, 0.0, 1.0)
+        fy = np.clip((top - y) / span_y, 0.0, 1.0)
+        return fx, fy
+
+    return shp_transform(_fn, geom)
+
+
+def compute_areas_native(dissolved_native, win_bounds, erosion_m=EROSION_MIN_WIDTH_M / 2):
+    """Wie eine fruehere Version von compute_areas(), aber auf Basis der
+    "effektiv sichtbaren" Flaeche statt der rohen Polygonflaeche: jedes
+    Klassen-Polygon wird vorher um erosion_m negativ gepuffert (Standard-
+    Generalisierungstrick fuer eine Mindest-Sichtbarkeitsbreite, hier
+    EROSION_MIN_WIDTH_M = 60m -- siehe Memory
+    project_geogame_visibility_erosion_idea, Julians Entscheidung vom
+    2026-08-27). Schmale/verzweigte Objekte (z.B. ein sich schlaengelnder,
+    ggf. baumueberdeckter Fluss) fallen dadurch automatisch aus der
+    "klar sichtbar"-Einstufung, auch wenn ihre rohe Flaeche AREA_THRESHOLD
+    erreichen wuerde -- reine Flaeche sagt nichts ueber Erkennbarkeit aus.
+
+    Wichtig: die Erosion wirkt NUR auf diese Sichtbarkeits-Entscheidung
+    (absent/absent_optional/areas), NICHT auf die tatsaechlich gerenderten/
+    anklickbaren Hitbox-Polygone in der GeoJSON-Datei -- Spieler:innen
+    sollen weiterhin ueberall im vollen (nicht-erodierten) Bereich korrekt
+    treffen koennen.
+
+    dissolved_native: GeoDataFrame mit Spalten 'klasse'/'geometry' im
+    nativen (flaechentreuen Meter-)Raster-CRS. win_bounds: (left, bottom,
+    right, top) im selben CRS."""
+    left, bottom, right, top = win_bounds
+    img_area = abs(right - left) * abs(top - bottom)
+
+    klasse_area = {}
+    present_klassen = set()
+    if len(dissolved_native) > 0:
+        for klasse in dissolved_native["klasse"].unique():
+            present_klassen.add(klasse)
+            geoms = dissolved_native.loc[dissolved_native["klasse"] == klasse, "geometry"]
+            union = geoms.union_all() if hasattr(geoms, "union_all") else geoms.unary_union
+            eroded = union.buffer(-erosion_m)
+            # Auch eine vollstaendig weggeeroste Klasse (zu schmal, um je
+            # AREA_THRESHOLD zu erreichen) braucht einen 0.0-Eintrag, sonst
+            # faellt sie aus absent UND absent_optional heraus und wuerde
+            # faelschlich als "klar sichtbar" gezaehlt (realer Bug, beim
+            # ersten Testlauf dieser Funktion gefunden).
+            klasse_area[klasse] = 0.0 if eroded.is_empty else eroded.area
+
+    absent_opt = []
+    areas = {}
+    for k, area in klasse_area.items():
+        ratio = area / img_area if img_area > 0 else 0
+        areas[k] = round(ratio, 4)
+        if ratio < AREA_THRESHOLD:
+            absent_opt.append(k)
+    absent = sorted(ALL_LABEL_IDS - present_klassen)
+    return absent, sorted(absent_opt), areas
+
+
 def make_wgs84_to_native_transformer(dst_crs):
     """Baut den (teureren) pyproj-Transformer einmal pro Level -- siehe
     wgs84_geom_to_pixel_fraction, die ihn pro Feature braucht. Getrennt
@@ -679,9 +754,15 @@ def run_pipeline(app):
             app.log_write(
                 f"   {len(combined)} → {len(dissolved)} Features nach dissolve+clip", "ok")
 
-            to_native_transformer = make_wgs84_to_native_transformer(ds_crs)
+            # Einmalig das ganze GeoDataFrame reprojizieren (statt pro
+            # Feature per pyproj) -- dient sowohl den Pixel-Bruchteilen der
+            # GeoJSON-Ausgabe als auch der erosionsbasierten Flaechenanteil-
+            # Berechnung (compute_areas_native), beides im selben nativen
+            # (flaechentreuen Meter-)CRS wie das Raster selbst.
+            dissolved_native = dissolved.to_crs(ds_crs)
+
             features_out = []
-            for _, row in dissolved.iterrows():
+            for _, row in dissolved_native.iterrows():
                 geom = row.geometry
                 # Flatten GeometryCollections to only polygons
                 if geom.geom_type == "GeometryCollection":
@@ -692,11 +773,12 @@ def run_pipeline(app):
                         continue
                     geom = polys[0] if len(polys)==1 else MultiPolygon(polys)
                 # Auf Pixel-Bruchteile im nativen Raster-CRS abbilden (siehe
-                # wgs84_geom_to_pixel_fraction) statt roher WGS84-Koordinaten
-                # zu speichern – die Frontend-Seite (buildZones() in app.js)
-                # macht dadurch keine eigene, potenziell falsche Projektion
-                # mehr, sondern übernimmt die Koordinaten direkt.
-                geom_frac = wgs84_geom_to_pixel_fraction(geom, to_native_transformer, win_bounds)
+                # native_geom_to_pixel_fraction) statt roher WGS84-
+                # Koordinaten zu speichern – die Frontend-Seite
+                # (buildZones() in app.js) macht dadurch keine eigene,
+                # potenziell falsche Projektion mehr, sondern übernimmt die
+                # Koordinaten direkt.
+                geom_frac = native_geom_to_pixel_fraction(geom, win_bounds)
                 features_out.append({
                     "type": "Feature",
                     "properties": {"klasse": row["klasse"]},
@@ -710,12 +792,13 @@ def run_pipeline(app):
             geojson = {"type": "FeatureCollection", "features": []}
             with open(geo_out, "w", encoding="utf-8") as f:
                 json.dump(geojson, f)
+            dissolved_native = gpd.GeoDataFrame(geometry=[], columns=["klasse", "geometry"])
 
         app.log_write(
             f"   GeoJSON gespeichert → {os.path.basename(geo_out)}", "ok")
 
-        # ── 6. Flächenanteile ─────────────────────────────────────────
-        absent, absent_opt, areas = compute_areas(geojson, geo_bounds)
+        # ── 6. Flächenanteile (erosionsbasiert, siehe compute_areas_native) ──
+        absent, absent_opt, areas = compute_areas_native(dissolved_native, win_bounds)
         app.log_write("   Flächenanteile:")
         for k, v in sorted(areas.items(), key=lambda x: -x[1]):
             flag = "  ← unter Schwellenwert" if k in absent_opt else ""
