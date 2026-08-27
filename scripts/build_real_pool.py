@@ -113,6 +113,7 @@ def _process_one(tif_path, app):
     with rasterio.open(tif_path) as ds:
         if ds.crs is None:
             raise ValueError("Keine CRS-Information im TIF.")
+        ds_crs = ds.crs
         cols, rows = ds.width, ds.height
 
         img_ratio = cols / rows
@@ -188,6 +189,7 @@ def _process_one(tif_path, app):
             dissolved.geometry.geom_type.isin(["Polygon", "MultiPolygon", "GeometryCollection"])
         ].reset_index(drop=True)
 
+        to_native_transformer = gg.make_wgs84_to_native_transformer(ds_crs)
         features_out = []
         for _, row in dissolved.iterrows():
             geom = row.geometry
@@ -197,8 +199,11 @@ def _process_one(tif_path, app):
                 if not polys:
                     continue
                 geom = polys[0] if len(polys) == 1 else MultiPolygon(polys)
+            # Auf Pixel-Bruchteile im nativen Raster-CRS abbilden statt roher
+            # WGS84-Koordinaten -- siehe pipeline.wgs84_geom_to_pixel_fraction.
+            geom_frac = gg.wgs84_geom_to_pixel_fraction(geom, to_native_transformer, win_bounds)
             features_out.append({"type": "Feature", "properties": {"klasse": row["klasse"]},
-                                  "geometry": geom.__geo_interface__})
+                                  "geometry": geom_frac.__geo_interface__})
         geojson = {"type": "FeatureCollection", "features": features_out}
     else:
         geojson = {"type": "FeatureCollection", "features": []}

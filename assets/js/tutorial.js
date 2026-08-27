@@ -544,7 +544,7 @@ function loadLevelSilent(i) {
   }).then(function(res) {
     return res.json();
   }).then(function(gj) {
-    buildZones(gj, lv.bounds);
+    buildZones(gj);
     renderLabels(lv);
   }).catch(function(e) {
     console.warn('Tutorial GeoJSON error:', e);

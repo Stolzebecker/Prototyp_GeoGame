@@ -383,6 +383,43 @@ def fetch_worldcover_window(bbox_wgs84, app=None):
     return merged, transform
 
 
+def make_wgs84_to_native_transformer(dst_crs):
+    """Baut den (teureren) pyproj-Transformer einmal pro Level -- siehe
+    wgs84_geom_to_pixel_fraction, die ihn pro Feature braucht. Getrennt
+    gehalten, damit er nicht bei jedem Feature neu aufgebaut wird (macht bei
+    Leveln mit vielen WorldCover-Lückenfüller-Polygonen einen spürbaren
+    Unterschied)."""
+    from pyproj import Transformer
+    return Transformer.from_crs("EPSG:4326", dst_crs, always_xy=True)
+
+
+def wgs84_geom_to_pixel_fraction(geom, transformer, win_bounds):
+    """Reprojiziert eine Shapely-Geometrie von EPSG:4326 in das native
+    Raster-CRS (via `transformer`, siehe make_wgs84_to_native_transformer)
+    und bildet sie dann linear auf [0,1]x[0,1]-Pixel-Bruchteile ab, basierend
+    auf dem exakten Zuschnittsfenster (win_bounds, im selben nativen CRS wie
+    das Raster). Das Pixelraster ist in diesem CRS immer ein unrotiertes/
+    unskaliertes Scale+Translate (siehe Affine-Transform der TIFs) – anders
+    als eine WGS84-Bounding-Box + Web-Mercator-Näherung, die für CRSe wie
+    EPSG:3035 (LAEA Europe) abseits des Projektionszentrums (52°N/10°E)
+    stark schräg/rotiert zur echten Nord-Süd-Achse liegt (bis zu ~7° /
+    >1200m Versatz über ein 7km-Bild – der Bug, den Julian am 2026-08-27
+    beim Spielen bemerkt hat, siehe Memory project_geogame_real_imagery)."""
+    import numpy as np
+    from shapely.ops import transform as shp_transform
+
+    left, bottom, right, top = win_bounds
+    span_x, span_y = right - left, top - bottom
+
+    def _fn(x, y, z=None):
+        nx, ny = transformer.transform(np.asarray(x), np.asarray(y))
+        fx = np.clip((nx - left) / span_x, 0.0, 1.0)
+        fy = np.clip((top - ny) / span_y, 0.0, 1.0)
+        return fx, fy
+
+    return shp_transform(_fn, geom)
+
+
 def raster_mask_to_polygons(array, transform, values):
     """Vektorisiert alle Pixel mit Wert in `values` zu einem GeoDataFrame
     (EPSG:4326), leicht geglättet um die 10m-Treppenstufen-Optik zu mildern."""
@@ -458,6 +495,7 @@ def run_pipeline(app):
             with rasterio.open(tif_path) as ds:
                 if ds.crs is None:
                     raise ValueError("Keine CRS-Information im TIF.")
+                ds_crs = ds.crs
                 cols, rows = ds.width, ds.height
 
                 # 4:3-Zuschnitt (zentriert)
@@ -641,6 +679,7 @@ def run_pipeline(app):
             app.log_write(
                 f"   {len(combined)} → {len(dissolved)} Features nach dissolve+clip", "ok")
 
+            to_native_transformer = make_wgs84_to_native_transformer(ds_crs)
             features_out = []
             for _, row in dissolved.iterrows():
                 geom = row.geometry
@@ -652,10 +691,16 @@ def run_pipeline(app):
                     if not polys:
                         continue
                     geom = polys[0] if len(polys)==1 else MultiPolygon(polys)
+                # Auf Pixel-Bruchteile im nativen Raster-CRS abbilden (siehe
+                # wgs84_geom_to_pixel_fraction) statt roher WGS84-Koordinaten
+                # zu speichern – die Frontend-Seite (buildZones() in app.js)
+                # macht dadurch keine eigene, potenziell falsche Projektion
+                # mehr, sondern übernimmt die Koordinaten direkt.
+                geom_frac = wgs84_geom_to_pixel_fraction(geom, to_native_transformer, win_bounds)
                 features_out.append({
                     "type": "Feature",
                     "properties": {"klasse": row["klasse"]},
-                    "geometry": geom.__geo_interface__
+                    "geometry": geom_frac.__geo_interface__
                 })
             geojson = {"type": "FeatureCollection", "features": features_out}
             with open(geo_out, "w", encoding="utf-8") as f:

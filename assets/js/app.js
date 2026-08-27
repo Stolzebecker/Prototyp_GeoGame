@@ -9,7 +9,9 @@
  *   boot()            – loads config.json, shows start screen
  *   startExperiment() – initialises mouse events, loads first level
  *   loadLevel(i)      – fetches image + GeoJSON, runs ready overlay
- *   buildZones()      – converts GeoJSON → fraction coords (Mercator)
+ *   buildZones()      – reads GeoJSON (already stored as [0,1] pixel-fraction
+ *                       coords by the Python pipeline, see pipeline.py's
+ *                       wgs84_geom_to_pixel_fraction) and clamps them
  *   handleStageDrop() – hit-tests drop point against zone polygons
  *   handleTrashDrop() – validates absent / absent_optional logic
  *   toggleDebug()     – D-key debug overlay with per-class checkboxes
@@ -184,7 +186,7 @@ async function loadLevel(i){
     }
   }
 
-  buildZones(geojson, lv.bounds);
+  buildZones(geojson);
   buildDebugPanel();
   buildHintLayerChecks();
   if(debugMode) redrawDebug();
@@ -196,25 +198,19 @@ async function loadLevel(i){
 }
 
 // ── Build zones ─────────────────────────────────────────────
-function toMercator(lon, lat){
-  const R=6378137, x=lon*Math.PI/180*R;
-  const sinL=Math.sin(lat*Math.PI/180);
-  const y=R*Math.log((1+sinL)/(1-sinL))/2;
-  return [x,y];
+// GeoJSON coordinates are already [fracX, fracY] in [0,1]x[0,1] image-pixel
+// space (computed server-side in pipeline.py against each level's own
+// raster CRS, see wgs84_geom_to_pixel_fraction) -- no projection needed
+// here anymore. Previously this re-derived fractions from WGS84 lon/lat via
+// a Web-Mercator bounding-box approximation, which broke down badly for
+// source CRSs like EPSG:3035 (LAEA Europe) that aren't north-aligned away
+// from their projection center (found 2026-08-27, systematic hitbox offset
+// of >1000m on some levels -- see Memory project_geogame_real_imagery).
+function clampFrac([fx,fy]){
+  return [Math.max(0,Math.min(1,fx)), Math.max(0,Math.min(1,fy))];
 }
 
-function buildZones(geojson, bounds){
-  const [mxW,myS]=toMercator(bounds[0][1],bounds[0][0]);
-  const [mxE,myN]=toMercator(bounds[1][1],bounds[1][0]);
-  const mxSpan=mxE-mxW, mySpan=myN-myS;
-
-  function geoToFrac(lon,lat){
-    const [mx,my]=toMercator(lon,lat);
-    // Clamp to [0,1] so polygons stay strictly within image bounds
-    const fx=Math.max(0,Math.min(1,(mx-mxW)/mxSpan));
-    const fy=Math.max(0,Math.min(1,(myN-my)/mySpan));
-    return [fx,fy];
-  }
+function buildZones(geojson){
   function extractRings(geom){
     if(geom.type==='Polygon') return [geom.coordinates[0]];
     if(geom.type==='MultiPolygon') return geom.coordinates.map(p=>p[0]);
@@ -226,7 +222,7 @@ function buildZones(geojson, bounds){
     const klasse=feat.properties&&feat.properties.klasse;
     if(!klasse) return;
     extractRings(feat.geometry).forEach(ring=>{
-      zones.push({klasse, fracRing:ring.map(([lon,lat])=>geoToFrac(lon,lat))});
+      zones.push({klasse, fracRing:ring.map(clampFrac)});
     });
   });
 
