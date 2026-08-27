@@ -122,12 +122,38 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
     echten (ungedrehten) Viewport beziehen, nicht auf die gedrehte
     Darstellung — kann Modals im Querformat etwas knapper wirken lassen als
     optimal, keine Funktionsstörung.
-- [ ] **WP2 — Touch-Eingabe (Pointer Events)** *(nächstes Paket)*
-  - Umstellung Drag-Logik von Maus-only auf Pointer Events
-  - Versetzter Zielanzeiger + Lupe für Touch
-  - Kritischstes Paket bzgl. Desktop-Regression — Maus-Verhalten muss exakt
-    gleich bleiben
-- [ ] **WP3 — UI-Layout für Touch/kleine Screens**
+- [x] **WP2 — Touch-Eingabe (Pointer Events)** *(erledigt 2026-08-27)*
+  - `app.js`: `mousedown`/`mousemove`/`mouseup` auf den Chips/`document`
+    durch `pointerdown`/`pointermove`/`pointerup`/`pointercancel` ersetzt
+    (ein Code-Pfad für Maus UND Touch). Pointer Capture auf dem Chip beim
+    Aufnehmen, Guard gegen einen zweiten Finger während eines laufenden
+    Drags (nur der `pointerId`, der den Drag gestartet hat, wird beachtet).
+  - **Versetzter Ziel-Reticle für Touch**: `effectiveDragPoint_(e)` — bei
+    `e.pointerType==='touch'` wird der tatsächliche Ablage-/Hittest-Punkt um
+    70px nach oben verschoben (Lupe+Nadel folgen diesem versetzten Punkt,
+    nicht dem rohen Finger), bei Maus/Stift exakt der Cursor wie bisher. Der
+    schwebende Chip-Text bleibt bewusst am Finger; nur Lupe+Nadel (und damit
+    die tatsächliche Ablageposition) wandern versetzt — genau Julians
+    Grilling-Entscheidung "Ziehen mit versetztem Anzeiger".
+  - `mobile.css`: `touch-action:none` auf Chips/`#stage`/`#trash` (nur
+    `[data-device="touch"]`), sonst kapert der Browser die Ziehgeste als
+    Seiten-Scroll/Pinch-Zoom.
+  - **Bewusst außerhalb des Scopes gelassen:** die Zoom/Pan-Lightbox der
+    Ergebnis-Bildvorschau (`onPreviewDragStart` etc.) ist weiterhin
+    maus-only — eigenständiges, nicht blockierendes Feature, kandidiert für
+    einen kleinen Nachtrag oder WP4.
+  - **Verifiziert** (Browser-Pane-`computer`-Klicks hängen bei aktivem
+    Touch-Emulationsmodus zuverlässig, siehe WP1-Einschränkung — deshalb
+    komplett per synthetischen `PointerEvent`s mit `pointerType:'touch'`
+    getestet, inkl. mehrstufiger `pointermove`-Folge für realistische Drags):
+    Desktop-Maus-Regression (echter Klick-Drag, Übungsrunde bestand wie vor
+    dem Umbau), Touch-Drag in der Übungsrunde (identisches Szenario zu
+    Julians gemeldetem Blocker — jetzt erfolgreich), korrekte Kartenablage
+    im echten Level, korrekte Papierkorb-Ablage, falsche Ablage zählt
+    weiterhin einen Fehler, `pointercancel` bricht sauber ab (kein
+    Fehlversuch, kein hängender Drag-Zustand), zweiter Finger während eines
+    laufenden Drags wird ignoriert.
+- [ ] **WP3 — UI-Layout für Touch/kleine Screens** *(nächstes Paket)*
   - Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
   - Touch-taugliche Zielgrößen (≥ ca. 44px)
   - Getrennte Breakpoints Tablet vs. Handy

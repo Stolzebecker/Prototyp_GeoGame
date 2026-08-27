@@ -45,3 +45,17 @@
     overflow: hidden;
   }
 }
+
+/* ── Touch-Drag (WP2) ─────────────────────────────────────────
+   Verhindert, dass der Browser eine Ziehgeste auf den Chips/der Buehne/dem
+   Papierkorb als Seiten-Scroll oder Pinch-Zoom interpretiert - ohne dieses
+   touch-action:none kann iOS/Android die Geste mittendrin kapern und ein
+   pointercancel statt der erwarteten pointermove-Folge ausloesen. Bewusst
+   NICHT global auf body/html gesetzt, damit z.B. die Ergebnistabelle oder
+   Legal-Modals weiterhin normal scrollbar bleiben.
+*/
+html[data-device="touch"] .label-chip,
+html[data-device="touch"] #stage,
+html[data-device="touch"] #trash {
+  touch-action: none;
+}
