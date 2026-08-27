@@ -75,17 +75,54 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
     unten rechts "Nicht vorhanden"-Papierkorb. Referenzpunkt für den
     Regressionsvergleich in WP2/WP3, nicht als Datei gespeichert (informell,
     live erneut screenshotten bei Bedarf).
-- [ ] **WP1 — Geräteerkennung & Querformat-Infrastruktur** *(nächstes Paket)*
-  - `assets/js/device.js`: Interaktionsmodus-Erkennung, Layout-Tier
-    (phone/tablet/desktop), manueller Override-Schalter
-  - CSS-Grundgerüst (`data-device`/`data-tier`-Attribute), worauf alle
-    folgenden Pakete aufbauen
-  - Erzwungenes Querformat (CSS-Rotationstrick)
-  - Touch-Trigger für Test-/Debug-Modus (vier Nadelköpfe, 10× "Nicht
-    vorhanden"), `window.prompt()`-Ersatz durch eigenes Modal
-  - Verifikation: reine Infrastruktur, am eigentlichen Spiel darf sich nichts
-    ändern (Desktop exakt wie bisher)
-- [ ] **WP2 — Touch-Eingabe (Pointer Events)**
+- [x] **WP1 — Geräteerkennung & Querformat-Infrastruktur** *(erledigt 2026-08-27)*
+  - `assets/js/device.js`: Interaktionsmodus-Erkennung
+    (`matchMedia('(pointer:coarse) and (hover:none)')`), Layout-Tier
+    (phone/tablet/desktop nach langer Kante, Schwelle 900px), manueller
+    Override-Schalter (`localStorage`, Footer-Link auf dem Startbildschirm,
+    Klartext "Desktop-Version verwenden"/"Mobile-Version verwenden").
+    Setzt `data-device`/`data-tier`/`data-detected` auf `<html>`.
+  - `assets/css/mobile.css` (neu, nur `[data-device="touch"]`-gescoped,
+    Desktop unangetastet): erzwungenes Querformat per CSS-Rotationstrick
+    (`body{position:fixed;left:100%;width:100vh;height:100vw;
+    transform-origin:0 0;transform:rotate(90deg)}` unter
+    `@media(orientation:portrait)`) — funktioniert plattformübergreifend
+    zuverlässiger als `screen.orientation.lock()` (kein iOS-Support dort).
+  - `assets/js/touch-triggers.js` (neu): die zwei Touch-Gesten aus der
+    Grilling-Runde — vier Nadelköpfe im Startbild-Hintergrund (links→rechts)
+    aktivieren den Testmodus; 10× Tippen auf "Nicht vorhanden" schaltet den
+    Debug-Modus um. Nadelkopf-Positionen per Canvas-Farbanalyse aus
+    `Startscreen.png` ermittelt (nicht per Augenmaß), als Bruchkoordinaten
+    relativ zur Bild-Eigengröße gespeichert und zur Laufzeit korrekt gegen
+    `background-size:cover` + die aktuelle Rotation umgerechnet.
+  - **Scope-Korrektur ggü. Interview:** der geplante `window.prompt()`-Ersatz
+    durch ein eigenes Modal entfiel — beide Touch-Gesten aktivieren direkt
+    (kein Passwort-Dialog nötig, die Geste selbst ist das Geheimnis), und
+    die automatisierte Verifikation läuft über den WP0-URL-Parameter. Damit
+    gibt es keinen verbleibenden Aufrufer von `window.prompt()` mehr außer
+    dem bestehenden Tasten-Kürzel `T` auf Desktop, das unverändert bleibt.
+  - Verifiziert: Desktop-Regression (Screenshot identisch zur Baseline bis
+    auf den neuen Footer-Link), Geräteerkennung in allen drei Tiers
+    (Desktop/Phone/Tablet, letzteres nur per Custom-Viewport testbar — das
+    Browser-Pane-"tablet"-Preset emuliert kein `pointer:coarse`), manueller
+    Umschalter (Toggle + Rückkehr zu Auto), Rotation (Transform-Matrix +
+    Screenshot bestätigt korrekt gedreht, `position:fixed`-Elemente wie der
+    TESTMODUS-Banner bleiben korrekt an der sichtbaren Fläche), beide
+    Touch-Gesten (per synthetischen `PointerEvent`s, siehe unten).
+  - **Bekannte Einschränkung:** `computer`-Klicks (echte Klick-Simulation)
+    laufen im Browser-Pane bei aktiver Rotation zuverlässig in einen
+    30s-Timeout (vermutlich Hit-Testing-Problem der Automatisierung gegen
+    das rotierte `<body>`) — Touch-Gesten wurden stattdessen per
+    `dispatchEvent(new PointerEvent(...))` verifiziert. Für WP2 (echte
+    Drag-Interaktion) relevant: ggf. denselben Workaround nutzen oder auf
+    Julians echtem Gerät testen, falls `computer`-Klicks dort ebenfalls
+    hängen.
+  - **Offen für WP3:** ein paar Modal-Größen (`legal-modal-card`,
+    `table-scroll`) nutzen `vh`/`vw`, die sich im rotierten Zustand auf den
+    echten (ungedrehten) Viewport beziehen, nicht auf die gedrehte
+    Darstellung — kann Modals im Querformat etwas knapper wirken lassen als
+    optimal, keine Funktionsstörung.
+- [ ] **WP2 — Touch-Eingabe (Pointer Events)** *(nächstes Paket)*
   - Umstellung Drag-Logik von Maus-only auf Pointer Events
   - Versetzter Zielanzeiger + Lupe für Touch
   - Kritischstes Paket bzgl. Desktop-Regression — Maus-Verhalten muss exakt

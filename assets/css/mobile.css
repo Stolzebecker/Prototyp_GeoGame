@@ -1,0 +1,47 @@
+/* ============================================================
+   mobile.css – Touch-/Mobile-spezifische Anpassungen für SCOPE
+   (siehe MOBILE_PLAN.md, WP1ff.). Wird ZUSÄTZLICH zu style.css/
+   tutorial.css geladen. Alle Regeln sind auf [data-device="touch"]
+   gescoped (gesetzt von device.js) - im Desktop-Modus bleibt das
+   bestehende Layout unverändert.
+   ============================================================ */
+
+/* ── Erzwungenes Querformat ──────────────────────────────────
+   Julians ausdrücklicher Wunsch: die Anwendung läuft auf Touch-
+   Geräten IMMER im Querformat, unabhängig davon, wie das Gerät
+   gerade physisch gehalten wird - kein "Bitte drehen"-Hinweis,
+   der auf Rotation wartet. screen.orientation.lock() wäre die
+   "sauberere" API, funktioniert aber nur im Fullscreen-Modus auf
+   Android Chrome und gar nicht auf iOS Safari - der CSS-Trick
+   unten ist der einzige plattformübergreifend zuverlässige Weg.
+
+   Prinzip: <body> wird mit vertauschter Breite/Höhe (100vh/100vw)
+   positioniert und um 90° um seine eigene obere linke Ecke gedreht;
+   "left:100%" (= volle Viewport-Breite bei position:fixed) schiebt
+   die gedrehte Box exakt auf die Viewport-Fläche. Nachweis der
+   Eckpunkt-Transformation siehe MOBILE_PLAN.md-Kommentar/Commit.
+   Nebeneffekt (gewünscht): ein transform auf einem Vorfahren macht
+   ihn zum Containing Block für position:fixed-Nachfahren (Modals,
+   Banner, Overlays) - die bleiben dadurch weiterhin korrekt an der
+   sichtbaren Fläche "fixiert", da body's gedrehte Box exakt die
+   Viewport-Fläche deckt.
+
+   Bekannte Einschränkung: vh/vw-Einheiten AUF NACHFAHREN (z. B.
+   Modal-Breiten in style.css/tutorial.css) beziehen sich weiterhin
+   auf den echten, ungedrehten Viewport, nicht auf die gedrehte
+   Darstellung - kann einzelne Modals im Querformat etwas knapper
+   bemessen wirken lassen als optimal. Bei Bedarf in WP3 gezielt
+   nachschärfen, keine grundsätzliche Funktionsstörung.
+*/
+@media (orientation: portrait) {
+  html[data-device="touch"] body {
+    position: fixed;
+    top: 0;
+    left: 100%;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: rotate(90deg);
+    overflow: hidden;
+  }
+}
