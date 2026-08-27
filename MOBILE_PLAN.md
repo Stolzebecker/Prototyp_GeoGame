@@ -153,6 +153,18 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
     weiterhin einen Fehler, `pointercancel` bricht sauber ab (kein
     Fehlversuch, kein hängender Drag-Zustand), zweiter Finger während eines
     laufenden Drags wird ignoriert.
+  - **Nachbesserung (2026-08-27, Julians Testbericht):** Papierkorb-Drop per
+    Touch funktionierte nicht. Ursache: der 70px-Versatz gilt für den
+    Bühnen-Präzisionspunkt, aber der Papierkorb liegt bei vielen
+    Bildschirmgrößen näher unterhalb der Bühne als 70px (teils sogar
+    überlappend) — der versetzte Punkt landete dadurch rechnerisch wieder
+    IN der Bühne, der Papierkorb wurde nie geprüft. Fix: Papierkorb ist ein
+    großes, grobes Ziel und wird jetzt anhand der **echten** Finger-/
+    Cursor-Position geprüft (nicht des Versatz-Reticles), und zwar VOR der
+    Bühnen-Prüfung. Für Maus ändert sich nichts (dort ist Versatzpunkt =
+    echter Cursor). Verifiziert: Touch-Drop in den Papierkorb (korrekt +
+    falsch gewertet), Bühnen-Drop mit Versatz weiterhin korrekt,
+    Maus-Regression unverändert.
 - [ ] **WP3 — UI-Layout für Touch/kleine Screens** *(nächstes Paket)*
   - Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
   - Touch-taugliche Zielgrößen (≥ ca. 44px)

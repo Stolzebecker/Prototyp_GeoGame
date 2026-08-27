@@ -587,30 +587,44 @@ function setupMouseEvents(){
       elLoupe.style.display='none'; elPin.style.display='none';
     }
     if(draggingId){
+      // Papierkorb ist ein grosses, grobes Ziel - dafuer zaehlt die ECHTE
+      // Finger-/Cursor-Position (e.clientX/Y), nicht der versetzte
+      // Praezisions-Reticle (eff). Sonst kann der Versatz den Papierkorb
+      // systematisch unerreichbar machen, wenn er nah unterhalb der Buehne
+      // liegt - genau der Bug, den Julian beim echten Touch-Test fand: der
+      // Versatz schob den rechnerischen Zielpunkt zurueck in die Buehne,
+      // der Papierkorb wurde nie geprueft (Luecke Buehne/Papierkorb war
+      // kleiner als TOUCH_DRAG_OFFSET_Y).
       const tr=elTrash.getBoundingClientRect();
       elTrash.classList.toggle('drag-over',
-        eff.x>=tr.left&&eff.x<=tr.right&&eff.y>=tr.top&&eff.y<=tr.bottom);
+        e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom);
     }
   });
 
   document.addEventListener('pointerup',e=>{
     if(draggingId && e.pointerId!==_activeDragPointerId) return;
     if(!draggingId){ endDrag(); return; }
-    const eff = effectiveDragPoint_(e);
-    const imgRect2=elSatImg.getBoundingClientRect();
-    const stgRect2=elStage.getBoundingClientRect();
-    const tipX=eff.x, tipY=eff.y;
-    const inStage=tipX>=imgRect2.left&&tipX<=imgRect2.right
-               &&tipY>=imgRect2.top&&tipY<=imgRect2.bottom;
-    if(inStage){
-      const fx=(tipX-imgRect2.left)/imgRect2.width;
-      const fy=(tipY-imgRect2.top)/imgRect2.height;
-      // localX/Y for zone-ok label positioning: relative to stage
-      const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
-      handleStageDrop(fx,fy,localX,localY);
+    // Papierkorb zuerst pruefen, anhand der echten Zeigerposition (siehe
+    // Begruendung im pointermove-Handler oben) - erst wenn das nicht
+    // zutrifft, zaehlt der versetzte Praezisions-Reticle fuer die Buehne.
+    const tr=elTrash.getBoundingClientRect();
+    const overTrash = e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom;
+    if(overTrash){
+      handleTrashDrop();
     } else {
-      const tr=elTrash.getBoundingClientRect();
-      if(tipX>=tr.left&&tipX<=tr.right&&tipY>=tr.top&&tipY<=tr.bottom) handleTrashDrop();
+      const eff = effectiveDragPoint_(e);
+      const imgRect2=elSatImg.getBoundingClientRect();
+      const stgRect2=elStage.getBoundingClientRect();
+      const tipX=eff.x, tipY=eff.y;
+      const inStage=tipX>=imgRect2.left&&tipX<=imgRect2.right
+                 &&tipY>=imgRect2.top&&tipY<=imgRect2.bottom;
+      if(inStage){
+        const fx=(tipX-imgRect2.left)/imgRect2.width;
+        const fy=(tipY-imgRect2.top)/imgRect2.height;
+        // localX/Y for zone-ok label positioning: relative to stage
+        const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
+        handleStageDrop(fx,fy,localX,localY);
+      }
     }
     elTrash.classList.remove('drag-over');
     endDrag();
