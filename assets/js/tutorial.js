@@ -27,7 +27,7 @@ const TUT_TEXTS = {
         badge:    '03 / Messung',
         title:    'Was wird gemessen?',
         subtitle: 'Bearbeitungszeit & Datenschutz',
-        body:     'Während der Bearbeitung werden Zeit und Fehlversuche gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen. Am Ende siehst du deine Zeit im Vergleich zu anderen sowie eine Bestenliste – dort zählt nicht nur Geschwindigkeit, sondern auch Genauigkeit: Durchläufe mit mehr als 5 Fehlern erscheinen nicht in der Bestenliste.',
+        body:     'Während der Bearbeitung werden Zeit und Fehlversuche gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen. Am Ende siehst du deine Zeit im Vergleich zu anderen sowie eine Bestenliste – dort zählt nicht nur Geschwindigkeit, sondern auch Genauigkeit: Durchläufe mit mehr als 10 Fehlern erscheinen nicht in der Bestenliste.',
         note:     'Die Teilnahme erfolgt anonym: Vor dem ersten Spielen werden einmalig ein paar demografische Angaben erhoben (z. B. Alter, Bildungsabschluss), die sich nicht auf Ihre Identität zurückführen lassen. Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen wissenschaftlichen Zwecken; Gesamtzeit und Alias werden zusätzlich in der Bestenliste für andere Teilnehmende sichtbar.',
       },
     ],
@@ -78,7 +78,8 @@ const TUT_TEXTS = {
     formAliasPlaceholder: 'z. B. Spitzname – ohne Angabe wird Ihr anonymer Kennwert genutzt',
     formOptionLeer:  'Keine Angabe',
     formContinue:    'Weiter zum Tutorial',
-    formBildungOptions: ['Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
+    formRequiredHint: 'Bitte füllen Sie alle mit * markierten Pflichtfelder aus.',
+    formBildungOptions: ['Kein Schulabschluss','Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
     formGisOptions: ['Keine Erfahrung','Grundkenntnisse','Fortgeschritten','Experte'],
     formGeschlechtOptions: ['Männlich','Weiblich','Divers'],
     formGeraetOptions: ['Computer/Laptop','Tablet','Handy'],
@@ -103,7 +104,7 @@ const TUT_TEXTS = {
         badge:    '03 / Measurement',
         title:    'What is being measured?',
         subtitle: 'Processing Time & Privacy',
-        body:     'Your time and mistakes are recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions. At the end you\'ll see your time compared to others and a leaderboard – accuracy counts there too, not just speed: runs with more than 5 mistakes don\'t appear in the leaderboard.',
+        body:     'Your time and mistakes are recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions. At the end you\'ll see your time compared to others and a leaderboard – accuracy counts there too, not just speed: runs with more than 10 mistakes don\'t appear in the leaderboard.',
         note:     'Participation is anonymous: before your first play, a few demographic details are collected once (e.g. age, educational background) that cannot be traced back to your identity. No names, addresses, or e-mail addresses are collected. Data is used for scientific purposes; total time and alias are additionally shown to other participants in the leaderboard.',
       },
     ],
@@ -154,7 +155,8 @@ const TUT_TEXTS = {
     formAliasPlaceholder: 'e.g. a nickname – if left blank, your anonymous identifier is used',
     formOptionLeer:  'Prefer not to say',
     formContinue:    'Continue to tutorial',
-    formBildungOptions: ['Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
+    formRequiredHint: 'Please fill in all fields marked with * (required).',
+    formBildungOptions: ['No school-leaving qualification','Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
     formGisOptions: ['No experience','Basic knowledge','Advanced','Expert'],
     formGeschlechtOptions: ['Male','Female','Non-binary'],
     formGeraetOptions: ['Computer/Laptop','Tablet','Phone'],
@@ -300,6 +302,10 @@ function onConsentContinue() {
 }
 
 // ── 2c. Personendaten-Formular (nur beim allerersten Durchlauf) ──────────────
+// Pflichtfelder: alle außer Studienfach ("falls zutreffend") und Alias
+// (bewusst optional fürs Bestenliste-Feature, siehe formAliasPlaceholder).
+var PF_REQUIRED_IDS = ['pf-alter', 'pf-bildung', 'pf-gis', 'pf-geschlecht', 'pf-geraet'];
+
 function showPersonFormScreen() {
   var texts = TUT_TEXTS[tutLang];
   var screen = document.getElementById('tutorial-info-screen');
@@ -310,25 +316,29 @@ function showPersonFormScreen() {
     list.forEach(function (o) { html += '<option value="' + o + '">' + o + '</option>'; });
     return html;
   }
+  function reqLabel(id, text) {
+    return PF_REQUIRED_IDS.indexOf(id) !== -1 ? text + ' *' : text;
+  }
 
   screen.innerHTML =
     '<div class="tut-info-panel">' +
       '<h2>' + texts.formTitle + '</h2>' +
       '<p>' + texts.formIntro + '</p>' +
-      '<div class="tut-form-row"><label>' + texts.formAlter + '</label>' +
+      '<div class="tut-form-row" data-field="pf-alter"><label>' + reqLabel('pf-alter', texts.formAlter) + '</label>' +
         '<input type="number" id="pf-alter" min="0" max="120"></div>' +
-      '<div class="tut-form-row"><label>' + texts.formBildung + '</label>' +
+      '<div class="tut-form-row" data-field="pf-bildung"><label>' + reqLabel('pf-bildung', texts.formBildung) + '</label>' +
         '<select id="pf-bildung">' + opts(texts.formBildungOptions) + '</select></div>' +
-      '<div class="tut-form-row"><label>' + texts.formStudienfach + '</label>' +
+      '<div class="tut-form-row" data-field="pf-studienfach"><label>' + texts.formStudienfach + '</label>' +
         '<input type="text" id="pf-studienfach"></div>' +
-      '<div class="tut-form-row"><label>' + texts.formGis + '</label>' +
+      '<div class="tut-form-row" data-field="pf-gis"><label>' + reqLabel('pf-gis', texts.formGis) + '</label>' +
         '<select id="pf-gis">' + opts(texts.formGisOptions) + '</select></div>' +
-      '<div class="tut-form-row"><label>' + texts.formGeschlecht + '</label>' +
+      '<div class="tut-form-row" data-field="pf-geschlecht"><label>' + reqLabel('pf-geschlecht', texts.formGeschlecht) + '</label>' +
         '<select id="pf-geschlecht">' + opts(texts.formGeschlechtOptions) + '</select></div>' +
-      '<div class="tut-form-row"><label>' + texts.formGeraet + '</label>' +
+      '<div class="tut-form-row" data-field="pf-geraet"><label>' + reqLabel('pf-geraet', texts.formGeraet) + '</label>' +
         '<select id="pf-geraet">' + opts(texts.formGeraetOptions) + '</select></div>' +
-      '<div class="tut-form-row"><label>' + texts.formAlias + '</label>' +
+      '<div class="tut-form-row" data-field="pf-alias"><label>' + texts.formAlias + '</label>' +
         '<input type="text" id="pf-alias" placeholder="' + texts.formAliasPlaceholder + '" maxlength="40"></div>' +
+      '<p id="pf-error-hint" class="tut-form-error">' + texts.formRequiredHint + '</p>' +
       '<div class="tut-btn-row">' +
         '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
       '</div>' +
@@ -336,6 +346,20 @@ function showPersonFormScreen() {
 }
 
 function onPersonFormContinue() {
+  var missing = PF_REQUIRED_IDS.filter(function (id) {
+    return document.getElementById(id).value.trim() === '';
+  });
+
+  PF_REQUIRED_IDS.forEach(function (id) {
+    var row = document.querySelector('.tut-form-row[data-field="' + id + '"]');
+    row.classList.toggle('invalid', missing.indexOf(id) !== -1);
+  });
+
+  if (missing.length > 0) {
+    document.getElementById('pf-error-hint').classList.add('visible');
+    return;
+  }
+
   submitPersonData({
     alter: document.getElementById('pf-alter').value,
     bildungsabschluss: document.getElementById('pf-bildung').value,

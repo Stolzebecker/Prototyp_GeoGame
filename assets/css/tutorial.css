@@ -126,6 +126,10 @@
 }
 .tut-form-row input:focus,
 .tut-form-row select:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.tut-form-row.invalid input,
+.tut-form-row.invalid select{border-color:var(--warn);}
+.tut-form-error{color:var(--warn);font-size:0.85rem;margin:-6px 0 0;display:none;}
+.tut-form-error.visible{display:block;}
 
 /* ── Overlay tutorial (over satellite image) ─────────────── */
 #tutorial-overlay{

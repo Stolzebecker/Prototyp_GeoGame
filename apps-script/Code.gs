@@ -329,10 +329,10 @@ function handleFeedback_(data) {
 // ── Alias + Gesamtzeit + Gesamtfehler, wie sie im bestehenden GESAMT-Feld
 // der Ergebnistabelle ohnehin schon clientseitig berechnet werden (siehe
 // showResults() in app.js) - hier nur zusaetzlich abgeschickt. disqualifiziert
-// = mehr als 5 Fehler im gesamten Durchlauf (Julians Entscheidung, siehe
+// = mehr als 10 Fehler im gesamten Durchlauf (Julians Entscheidung, siehe
 // Memory project_geogame_leaderboard: Genauigkeit soll auch zaehlen, nicht
 // nur Geschwindigkeit).
-var DISQUALIFY_ERROR_THRESHOLD = 5;
+var DISQUALIFY_ERROR_THRESHOLD = 10;
 function handleRunSummary_(data) {
   var run = resolveRun_(data.participantId, data.runToken);
   var sheet = getOrCreateTab_("Bestenliste", [

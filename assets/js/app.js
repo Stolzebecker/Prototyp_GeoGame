@@ -1137,7 +1137,7 @@ function submitFeedbackForm(){
 }
 
 // ── Results ──────────────────────────────────────────────────
-const DISQUALIFY_ERROR_THRESHOLD = 5; // muss mit Code.gs (Server) uebereinstimmen
+const DISQUALIFY_ERROR_THRESHOLD = 10; // muss mit Code.gs (Server) uebereinstimmen
 
 function showResults(){
   stopTimer();

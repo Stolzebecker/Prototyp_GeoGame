@@ -45,7 +45,7 @@ AREA_THRESHOLD = 0.05   # 5 %
 # ── Label-Definitionen ──────────────────────────────────────────────────
 ALL_LABELS = [
     {"id": "Wald",    "text": "Wald",                  "icon": "🌲"},
-    {"id": "Acker",   "text": "Acker",                 "icon": "🌾"},
+    {"id": "Acker",   "text": "Grünland/Landwirtschaft", "icon": "🌾"},
     {"id": "Gebäude", "text": "Gebäude/Infrastruktur",  "icon": "🏘️"},
     {"id": "Wasser",  "text": "Wasser",                "icon": "💧"},
 ]
