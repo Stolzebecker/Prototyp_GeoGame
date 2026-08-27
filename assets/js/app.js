@@ -102,6 +102,11 @@ async function boot(){
   elDebugCanvas = document.getElementById('debug-canvas');
   elDebugCtx    = elDebugCanvas.getContext('2d');
 
+  // URL-Parameter-Aktivierung von Test-/Debug-Modus, nur fuer automatisierte
+  // Verifikation (siehe telemetry.js: applyUrlActivation_()) - Touch-Geraete
+  // haben eigene Tipp-Gesten dafuer (siehe MOBILE_PLAN.md WP1).
+  if(applyUrlActivation_()) toggleDebug();
+
   // Size the stage to 4:3 now that DOM is ready
 
   try{
