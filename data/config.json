@@ -47,187 +47,1743 @@
       }
     },
     {
-      "id": "B2",
-      "imgSrc": "./Bilder/EO_Bilder/B2norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B2puf.geojson",
+      "id": "IMG_00001",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00001norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00001puf.geojson",
       "bounds": [
         [
-          48.908094,
-          8.145245
+          43.501718,
+          0.396007
         ],
         [
-          48.928879,
-          8.172957
+          43.556686,
+          0.489607
         ]
       ],
       "absent": [],
       "absent_optional": [],
       "areas": {
-        "Acker": 0.2327,
-        "Gebäude": 0.0637,
-        "Wald": 0.4074,
-        "Wasser": 0.3176
+        "Acker": 0.6903,
+        "Gebäude": 0.0511,
+        "Wald": 0.1893,
+        "Wasser": 0.1115
       }
     },
     {
-      "id": "B3",
-      "imgSrc": "./Bilder/EO_Bilder/B3norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B3puf.geojson",
+      "id": "IMG_00002",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00002norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00002puf.geojson",
       "bounds": [
         [
-          48.921935,
-          8.084272
+          53.185365,
+          -4.529566
         ],
         [
-          49.005073,
-          8.195122
+          53.243936,
+          -4.410838
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
       "areas": {
-        "Acker": 0.476,
-        "Gebäude": 0.0709,
-        "Wald": 0.3882,
-        "Wasser": 0.1007
+        "Acker": 0.7266,
+        "Gebäude": 0.0271,
+        "Wald": 0.0635,
+        "Wasser": 0.2084
       }
     },
     {
-      "id": "B4",
-      "imgSrc": "./Bilder/EO_Bilder/B4norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B4puf.geojson",
+      "id": "IMG_00003",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00003norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00003puf.geojson",
       "bounds": [
         [
-          48.898325,
-          8.078716
+          56.12274,
+          -5.53241
         ],
         [
-          49.0646,
-          8.300417
+          56.182113,
+          -5.403588
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
       "areas": {
-        "Acker": 0.3464,
-        "Gebäude": 0.0909,
-        "Wald": 0.4853,
-        "Wasser": 0.1204
+        "Acker": 0.6001,
+        "Gebäude": 0.0041,
+        "Wald": 0.3259,
+        "Wasser": 0.0729
       }
     },
     {
-      "id": "B5",
-      "imgSrc": "./Bilder/EO_Bilder/B5norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B5puf.geojson",
+      "id": "IMG_00004",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00004norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00004puf.geojson",
       "bounds": [
         [
-          49.035907,
-          8.309227
+          38.102838,
+          -5.764981
         ],
         [
-          49.056691,
-          8.336939
+          38.162337,
+          -5.675875
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
       "areas": {
-        "Acker": 0.2949,
-        "Gebäude": 0.4289,
-        "Wald": 0.2179,
-        "Wasser": 0.1017
+        "Acker": 0.5695,
+        "Gebäude": 0.0057,
+        "Wald": 0.3368,
+        "Wasser": 0.0188
       }
     },
     {
-      "id": "B6",
-      "imgSrc": "./Bilder/EO_Bilder/B6norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B6puf.geojson",
+      "id": "IMG_00006",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00006norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00006puf.geojson",
       "bounds": [
         [
-          49.035907,
-          8.309227
+          48.874214,
+          15.745886
         ],
         [
-          49.056691,
-          8.336939
+          48.92622,
+          15.846608
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
       "areas": {
-        "Acker": 0.2949,
-        "Gebäude": 0.4289,
-        "Wald": 0.2179,
-        "Wasser": 0.1017
+        "Acker": 0.4149,
+        "Gebäude": 0.0352,
+        "Wald": 0.4827,
+        "Wasser": 0.1113
       }
     },
     {
-      "id": "B7",
-      "imgSrc": "./Bilder/EO_Bilder/B7norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B7puf.geojson",
+      "id": "IMG_00007",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00007norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00007puf.geojson",
       "bounds": [
         [
-          48.968444,
-          8.189193
+          60.438307,
+          12.895534
         ],
         [
-          48.989229,
-          8.216905
+          60.488147,
+          13.026502
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
       "areas": {
-        "Acker": 0.6004,
-        "Gebäude": 0.1372,
-        "Wald": 0.2226,
-        "Wasser": 0.089
+        "Acker": 0.1286,
+        "Gebäude": 0.0003,
+        "Wald": 0.853,
+        "Wasser": 0.0129
       }
     },
     {
-      "id": "B8",
-      "imgSrc": "./Bilder/EO_Bilder/B8norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B8puf.geojson",
+      "id": "IMG_00008",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00008norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00008puf.geojson",
       "bounds": [
         [
-          48.912894,
-          8.219069
+          45.230822,
+          1.818024
         ],
         [
-          48.996032,
-          8.32992
+          45.284685,
+          1.913593
         ]
       ],
       "absent": [],
-      "absent_optional": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
       "areas": {
-        "Acker": 0.4114,
-        "Gebäude": 0.137,
-        "Wald": 0.3828,
-        "Wasser": 0.1186
+        "Acker": 0.3914,
+        "Gebäude": 0.012,
+        "Wald": 0.5996,
+        "Wasser": 0.0281
       }
     },
     {
-      "id": "B9",
-      "imgSrc": "./Bilder/EO_Bilder/B9norm.png",
-      "geojsonSrc": "./Bilder/Hitboxes/B9puf.geojson",
+      "id": "IMG_00009",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00009norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00009puf.geojson",
       "bounds": [
         [
-          48.941735,
-          8.274422
+          46.037781,
+          25.879203
         ],
         [
-          48.962519,
-          8.302135
+          46.097268,
+          25.98182
+        ]
+      ],
+      "absent": [
+        "Gebäude"
+      ],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1582,
+        "Wald": 0.8151,
+        "Wasser": 0.0416
+      }
+    },
+    {
+      "id": "IMG_00010",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00010norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00010puf.geojson",
+      "bounds": [
+        [
+          49.921094,
+          16.787669
+        ],
+        [
+          49.973923,
+          16.891559
         ]
       ],
       "absent": [],
       "absent_optional": [],
       "areas": {
-        "Acker": 0.4791,
-        "Gebäude": 0.3513,
-        "Wald": 0.1638,
-        "Wasser": 0.0517
+        "Acker": 0.5114,
+        "Gebäude": 0.0697,
+        "Wald": 0.4043,
+        "Wasser": 0.0982
+      }
+    },
+    {
+      "id": "IMG_00011",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00011norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00011puf.geojson",
+      "bounds": [
+        [
+          44.294346,
+          -0.163843
+        ],
+        [
+          44.349715,
+          -0.068488
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1083,
+        "Gebäude": 0.0127,
+        "Wald": 0.8725,
+        "Wasser": 0.0246
+      }
+    },
+    {
+      "id": "IMG_00013",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00013norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00013puf.geojson",
+      "bounds": [
+        [
+          43.712128,
+          5.500421
+        ],
+        [
+          43.763149,
+          5.590627
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.5694,
+        "Gebäude": 0.0617,
+        "Wald": 0.3205,
+        "Wasser": 0.0964
+      }
+    },
+    {
+      "id": "IMG_00014",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00014norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00014puf.geojson",
+      "bounds": [
+        [
+          36.339792,
+          -5.432383
+        ],
+        [
+          36.399139,
+          -5.345852
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.6533,
+        "Gebäude": 0.0046,
+        "Wald": 0.2932,
+        "Wasser": 0.0115
+      }
+    },
+    {
+      "id": "IMG_00015",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00015norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00015puf.geojson",
+      "bounds": [
+        [
+          50.298597,
+          23.279613
+        ],
+        [
+          50.356302,
+          23.38979
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.4614,
+        "Gebäude": 0.0497,
+        "Wald": 0.479,
+        "Wasser": 0.0793
+      }
+    },
+    {
+      "id": "IMG_00017",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00017norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00017puf.geojson",
+      "bounds": [
+        [
+          44.247339,
+          25.343151
+        ],
+        [
+          44.306471,
+          25.441973
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wald",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.9129,
+        "Gebäude": 0.0572,
+        "Wald": 0.0242,
+        "Wasser": 0.0125
+      }
+    },
+    {
+      "id": "IMG_00018",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00018norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00018puf.geojson",
+      "bounds": [
+        [
+          41.338483,
+          13.957603
+        ],
+        [
+          41.389219,
+          14.043894
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1975,
+        "Gebäude": 0.0304,
+        "Wald": 0.7452,
+        "Wasser": 0.0202
+      }
+    },
+    {
+      "id": "IMG_00019",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00019norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00019puf.geojson",
+      "bounds": [
+        [
+          54.571503,
+          23.101422
+        ],
+        [
+          54.629184,
+          23.223143
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.8239,
+        "Gebäude": 0.0255,
+        "Wald": 0.0856,
+        "Wasser": 0.0783
+      }
+    },
+    {
+      "id": "IMG_00020",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00020norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00020puf.geojson",
+      "bounds": [
+        [
+          54.165528,
+          23.807528
+        ],
+        [
+          54.223701,
+          23.928633
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.3509,
+        "Gebäude": 0.0203,
+        "Wald": 0.489,
+        "Wasser": 0.1332
+      }
+    },
+    {
+      "id": "IMG_00021",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00021norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00021puf.geojson",
+      "bounds": [
+        [
+          55.63253,
+          8.233487
+        ],
+        [
+          55.681191,
+          8.346636
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.573,
+        "Gebäude": 0.0334,
+        "Wald": 0.3527,
+        "Wasser": 0.0502
+      }
+    },
+    {
+      "id": "IMG_00022",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00022norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00022puf.geojson",
+      "bounds": [
+        [
+          43.480243,
+          6.491823
+        ],
+        [
+          43.530475,
+          6.580901
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.209,
+        "Gebäude": 0.167,
+        "Wald": 0.5439,
+        "Wasser": 0.0457
+      }
+    },
+    {
+      "id": "IMG_00024",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00024norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00024puf.geojson",
+      "bounds": [
+        [
+          42.776311,
+          -5.820455
+        ],
+        [
+          42.835721,
+          -5.72402
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.3679,
+        "Gebäude": 0.0325,
+        "Wald": 0.5421,
+        "Wasser": 0.0222
+      }
+    },
+    {
+      "id": "IMG_00025",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00025norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00025puf.geojson",
+      "bounds": [
+        [
+          43.207761,
+          -1.406372
+        ],
+        [
+          43.264061,
+          -1.31203
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.2904,
+        "Gebäude": 0.0037,
+        "Wald": 0.6971,
+        "Wasser": 0.061
+      }
+    },
+    {
+      "id": "IMG_00026",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00026norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00026puf.geojson",
+      "bounds": [
+        [
+          37.545513,
+          23.147784
+        ],
+        [
+          37.60329,
+          23.234711
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.2044,
+        "Gebäude": 0.0123,
+        "Wald": 0.3396,
+        "Wasser": 0.1009
+      }
+    },
+    {
+      "id": "IMG_00027",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00027norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00027puf.geojson",
+      "bounds": [
+        [
+          40.013928,
+          -1.44557
+        ],
+        [
+          40.07034,
+          -1.356233
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1422,
+        "Gebäude": 0.0,
+        "Wald": 0.6116,
+        "Wasser": 0.058
+      }
+    },
+    {
+      "id": "IMG_00028",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00028norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00028puf.geojson",
+      "bounds": [
+        [
+          52.610805,
+          5.818861
+        ],
+        [
+          52.661465,
+          5.926538
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wald"
+      ],
+      "areas": {
+        "Acker": 0.743,
+        "Gebäude": 0.0556,
+        "Wald": 0.0334,
+        "Wasser": 0.1561
+      }
+    },
+    {
+      "id": "IMG_00030",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00030norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00030puf.geojson",
+      "bounds": [
+        [
+          43.815557,
+          24.628691
+        ],
+        [
+          43.874202,
+          24.726271
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.5761,
+        "Gebäude": 0.1639,
+        "Wald": 0.1459,
+        "Wasser": 0.1339
+      }
+    },
+    {
+      "id": "IMG_00031",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00031norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00031puf.geojson",
+      "bounds": [
+        [
+          45.870716,
+          6.285705
+        ],
+        [
+          45.921051,
+          6.378889
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.4218,
+        "Gebäude": 0.0874,
+        "Wald": 0.6895,
+        "Wasser": 0.0797
+      }
+    },
+    {
+      "id": "IMG_00033",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00033norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00033puf.geojson",
+      "bounds": [
+        [
+          51.081131,
+          7.450204
+        ],
+        [
+          51.13044,
+          7.552649
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.4773,
+        "Gebäude": 0.0725,
+        "Wald": 0.4205,
+        "Wasser": 0.1143
+      }
+    },
+    {
+      "id": "IMG_00034",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00034norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00034puf.geojson",
+      "bounds": [
+        [
+          61.649676,
+          12.931894
+        ],
+        [
+          61.699594,
+          13.067948
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.2086,
+        "Gebäude": 0.0002,
+        "Wald": 0.7549,
+        "Wasser": 0.0198
+      }
+    },
+    {
+      "id": "IMG_00035",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00035norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00035puf.geojson",
+      "bounds": [
+        [
+          62.724637,
+          12.15802
+        ],
+        [
+          62.77393,
+          12.29777
+        ]
+      ],
+      "absent": [
+        "Gebäude"
+      ],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.7674,
+        "Wald": 0.1317,
+        "Wasser": 0.0621
+      }
+    },
+    {
+      "id": "IMG_00036",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00036norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00036puf.geojson",
+      "bounds": [
+        [
+          41.150083,
+          -7.049047
+        ],
+        [
+          41.210351,
+          -6.954607
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.3738,
+        "Gebäude": 0.039,
+        "Wald": 0.3856,
+        "Wasser": 0.0396
+      }
+    },
+    {
+      "id": "IMG_00037",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00037norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00037puf.geojson",
+      "bounds": [
+        [
+          60.035773,
+          15.127189
+        ],
+        [
+          60.087479,
+          15.259488
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.0895,
+        "Gebäude": 0.0017,
+        "Wald": 0.7725,
+        "Wasser": 0.1371
+      }
+    },
+    {
+      "id": "IMG_00038",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00038norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00038puf.geojson",
+      "bounds": [
+        [
+          39.662262,
+          -0.566494
+        ],
+        [
+          39.718046,
+          -0.478214
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1686,
+        "Gebäude": 0.0255,
+        "Wald": 0.5234,
+        "Wasser": 0.0812
+      }
+    },
+    {
+      "id": "IMG_00039",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00039norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00039puf.geojson",
+      "bounds": [
+        [
+          43.556175,
+          25.762766
+        ],
+        [
+          43.615601,
+          25.860598
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.7534,
+        "Gebäude": 0.0639,
+        "Wald": 0.182,
+        "Wasser": 0.0003
+      }
+    },
+    {
+      "id": "IMG_00041",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00041norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00041puf.geojson",
+      "bounds": [
+        [
+          46.467509,
+          17.043348
+        ],
+        [
+          46.520552,
+          17.140382
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.5673,
+        "Gebäude": 0.0476,
+        "Wald": 0.3459,
+        "Wasser": 0.0407
+      }
+    },
+    {
+      "id": "IMG_00043",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00043norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00043puf.geojson",
+      "bounds": [
+        [
+          45.8485,
+          23.236666
+        ],
+        [
+          45.906152,
+          23.337117
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.8705,
+        "Gebäude": 0.0296,
+        "Wald": 0.0914,
+        "Wasser": 0.0318
+      }
+    },
+    {
+      "id": "IMG_00044",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00044norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00044puf.geojson",
+      "bounds": [
+        [
+          69.164927,
+          22.866828
+        ],
+        [
+          69.223427,
+          23.065455
+        ]
+      ],
+      "absent": [
+        "Gebäude"
+      ],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.7264,
+        "Wald": 0.1302,
+        "Wasser": 0.1247
+      }
+    },
+    {
+      "id": "IMG_00045",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00045norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00045puf.geojson",
+      "bounds": [
+        [
+          39.008998,
+          -4.364638
+        ],
+        [
+          39.067508,
+          -4.275023
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1356,
+        "Gebäude": 0.0001,
+        "Wald": 0.7397,
+        "Wasser": 0.0004
+      }
+    },
+    {
+      "id": "IMG_00047",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00047norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00047puf.geojson",
+      "bounds": [
+        [
+          45.275346,
+          15.302313
+        ],
+        [
+          45.327042,
+          15.395816
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.0585,
+        "Gebäude": 0.0033,
+        "Wald": 0.9291,
+        "Wasser": 0.0272
+      }
+    },
+    {
+      "id": "IMG_00048",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00048norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00048puf.geojson",
+      "bounds": [
+        [
+          38.376632,
+          22.791904
+        ],
+        [
+          38.434127,
+          22.879764
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1697,
+        "Gebäude": 0.0115,
+        "Wald": 0.7437,
+        "Wasser": 0.0051
+      }
+    },
+    {
+      "id": "IMG_00049",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00049norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00049puf.geojson",
+      "bounds": [
+        [
+          45.806429,
+          6.362486
+        ],
+        [
+          45.856704,
+          6.455495
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.6093,
+        "Gebäude": 0.0004,
+        "Wald": 0.349,
+        "Wasser": 0.1008
+      }
+    },
+    {
+      "id": "IMG_00050",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00050norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00050puf.geojson",
+      "bounds": [
+        [
+          45.196517,
+          15.41637
+        ],
+        [
+          45.248304,
+          15.509826
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1137,
+        "Gebäude": 0.0031,
+        "Wald": 0.8746,
+        "Wasser": 0.0095
+      }
+    },
+    {
+      "id": "IMG_00051",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00051norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00051puf.geojson",
+      "bounds": [
+        [
+          55.115084,
+          22.152737
+        ],
+        [
+          55.172092,
+          22.275285
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.557,
+        "Gebäude": 0.0117,
+        "Wald": 0.3425,
+        "Wasser": 0.0924
+      }
+    },
+    {
+      "id": "IMG_00053",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00053norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00053puf.geojson",
+      "bounds": [
+        [
+          42.235863,
+          25.763593
+        ],
+        [
+          42.295309,
+          25.85913
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wald",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.8841,
+        "Gebäude": 0.0615,
+        "Wald": 0.0102,
+        "Wasser": 0.0469
+      }
+    },
+    {
+      "id": "IMG_00054",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00054norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00054puf.geojson",
+      "bounds": [
+        [
+          44.733566,
+          22.698299
+        ],
+        [
+          44.790843,
+          22.79627
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.6666,
+        "Gebäude": 0.0578,
+        "Wald": 0.2763,
+        "Wasser": 0.0152
+      }
+    },
+    {
+      "id": "IMG_00055",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00055norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00055puf.geojson",
+      "bounds": [
+        [
+          39.211893,
+          20.680608
+        ],
+        [
+          39.267842,
+          20.768374
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.2563,
+        "Gebäude": 0.0158,
+        "Wald": 0.5749,
+        "Wasser": 0.0045
+      }
+    },
+    {
+      "id": "IMG_00056",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00056norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00056puf.geojson",
+      "bounds": [
+        [
+          46.870081,
+          7.889443
+        ],
+        [
+          46.91908,
+          7.983039
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.4492,
+        "Gebäude": 0.0157,
+        "Wald": 0.4591,
+        "Wasser": 0.1072
+      }
+    },
+    {
+      "id": "IMG_00057",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00057norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00057puf.geojson",
+      "bounds": [
+        [
+          50.102511,
+          16.163169
+        ],
+        [
+          50.154847,
+          16.26691
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [],
+      "areas": {
+        "Acker": 0.6083,
+        "Gebäude": 0.1291,
+        "Wald": 0.2307,
+        "Wasser": 0.0882
+      }
+    },
+    {
+      "id": "IMG_00058",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00058norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00058puf.geojson",
+      "bounds": [
+        [
+          46.76247,
+          19.568729
+        ],
+        [
+          46.81744,
+          19.668295
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.5491,
+        "Gebäude": 0.0231,
+        "Wald": 0.4065,
+        "Wasser": 0.0199
+      }
+    },
+    {
+      "id": "IMG_00059",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00059norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00059puf.geojson",
+      "bounds": [
+        [
+          61.7048,
+          11.854059
+        ],
+        [
+          61.753786,
+          11.988804
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.2082,
+        "Gebäude": 0.0007,
+        "Wald": 0.4131,
+        "Wasser": 0.0539
+      }
+    },
+    {
+      "id": "IMG_00060",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00060norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00060puf.geojson",
+      "bounds": [
+        [
+          47.565392,
+          16.862555
+        ],
+        [
+          47.618285,
+          16.961561
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.6301,
+        "Gebäude": 0.1081,
+        "Wald": 0.2593,
+        "Wasser": 0.0484
+      }
+    },
+    {
+      "id": "IMG_00061",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00061norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00061puf.geojson",
+      "bounds": [
+        [
+          46.321453,
+          19.107369
+        ],
+        [
+          46.376079,
+          19.205729
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.415,
+        "Gebäude": 0.018,
+        "Wald": 0.5644,
+        "Wasser": 0.0049
+      }
+    },
+    {
+      "id": "IMG_00062",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00062norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00062puf.geojson",
+      "bounds": [
+        [
+          46.450586,
+          5.402686
+        ],
+        [
+          46.501622,
+          5.497631
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.3929,
+        "Gebäude": 0.0165,
+        "Wald": 0.5881,
+        "Wasser": 0.03
+      }
+    },
+    {
+      "id": "IMG_00063",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00063norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00063puf.geojson",
+      "bounds": [
+        [
+          52.39146,
+          17.126756
+        ],
+        [
+          52.444575,
+          17.236853
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wald",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.8282,
+        "Gebäude": 0.1148,
+        "Wald": 0.045,
+        "Wasser": 0.0331
+      }
+    },
+    {
+      "id": "IMG_00064",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00064norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00064puf.geojson",
+      "bounds": [
+        [
+          47.822589,
+          15.505046
+        ],
+        [
+          47.87441,
+          15.603429
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.1916,
+        "Gebäude": 0.0232,
+        "Wald": 0.7899,
+        "Wasser": 0.0306
+      }
+    },
+    {
+      "id": "IMG_00065",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00065norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00065puf.geojson",
+      "bounds": [
+        [
+          61.542822,
+          29.555109
+        ],
+        [
+          61.605303,
+          29.710418
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1862,
+        "Gebäude": 0.0006,
+        "Wald": 0.5178,
+        "Wasser": 0.2917
+      }
+    },
+    {
+      "id": "IMG_00066",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00066norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00066puf.geojson",
+      "bounds": [
+        [
+          52.273347,
+          -2.923236
+        ],
+        [
+          52.330751,
+          -2.808385
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.5806,
+        "Gebäude": 0.022,
+        "Wald": 0.3578,
+        "Wasser": 0.052
+      }
+    },
+    {
+      "id": "IMG_00067",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00067norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00067puf.geojson",
+      "bounds": [
+        [
+          37.666195,
+          22.795488
+        ],
+        [
+          37.723719,
+          22.882377
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.3639,
+        "Gebäude": 0.0205,
+        "Wald": 0.2645,
+        "Wasser": 0.0086
+      }
+    },
+    {
+      "id": "IMG_00068",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00068norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00068puf.geojson",
+      "bounds": [
+        [
+          44.693968,
+          9.397389
+        ],
+        [
+          44.741771,
+          9.486037
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.2233,
+        "Gebäude": 0.0049,
+        "Wald": 0.7705,
+        "Wasser": 0.0073
+      }
+    },
+    {
+      "id": "IMG_00069",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00069norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00069puf.geojson",
+      "bounds": [
+        [
+          62.70095,
+          25.791425
+        ],
+        [
+          62.760987,
+          25.948913
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Acker",
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.0391,
+        "Gebäude": 0.0005,
+        "Wald": 0.6724,
+        "Wasser": 0.2875
+      }
+    },
+    {
+      "id": "IMG_00070",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00070norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00070puf.geojson",
+      "bounds": [
+        [
+          53.565462,
+          20.586531
+        ],
+        [
+          53.621261,
+          20.703006
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1653,
+        "Gebäude": 0.0007,
+        "Wald": 0.7826,
+        "Wasser": 0.0514
+      }
+    },
+    {
+      "id": "IMG_00071",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00071norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00071puf.geojson",
+      "bounds": [
+        [
+          45.231507,
+          8.559525
+        ],
+        [
+          45.279992,
+          8.649738
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wald"
+      ],
+      "areas": {
+        "Acker": 0.6259,
+        "Gebäude": 0.0221,
+        "Wald": 0.0178,
+        "Wasser": 0.341
+      }
+    },
+    {
+      "id": "IMG_00072",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00072norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00072puf.geojson",
+      "bounds": [
+        [
+          57.977307,
+          -4.788513
+        ],
+        [
+          58.036242,
+          -4.653645
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.7312,
+        "Gebäude": 0.0,
+        "Wald": 0.2198,
+        "Wasser": 0.0532
+      }
+    },
+    {
+      "id": "IMG_00073",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00073norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00073puf.geojson",
+      "bounds": [
+        [
+          53.919426,
+          23.064883
+        ],
+        [
+          53.977059,
+          23.184604
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1411,
+        "Gebäude": 0.0156,
+        "Wald": 0.7782,
+        "Wasser": 0.0664
+      }
+    },
+    {
+      "id": "IMG_00074",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00074norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00074puf.geojson",
+      "bounds": [
+        [
+          45.670725,
+          15.021197
+        ],
+        [
+          45.722189,
+          15.115168
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.0782,
+        "Gebäude": 0.0017,
+        "Wald": 0.9184,
+        "Wasser": 0.01
+      }
+    },
+    {
+      "id": "IMG_00075",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00075norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00075puf.geojson",
+      "bounds": [
+        [
+          46.915264,
+          -0.365856
+        ],
+        [
+          46.970754,
+          -0.265458
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude",
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.7786,
+        "Gebäude": 0.0298,
+        "Wald": 0.1651,
+        "Wasser": 0.0322
+      }
+    },
+    {
+      "id": "IMG_00076",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00076norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00076puf.geojson",
+      "bounds": [
+        [
+          43.291452,
+          6.202217
+        ],
+        [
+          43.341923,
+          6.291225
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Wasser"
+      ],
+      "areas": {
+        "Acker": 0.2148,
+        "Gebäude": 0.0975,
+        "Wald": 0.6453,
+        "Wasser": 0.0166
+      }
+    },
+    {
+      "id": "IMG_00077",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00077norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00077puf.geojson",
+      "bounds": [
+        [
+          60.784316,
+          14.576672
+        ],
+        [
+          60.835594,
+          14.711305
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Acker",
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.0423,
+        "Gebäude": 0.0006,
+        "Wald": 0.8042,
+        "Wasser": 0.1501
+      }
+    },
+    {
+      "id": "IMG_00078",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00078norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00078puf.geojson",
+      "bounds": [
+        [
+          57.539159,
+          12.067021
+        ],
+        [
+          57.588206,
+          12.186489
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1978,
+        "Gebäude": 0.0484,
+        "Wald": 0.6834,
+        "Wasser": 0.0746
+      }
+    },
+    {
+      "id": "IMG_00079",
+      "imgSrc": "./Bilder/EO_Bilder/IMG_00079norm.png",
+      "geojsonSrc": "./Bilder/Hitboxes/IMG_00079puf.geojson",
+      "bounds": [
+        [
+          43.135442,
+          -1.787304
+        ],
+        [
+          43.192019,
+          -1.69283
+        ]
+      ],
+      "absent": [],
+      "absent_optional": [
+        "Gebäude"
+      ],
+      "areas": {
+        "Acker": 0.1043,
+        "Gebäude": 0.0002,
+        "Wald": 0.8936,
+        "Wasser": 0.0994
       }
     }
   ]

@@ -19,3 +19,6 @@ Bilder/EO_Bilder/*.tif
 .vscode/
 .idea/
 *.swp
+
+# Lokale Fortschritts-Logs (z.B. build_real_pool.py --live-tail), nie versionieren
+*.log
