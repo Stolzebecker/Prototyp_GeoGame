@@ -68,11 +68,13 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
     ausgeliefert, auch nach Server-Neustart/neuem Tab (Proxy-Port bleibt
     stabil). Bei künftigen Arbeitspaketen den `v=`-Wert hochzählen, wenn der
     Dev-Server wieder veralteten Code ausliefert.
-  - Baseline-Screenshots offen: das Browser-Pane war in dieser Sitzung nicht
-    sichtbar/geöffnet ("pane is not displayed", Kompositierung schlägt fehl)
-    — strukturelle Verifikation per `read_page` stattdessen durchgeführt
-    (alle Screens/Modals vorhanden). Screenshots nachholen, sobald das Pane
-    sichtbar ist.
+  - Baseline-Screenshots erfasst (Startbildschirm, Sprachwahl, laufendes
+    Level mit/ohne Debug-Overlay, Ergebnis-Screen) — Desktop-Layout: feste
+    Topbar (Marke/Fortschritt/Zeit/Fehler), Bühne mit Satellitenbild,
+    untere Leiste links "Ich komme nicht weiter"+Chip-Tray (4 Labels),
+    unten rechts "Nicht vorhanden"-Papierkorb. Referenzpunkt für den
+    Regressionsvergleich in WP2/WP3, nicht als Datei gespeichert (informell,
+    live erneut screenshotten bei Bedarf).
 - [ ] **WP1 — Geräteerkennung & Querformat-Infrastruktur** *(nächstes Paket)*
   - `assets/js/device.js`: Interaktionsmodus-Erkennung, Layout-Tier
     (phone/tablet/desktop), manueller Override-Schalter
