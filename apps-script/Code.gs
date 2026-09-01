@@ -133,6 +133,21 @@ function getOrCreateTab_(name, header) {
   return sheet;
 }
 
+// Haengt an die zuletzt per appendRow() geschriebene Zeile von `sheet` zwei
+// Metadaten-Spalten an (selbstheilend, gleiches ensureColumn_-Muster wie
+// geraet/alias/bekanntheit_status): die Spielversion (immer, unabhaengig vom
+// Modus) und das Interviewmodus-Flag (fuer den spaeteren Ausschluss aus der
+// Hauptstatistik). Direkt nach jedem appendRow() aufrufen - bei mehreren
+// Zeilen pro Request (siehe handleLevel_) entsprechend einmal pro Zeile.
+// Siehe Memory project_paper1_pivot_no_tierlist fuer den Hintergrund.
+function stampMetaColumns_(sheet, data) {
+  var versionCol = ensureColumn_(sheet, "app_version");
+  var interviewCol = ensureColumn_(sheet, "interview_modus");
+  var row = sheet.getLastRow();
+  sheet.getRange(row, versionCol).setValue(data.appVersion || "");
+  sheet.getRange(row, interviewCol).setValue(!!data.interviewModus);
+}
+
 // ── Personendaten (einmalig pro participant_id) ────────────────────────────
 function handlePerson_(data) {
   var sheet = getOrCreateTab_("Personendaten", [
@@ -154,6 +169,7 @@ function handlePerson_(data) {
   // was tatsaechlich eingegeben wurde.
   var aliasCol = ensureColumn_(sheet, "alias");
   sheet.getRange(sheet.getLastRow(), aliasCol).setValue(data.alias || "");
+  stampMetaColumns_(sheet, data);
   return jsonOut_({ ok: true });
 }
 
@@ -181,6 +197,7 @@ function handleLauf_(data) {
   // folge zu veraendern.
   var statusCol = ensureColumn_(sheet, "bekanntheit_status"); // 1-basiert
   sheet.getRange(sheet.getLastRow(), statusCol).setValue("abgebrochen");
+  stampMetaColumns_(sheet, data);
   return jsonOut_({ ok: true, laufId: run.laufId, durchlaufNr: run.durchlaufNr });
 }
 
@@ -223,6 +240,7 @@ function handleLevel_(data) {
       !!data.debugAusgeloest,
       !!data.hinweisGenutzt,
     ]);
+    stampMetaColumns_(levelSheet, data);
   });
 
   var dropSheet = getOrCreateTab_("Drop_Versuche", [
@@ -241,6 +259,7 @@ function handleLevel_(data) {
       d.versuchNrFuerLabel != null ? d.versuchNrFuerLabel : "",
       d.zeitSeitLevelstartMs != null ? d.zeitSeitLevelstartMs : "",
     ]);
+    stampMetaColumns_(dropSheet, data);
   });
 
   return jsonOut_({ ok: true, laufId: run.laufId, durchlaufNr: run.durchlaufNr });
@@ -288,6 +307,7 @@ function handleFamiliarity_(data) {
         new Date(), data.timestampClient || "", data.participantId || "",
         run.laufId, run.durchlaufNr, m.level || "", m.name || "",
       ]);
+      stampMetaColumns_(sheet, data);
     });
   }
   return jsonOut_({ ok: true });
@@ -308,6 +328,7 @@ function handlePostSurvey_(data) {
     run.laufId, run.durchlaufNr,
     data.konzentration || "", data.ort || "", data.ablenkung || "", data.wachheit || "",
   ]);
+  stampMetaColumns_(sheet, data);
   return jsonOut_({ ok: true });
 }
 
@@ -322,6 +343,7 @@ function handleFeedback_(data) {
     new Date(), data.timestampClient || "", data.participantId || "",
     run.laufId, run.durchlaufNr, data.feedbackText || "",
   ]);
+  stampMetaColumns_(sheet, data);
   return jsonOut_({ ok: true });
 }
 
@@ -346,6 +368,7 @@ function handleRunSummary_(data) {
     data.alias || data.participantId || "", data.totalTimeMs || 0, totalErrors,
     totalErrors > DISQUALIFY_ERROR_THRESHOLD,
   ]);
+  stampMetaColumns_(sheet, data);
   return jsonOut_({ ok: true });
 }
 
@@ -360,7 +383,11 @@ function handleLeaderboardRead_(e) {
   var ss = getSpreadsheet_();
   var bestSheet = ss.getSheetByName("Bestenliste");
   var rows = bestSheet ? sheetToObjects_(bestSheet) : [];
-  var qualifying = rows.filter(function (r) { return !r.disqualifiziert; });
+  // Interviewmodus-Sessions (Think-Aloud, meist deutlich langsamer/atypisch)
+  // fliessen nicht in die oeffentliche Bestenliste ein - analog zur
+  // bestehenden disqualifiziert-Filterung. Siehe Memory
+  // project_paper1_pivot_no_tierlist.
+  var qualifying = rows.filter(function (r) { return !r.disqualifiziert && !r.interview_modus; });
 
   // Bester (schnellster) Lauf je participant_id - NICHT je Alias, da Aliase
   // nicht eindeutig sein muessen (siehe Memory project_geogame_leaderboard).

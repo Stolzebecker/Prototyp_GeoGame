@@ -32,6 +32,15 @@ const LEADERBOARD_TOKEN = "gg_board_71cf3e0a4d8b26f5913c6e0a8d4b2f17";
 const LS_PARTICIPANT_ID = "geogame_participant_id";
 const LS_ALIAS = "geogame_alias";
 
+// ── App-Version (seit 2026-09-01) ──────────────────────────────
+// Wird bei JEDER Uebertragung mitgeloggt (siehe sendToBackend_), unabhaengig
+// vom Modus - falls sich durch die parallelen Interviews Anpassungsbedarf am
+// Spiel zeigt, lassen sich frueh gesammelte Feld-Datensaetze so nach Version
+// filtern/als Kovariate kontrollieren statt sie verwerfen zu muessen (siehe
+// Memory project_paper1_pivot_no_tierlist). Von Hand hochzaehlen bei
+// inhaltlich relevanten Aenderungen am Spiel, nicht bei jedem Commit.
+const APP_VERSION = "mobile-wp2";
+
 // ── Testmodus (geheim, per Taste T + Passwort) ────────────────
 // Unterdrueckt jede Uebertragung ans Backend, damit QA-/Testlaeufe nicht in
 // der echten Tabelle landen. Bewusst NICHT persistent (kein localStorage-Flag
@@ -51,23 +60,100 @@ function isTestModeActive(){
   return _testModeActive;
 }
 
+// Aktiv waehrend Testmodus ODER Interviewmodus: beide brauchen eine frische,
+// rein speicherresidente Teilnehmer-Identitaet statt der echten
+// geraeteweiten (siehe getParticipantId() etc. weiter unten) - sonst wuerde
+// z.B. der zweite Interviewpartner auf demselben Laptop faelschlich als
+// Wiederholungsbesuch des ersten erkannt (Formular/Tutorial uebersprungen).
+function _usesEphemeralIdentity_(){
+  return _testModeActive || _interviewModeActive;
+}
+
 function showTestModeBanner_(){
   if(!_testModeBannerEl){
     _testModeBannerEl = document.createElement('div');
-    _testModeBannerEl.textContent = 'TESTMODUS';
     Object.assign(_testModeBannerEl.style, {
       position: 'fixed', top: '8px', right: '8px', zIndex: 99999,
       background: '#b71918', color: '#fff', fontFamily: "'Segoe UI', sans-serif",
       fontWeight: '700', fontSize: '11px', letterSpacing: '.08em',
-      padding: '4px 10px', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      padding: '8px 12px', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px',
       pointerEvents: 'none',
     });
+    const label = document.createElement('span');
+    label.textContent = 'TESTMODUS';
+    _testModeBannerEl.appendChild(label);
+
+    // Checkbox schaltet auf Interviewmodus um (seit 2026-09-01, siehe Memory
+    // project_paper1_pivot_no_tierlist) - deaktiviert dabei automatisch den
+    // Testmodus, sonst wuerde weiterhin gar nichts uebertragen (Testmodus
+    // unterdrueckt jede Uebertragung, siehe sendToBackend_). Eigene Zeile
+    // (nicht wie TESTMODUS-Label inline) + grosszuegiges Label-Padding, damit
+    // der Tap-Target auch auf Handy/Tablet real bedienbar ist - eine
+    // ungestylte Checkbox allein waere mit ~13x13px weit unter dem sonst im
+    // Projekt verwendeten ~44px-Ziel (siehe MOBILE_PLAN.md WP3), gerade weil
+    // sie im schmalen rotierten Banner am Bildschirmrand sitzt (per
+    // Browser-Pane-Mobilemulation + getBoundingClientRect() verifiziert,
+    // bevor dieser Fix kam). Klick/Tap auf das gesamte Label (nicht nur das
+    // kleine Kaestchen) loest dank <label>-Wrapping bereits nativ aus.
+    const cbLabel = document.createElement('label');
+    Object.assign(cbLabel.style, {
+      display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '400',
+      letterSpacing: 'normal', textTransform: 'none', cursor: 'pointer',
+      pointerEvents: 'auto', padding: '12px 4px', margin: '-6px -4px', minHeight: '20px',
+    });
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    Object.assign(cb.style, { width: '20px', height: '20px', margin: '0', flexShrink: '0' });
+    cb.addEventListener('change', () => { if(cb.checked) activateInterviewMode_(); });
+    cbLabel.appendChild(cb);
+    cbLabel.appendChild(document.createTextNode('Interviewmodus'));
+    _testModeBannerEl.appendChild(cbLabel);
+
     document.body.appendChild(_testModeBannerEl);
   }
-  _testModeBannerEl.style.display = 'block';
+  _testModeBannerEl.style.display = 'flex';
 }
 function hideTestModeBanner_(){
   if(_testModeBannerEl) _testModeBannerEl.style.display = 'none';
+}
+
+// ── Interviewmodus (seit 2026-09-01) ───────────────────────────
+// Fuer Concurrent-Think-Aloud-Interviews: schreibt (anders als Testmodus)
+// echte Daten ans Backend, aber mit explizitem Flag markiert, damit diese
+// Sessions spaeter aus der Hauptstatistik ausgeschlossen werden koennen.
+// Aktivierung nur ueber die Testmodus-Checkbox oben. Siehe Memory
+// project_paper1_pivot_no_tierlist fuer die volle Entscheidungshistorie.
+let _interviewModeActive = false;
+let _interviewModeBannerEl = null;
+
+function isInterviewModeActive(){
+  return _interviewModeActive;
+}
+
+function activateInterviewMode_(){
+  if(_testModeActive) deactivateTestMode_();
+  _interviewModeActive = true;
+  _testParticipantId = 'int_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+  _testAlias = null;
+  showInterviewModeBanner_();
+}
+
+function showInterviewModeBanner_(){
+  hideTestModeBanner_();
+  if(!_interviewModeBannerEl){
+    _interviewModeBannerEl = document.createElement('div');
+    _interviewModeBannerEl.textContent = 'INTERVIEWMODUS';
+    Object.assign(_interviewModeBannerEl.style, {
+      position: 'fixed', top: '8px', right: '8px', zIndex: 99999,
+      background: '#0ca4d1', color: '#fff', fontFamily: "'Segoe UI', sans-serif",
+      fontWeight: '700', fontSize: '11px', letterSpacing: '.08em',
+      padding: '6px 10px', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      pointerEvents: 'none',
+    });
+    document.body.appendChild(_interviewModeBannerEl);
+  }
+  _interviewModeBannerEl.style.display = 'block';
 }
 
 // Gemeinsame Aktivierungslogik, unabhaengig vom Ausloeser (Taste T + Prompt,
@@ -110,7 +196,7 @@ function applyUrlActivation_(){
 
 // ── Teilnehmer-Identitaet ────────────────────────────────────
 function getParticipantId(){
-  if(_testModeActive) return _testParticipantId;
+  if(_usesEphemeralIdentity_()) return _testParticipantId;
   let id = localStorage.getItem(LS_PARTICIPANT_ID);
   if(!id){
     id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
@@ -119,7 +205,7 @@ function getParticipantId(){
   return id;
 }
 function isFirstEverVisit(){
-  if(_testModeActive) return true;
+  if(_usesEphemeralIdentity_()) return true;
   return localStorage.getItem(LS_PARTICIPANT_ID) === null;
 }
 
@@ -129,11 +215,11 @@ function isFirstEverVisit(){
 // angezeigt wird - kein neuer "ist das ein erneuter Durchlauf?"-Dialog
 // noetig, das haengt sich an die bestehende isFirstEverVisit()-Logik.
 function getAlias(){
-  if(_testModeActive) return _testAlias;
+  if(_usesEphemeralIdentity_()) return _testAlias;
   return localStorage.getItem(LS_ALIAS);
 }
 function setAlias(alias){
-  if(_testModeActive){ _testAlias = alias || null; return; }
+  if(_usesEphemeralIdentity_()){ _testAlias = alias || null; return; }
   if(alias) localStorage.setItem(LS_ALIAS, alias);
 }
 
@@ -181,6 +267,8 @@ function sendToBackend_(payload){
   }
   payload.authToken = SUBMIT_TOKEN;
   payload.timestampClient = new Date().toISOString();
+  payload.appVersion = APP_VERSION;
+  payload.interviewModus = _interviewModeActive;
   fetch(SUBMIT_URL, {
     method: 'POST',
     mode: 'no-cors',

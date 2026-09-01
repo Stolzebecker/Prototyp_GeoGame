@@ -165,6 +165,43 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
     echter Cursor). Verifiziert: Touch-Drop in den Papierkorb (korrekt +
     falsch gewertet), Bühnen-Drop mit Versatz weiterhin korrekt,
     Maus-Regression unverändert.
+- [x] **Zwischenschritt — App-Version-Logging & Interviewmodus** *(erledigt 2026-09-01, ausgelöst durch den TIER-List-zu-GeoGame-Pivot, siehe Memory `project_paper1_pivot_no_tierlist`)*
+  - `telemetry.js`: `APP_VERSION`-Konstante wird bei jeder Übertragung
+    mitgeschickt (`sendToBackend_()`), unabhängig vom Modus.
+  - Testmodus-Banner bekam eine Checkbox "Interviewmodus" — schreibt (anders
+    als Testmodus) echte, aber explizit geflaggte Daten für die spätere
+    Think-Aloud-Interview-Auswertung; deaktiviert dabei automatisch den
+    Testmodus und vergibt eine frische Speicher-Identität (`int_...`), damit
+    aufeinanderfolgende Interviewpartner auf demselben Laptop nicht
+    fälschlich als Wiederholungsbesuch erkannt werden.
+  - `Code.gs`: neue selbstheilende Spalten `app_version`/`interview_modus`
+    in jedem Tab (`stampMetaColumns_()`); `interview_modus`-Zeilen fliegen
+    zusätzlich aus der öffentlichen Bestenliste raus.
+  - Verifiziert im Browser-Pane (Testmodus per URL-Param, `fetch` gemockt,
+    um keine echten Zeilen ins Live-Sheet zu schreiben): Checkbox erscheint
+    nur im Testmodus-Banner, Umschalten deaktiviert Testmodus und zeigt den
+    INTERVIEWMODUS-Banner, Payload enthält `appVersion`/`interviewModus`
+    korrekt in allen drei Zuständen (normal/Test/Interview), reine
+    Testmodus-Unterdrückung weiterhin unverändert (Regression geprüft).
+  - **Nachbesserung noch in derselben Sitzung (Julians Nachfrage, ob das
+    auch mobil funktioniert):** die erste Version nutzte eine ungestylte
+    native Checkbox (~13×13px) - unter mobiler mit Touch-Emulation
+    verifiziert per `getBoundingClientRect()`: Positionierung unter dem
+    Rotationstrick war korrekt (nichts abgeschnitten), aber der Tap-Target
+    war deutlich unter dem sonst im Projekt verwendeten ≥44px-Ziel (siehe
+    WP3 unten). Fix: Checkbox-Zeile auf eigene Zeile (statt inline neben
+    "TESTMODUS"), Label-Padding vergrößert, Checkbox selbst auf 20×20px -
+    Label-Tap-Fläche jetzt 44×111px. Per synthetischem `PointerEvent`
+    (`pointerType:'touch'`) auf die Mitte des Labels (nicht das kleine
+    Kästchen) verifiziert: löst zuverlässig aus, schaltet korrekt auf
+    Interviewmodus um. Lehre: neue interaktive Elemente in diesem Repo
+    grundsätzlich gegen mobile Touch-Emulation pruefen, nicht nur Desktop -
+    Positionierung kann stimmen, waehrend die Zielgroesse trotzdem
+    unbrauchbar ist.
+  - **Noch offen:** `Code.gs`-Änderung muss noch manuell in der Apps-
+    Script-Konsole bereitgestellt werden (Bereitstellungen verwalten →
+    Version bearbeiten → Neue Version) — der Git-Commit allein deployed
+    nichts.
 - [ ] **WP3 — UI-Layout für Touch/kleine Screens** *(nächstes Paket)*
   - Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
   - Touch-taugliche Zielgrößen (≥ ca. 44px)
