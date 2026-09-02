@@ -23,6 +23,31 @@ html[data-device="touch"] {
   user-select: none;
 }
 
+/* ── Sichtbare Querformat-Masse als Custom Properties ─────────────────
+   Julians Testfund (2026-09-02): dreht man das Handy zusaetzlich PHYSISCH
+   ins Querformat, "springt" das Layout ploetzlich zurueck in ein enges/
+   hohes Default-Aussehen. Ursache: der Rotationstrick greift nur unter
+   "@media (orientation: portrait)" (im echten Querformat braucht es ihn ja
+   nicht). Die WEITEREN Touch-Regeln unten (Panel-Breite, Dropdown-Hoehe)
+   nutzten aber unbedingt vh/vw mit der Annahme "vh = sichtbare Breite" -
+   das stimmt nur, SOLANGE der Rotationstrick tatsaechlich aktiv ist (Hoch-
+   format-Haltung). Haelt man das Geraet bereits physisch quer, ist ohne
+   Rotationstrick vw ganz normal die sichtbare Breite, nicht vh - dieselbe
+   feste Formel ergab dann das genaue Gegenteil des gewuenschten Layouts.
+   Fix: zwei Custom Properties, die JE NACH tatsaechlicher Orientierung auf
+   die richtige physische Achse zeigen - alles unten benutzt nur noch
+   var(--landscape-w)/var(--landscape-h), nie direkt vw/vh. */
+html[data-device="touch"] {
+  --landscape-w: 100vw;
+  --landscape-h: 100vh;
+}
+@media (orientation: portrait) {
+  html[data-device="touch"] {
+    --landscape-w: 100vh;
+    --landscape-h: 100vw;
+  }
+}
+
 /* ── Erzwungenes Querformat ──────────────────────────────────
    Julians ausdrücklicher Wunsch: die Anwendung läuft auf Touch-
    Geräten IMMER im Querformat, unabhängig davon, wie das Gerät
@@ -120,40 +145,58 @@ html[data-device="touch"] #trash {
    zusaetzlich dafuer, dass der Rest bei Bedarf wirklich vollstaendig
    erreichbar bleibt. */
 html[data-device="touch"] .tut-info-panel {
-  padding: 16px 18px;
-  gap: 8px;
-  /* Julians Beobachtung (2026-09-02): ein Handy ist im Verhaeltnis deutlich
-     "laenglicher" als ein Tablet/PC - nach dem Rotationstrick ist genau
-     diese Laenge die verfuegbare BREITE im Querformat. tutorial.css nutzt
-     fuer die Panel-Breite bewusst vw (88vw) - das bezieht sich bei einem
-     tief verschachtelten Element aber weiterhin auf den ECHTEN, unge-
-     drehten Viewport (siehe Kommentar dort), liefert auf Touch also die
-     physische Geraete-BREITE (kurze Kante) statt der sichtbaren Quer-
-     format-Breite. vh dagegen liefert die physische Geraete-HOEHE (lange
-     Kante bei einem Handy) - genau das, was nach der Drehung die sichtbare
-     Breite ist. Ein deutlich breiteres Panel laesst Text auf weniger
-     Zeilen umbrechen und reduziert dadurch direkt den Scroll-Bedarf. */
-  width: min(640px, 84vh);
+  padding: 12px 16px;
+  gap: 5px;
+  /* Ein deutlich breiteres Panel laesst Text auf weniger Zeilen umbrechen
+     und reduziert dadurch direkt den Scroll-Bedarf - var(--landscape-w)
+     zeigt immer auf die tatsaechlich sichtbare Querformat-Breite, egal ob
+     die per Rotationstrick simuliert oder das Geraet schon physisch quer
+     gehalten wird (siehe Definition weiter oben). */
+  width: min(640px, calc(var(--landscape-w) * 0.86));
 }
 html[data-device="touch"] .tut-info-panel h2 {
-  font-size: 19px;
+  font-size: 17px;
+  line-height: 1.1;
+}
+html[data-device="touch"] .tut-info-panel .tut-step-badge {
+  font-size: 9px;
+}
+html[data-device="touch"] .tut-info-panel .tut-subtitle {
+  font-size: 11px;
+  margin-bottom: -4px;
 }
 html[data-device="touch"] .tut-info-panel p {
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 12.5px;
+  line-height: 1.35;
 }
 html[data-device="touch"] .tut-info-panel .tut-note {
-  font-size: 11px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  padding-left: 8px;
+}
+html[data-device="touch"] .tut-info-panel .tut-btn-row {
+  margin-top: 2px;
+}
+html[data-device="touch"] .tut-btn {
+  padding: 9px 20px;
+  font-size: 13px;
+}
+html[data-device="touch"] .tut-btn-skip {
+  padding: 9px 14px;
+  font-size: 12px;
 }
 
 /* Personendaten-Formular: die neu gewonnene Panel-Breite (siehe oben) fuer
    ein zweispaltiges Layout nutzen statt eine lange Einzelspalte - halbiert
    die Zeilenzahl und damit den Scroll-Bedarf auf dem Handy. Titel/Intro/
-   Fehlerhinweis/Weiter-Button bleiben ueber beide Spalten hinweg. */
+   Fehlerhinweis/Weiter-Button bleiben ueber beide Spalten hinweg. Reihen
+   selbst kompakter (kleineres Label, weniger Innenabstand bei Input/
+   Select) - die 44px-Mindesthoehe der eigentlichen Tipp-/Tap-Flaeche
+   (Input/Select/Custom-Select-Button) bleibt dabei unangetastet. */
 html[data-device="touch"] .tut-info-panel:has(.tut-form-row) {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 16px;
+  gap: 2px 16px;
   align-items: start;
 }
 html[data-device="touch"] .tut-info-panel:has(.tut-form-row) h2,
@@ -161,6 +204,18 @@ html[data-device="touch"] .tut-info-panel:has(.tut-form-row) > p,
 html[data-device="touch"] .tut-info-panel:has(.tut-form-row) .tut-form-error,
 html[data-device="touch"] .tut-info-panel:has(.tut-form-row) .tut-btn-row {
   grid-column: 1 / -1;
+}
+html[data-device="touch"] .tut-form-row {
+  gap: 2px;
+}
+html[data-device="touch"] .tut-form-row label {
+  font-size: 0.74rem;
+  line-height: 1.15;
+}
+html[data-device="touch"] .tut-form-row input {
+  padding: 5px 8px;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 /* ── Custom-Select statt natives <select> auf Touch (WP3, 2026-09-02) ───
@@ -193,7 +248,7 @@ html[data-device="touch"] .tut-form-row select {
 .tut-form-row.invalid .custom-select-btn { border-color: var(--warn); }
 .custom-select-list {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10;
-  max-height: 38vw; overflow-y: auto;
+  max-height: calc(var(--landscape-h) * 0.38); overflow-y: auto;
   background: var(--panel-soft); border: 1px solid var(--line); border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
