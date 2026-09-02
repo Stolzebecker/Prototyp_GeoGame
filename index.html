@@ -33,8 +33,9 @@
 
   <!-- Fonts: Segoe UI is system-native on Windows; fallback via Google Fonts -->
 
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/tutorial.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=mobile-wp2e">
+  <link rel="stylesheet" href="assets/css/tutorial.css?v=mobile-wp2e">
+  <link rel="stylesheet" href="assets/css/mobile.css?v=mobile-wp2e">
 </head>
 <body>
 
@@ -63,6 +64,7 @@
     <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
     <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
     <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
+    <a href="#" id="device-override-link" onclick="toggleDeviceOverride_();return false;"></a>
   </footer>
 </div>
 
@@ -423,8 +425,10 @@
 <!-- Practice success message -->
 <div id="tut-success-msg"></div>
 
-<script src="assets/js/telemetry.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/tutorial.js"></script>
+<script src="assets/js/device.js?v=mobile-wp2e"></script>
+<script src="assets/js/telemetry.js?v=mobile-wp2e"></script>
+<script src="assets/js/app.js?v=mobile-wp2e"></script>
+<script src="assets/js/tutorial.js?v=mobile-wp2e"></script>
+<script src="assets/js/touch-triggers.js?v=mobile-wp2e"></script>
 </body>
 </html>

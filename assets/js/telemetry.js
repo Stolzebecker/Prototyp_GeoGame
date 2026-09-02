@@ -167,18 +167,35 @@ function deactivateTestMode_(){
   hideTestModeBanner_();
 }
 
+// Gemeinsame Aktivierungslogik, unabhaengig vom Ausloeser (Taste T + Prompt,
+// Touch-Geste, oder URL-Parameter fuer automatisierte Verifikation).
+function activateTestModeWithPassword_(input){
+  if(input !== TEST_MODE_PASSWORD) return false;
+  _testModeActive = true;
+  _testParticipantId = 'test_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+  showTestModeBanner_();
+  return true;
+}
+
 function toggleTestMode(){
-  if(_testModeActive){
-    deactivateTestMode_();
-    return;
-  }
+  if(_testModeActive){ deactivateTestMode_(); return; }
   const input = window.prompt('Passwort:');
-  if(input === TEST_MODE_PASSWORD){
-    _testModeActive = true;
-    _testParticipantId = 'test_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-    showTestModeBanner_();
-  }
+  activateTestModeWithPassword_(input);
   // falsches Passwort: keine sichtbare Reaktion
+}
+
+// Nur fuer automatisierte Verifikation (Claude/Browser-Pane): URL-Parameter
+// ?testmode=<Passwort> bzw. ?debug=1 aktivieren denselben Test-/Debug-Modus
+// wie die Tasten-/Touch-Ausloeser, ohne window.prompt() - das wird von
+// Browser-Automatisierungstools automatisch weggeklickt (siehe Memory
+// project_geogame_hitbox_crs_fix) und ist auf Touch-Geraeten ohnehin nicht
+// bedienbar. Kein Sicherheitsmechanismus, nur ein Schutz gegen versehentliche
+// Aktivierung - dieselbe Einschraenkung gilt bereits fuer TEST_MODE_PASSWORD.
+function applyUrlActivation_(){
+  const params = new URLSearchParams(location.search);
+  const tm = params.get('testmode');
+  if(tm) activateTestModeWithPassword_(tm);
+  return params.get('debug') === '1';
 }
 
 // ── Teilnehmer-Identitaet ────────────────────────────────────

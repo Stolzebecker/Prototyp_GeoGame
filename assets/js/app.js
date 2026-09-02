@@ -102,6 +102,11 @@ async function boot(){
   elDebugCanvas = document.getElementById('debug-canvas');
   elDebugCtx    = elDebugCanvas.getContext('2d');
 
+  // URL-Parameter-Aktivierung von Test-/Debug-Modus, nur fuer automatisierte
+  // Verifikation (siehe telemetry.js: applyUrlActivation_()) - Touch-Geraete
+  // haben eigene Tipp-Gesten dafuer (siehe MOBILE_PLAN.md WP1).
+  if(applyUrlActivation_()) toggleDebug();
+
   // Size the stage to 4:3 now that DOM is ready
 
   try{
@@ -490,9 +495,14 @@ function renderLabels(lv){
     const chip=document.createElement('div');
     chip.className='label-chip'; chip.id='chip-'+lb.id;
     chip.dataset.id=lb.id; chip.textContent=lb.icon+' '+lb.text;
-    chip.addEventListener('mousedown',e=>{
+    chip.addEventListener('pointerdown',e=>{
       if(chip.classList.contains('used')) return;
+      // Waehrend ein Drag laeuft, weitere Pointer (z.B. zweiter Finger)
+      // ignorieren - das Spiel kennt nur einen aktiven Drag gleichzeitig.
+      if(draggingId) return;
       e.preventDefault();
+      _activeDragPointerId = e.pointerId;
+      try{ chip.setPointerCapture(e.pointerId); }catch(err){ /* Maus/aeltere Browser brauchen das nicht */ }
       beginDrag(lb.id, lb.icon+' '+lb.text, chip, e);
     });
     bar.appendChild(chip);
@@ -508,17 +518,32 @@ function beginDrag(id,label,chipEl,e){
 function endDrag(){
   if(draggingId){ const c=document.getElementById('chip-'+draggingId); if(c) c.classList.remove('lifting'); }
   draggingId=null; elFloatChip.style.display='none'; elPin.style.display='none';
+  _activeDragPointerId = null;
 }
 function positionFloatChip(cx,cy){
   elFloatChip.style.left=cx+'px'; elFloatChip.style.top=cy+'px';
 }
 
+// Bei Touch wird der eigentliche Ziel-/Ablagepunkt nach oben versetzt, damit
+// der Finger ihn nicht verdeckt (siehe MOBILE_PLAN.md WP2, Julians
+// Grilling-Entscheidung "Ziehen mit versetztem Anzeiger"). Bei Maus/Stift
+// bleibt es der exakte Zeiger - dort gibt es kein Verdeckungsproblem. Der
+// schwebende Chip-Text (elFloatChip) bleibt bewusst AM Finger/Cursor, nur
+// Lupe+Ziel-Reticle (und damit auch die tatsaechliche Ablage-Hittest-Position)
+// wandern versetzt.
+const TOUCH_DRAG_OFFSET_Y = 70;
+function effectiveDragPoint_(e){
+  if(e.pointerType !== 'touch') return {x:e.clientX, y:e.clientY};
+  return {x:e.clientX, y:e.clientY - TOUCH_DRAG_OFFSET_Y};
+}
 
 // Returns the bounding rect of the satellite image (4:3 box),
 // which may be smaller than the stage if the stage has a different ratio.
-// ── Mouse events ─────────────────────────────────────────────
+// ── Pointer events (Maus UND Touch, siehe MOBILE_PLAN.md WP2) ──
+let _activeDragPointerId = null;
 function setupMouseEvents(){
-  document.addEventListener('mousemove',e=>{
+  document.addEventListener('pointermove',e=>{
+    if(draggingId && e.pointerId!==_activeDragPointerId) return; // anderer Finger, ignorieren
     if(levelTelemetry){
       if(_lastMouseX!==null){
         levelTelemetry.mouseDistance += Math.hypot(e.clientX-_lastMouseX, e.clientY-_lastMouseY);
@@ -526,17 +551,18 @@ function setupMouseEvents(){
       _lastMouseX=e.clientX; _lastMouseY=e.clientY;
     }
     if(draggingId) positionFloatChip(e.clientX,e.clientY);
+    const eff = effectiveDragPoint_(e);
     // imgRect: actual rendered image position (accounts for black bars)
     // stageRect: full #stage container
     const imgRect  = elSatImg.getBoundingClientRect();
     const stageRect= elStage.getBoundingClientRect();
-    const inStage  = e.clientX>=imgRect.left&&e.clientX<=imgRect.right
-                  && e.clientY>=imgRect.top &&e.clientY<=imgRect.bottom;
+    const inStage  = eff.x>=imgRect.left&&eff.x<=imgRect.right
+                  && eff.y>=imgRect.top &&eff.y<=imgRect.bottom;
     if(inStage){
       // lx,ly relative to image → used for loupe sampling and hit-test fractions
-      const lx=e.clientX-imgRect.left, ly=e.clientY-imgRect.top;
+      const lx=eff.x-imgRect.left, ly=eff.y-imgRect.top;
       // slx,sly relative to #stage → used for positioning loupe/pin elements
-      const slx=e.clientX-stageRect.left, sly=e.clientY-stageRect.top;
+      const slx=eff.x-stageRect.left, sly=eff.y-stageRect.top;
 
       updateLoupe(lx,ly,imgRect.width,imgRect.height);
 
@@ -561,34 +587,59 @@ function setupMouseEvents(){
       elLoupe.style.display='none'; elPin.style.display='none';
     }
     if(draggingId){
+      // Papierkorb ist ein grosses, grobes Ziel - dafuer zaehlt die ECHTE
+      // Finger-/Cursor-Position (e.clientX/Y), nicht der versetzte
+      // Praezisions-Reticle (eff). Sonst kann der Versatz den Papierkorb
+      // systematisch unerreichbar machen, wenn er nah unterhalb der Buehne
+      // liegt - genau der Bug, den Julian beim echten Touch-Test fand: der
+      // Versatz schob den rechnerischen Zielpunkt zurueck in die Buehne,
+      // der Papierkorb wurde nie geprueft (Luecke Buehne/Papierkorb war
+      // kleiner als TOUCH_DRAG_OFFSET_Y).
       const tr=elTrash.getBoundingClientRect();
       elTrash.classList.toggle('drag-over',
         e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom);
     }
   });
 
-  document.addEventListener('mouseup',e=>{
+  document.addEventListener('pointerup',e=>{
+    if(draggingId && e.pointerId!==_activeDragPointerId) return;
     if(!draggingId){ endDrag(); return; }
-    const imgRect2=elSatImg.getBoundingClientRect();
-    const stgRect2=elStage.getBoundingClientRect();
-    const tipX=e.clientX, tipY=e.clientY;
-    const inStage=tipX>=imgRect2.left&&tipX<=imgRect2.right
-               &&tipY>=imgRect2.top&&tipY<=imgRect2.bottom;
-    if(inStage){
-      const fx=(tipX-imgRect2.left)/imgRect2.width;
-      const fy=(tipY-imgRect2.top)/imgRect2.height;
-      // localX/Y for zone-ok label positioning: relative to stage
-      const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
-      handleStageDrop(fx,fy,localX,localY);
+    // Papierkorb zuerst pruefen, anhand der echten Zeigerposition (siehe
+    // Begruendung im pointermove-Handler oben) - erst wenn das nicht
+    // zutrifft, zaehlt der versetzte Praezisions-Reticle fuer die Buehne.
+    const tr=elTrash.getBoundingClientRect();
+    const overTrash = e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom;
+    if(overTrash){
+      handleTrashDrop();
     } else {
-      const tr=elTrash.getBoundingClientRect();
-      if(tipX>=tr.left&&tipX<=tr.right&&tipY>=tr.top&&tipY<=tr.bottom) handleTrashDrop();
+      const eff = effectiveDragPoint_(e);
+      const imgRect2=elSatImg.getBoundingClientRect();
+      const stgRect2=elStage.getBoundingClientRect();
+      const tipX=eff.x, tipY=eff.y;
+      const inStage=tipX>=imgRect2.left&&tipX<=imgRect2.right
+                 &&tipY>=imgRect2.top&&tipY<=imgRect2.bottom;
+      if(inStage){
+        const fx=(tipX-imgRect2.left)/imgRect2.width;
+        const fy=(tipY-imgRect2.top)/imgRect2.height;
+        // localX/Y for zone-ok label positioning: relative to stage
+        const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
+        handleStageDrop(fx,fy,localX,localY);
+      }
     }
     elTrash.classList.remove('drag-over');
     endDrag();
   });
 
+  // Abgebrochene Geste (z.B. System-/Browser-Geste unterbricht den Touch) -
+  // Drag sauber beenden, ohne einen Drop zu werten.
+  document.addEventListener('pointercancel',e=>{
+    if(draggingId && e.pointerId!==_activeDragPointerId) return;
+    elTrash.classList.remove('drag-over');
+    endDrag();
+  });
+
   elStage.addEventListener('mouseleave',()=>{
+    if(draggingId) return; // waehrend eines Drags nicht ausblenden
     elLoupe.style.display='none'; elPin.style.display='none';
   });
 }

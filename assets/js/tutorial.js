@@ -445,7 +445,7 @@ function buildAliasWheelCol_(cat) {
   }).join('');
   return (
     '<div class="alias-wheel-col">' +
-      '<div class="alias-wheel" id="alias-wheel-' + cat + '" onscroll="onAliasWheelScroll_(\'' + cat + '\')">' +
+      '<div class="alias-wheel" id="alias-wheel-' + cat + '" onscroll="onAliasWheelScroll_(\'' + cat + '\')" onwheel="onAliasWheelWheel_(\'' + cat + '\',event)">' +
         '<div class="alias-wheel-track">' +
           '<div class="alias-wheel-pad"></div>' + rows + '<div class="alias-wheel-pad"></div>' +
         '</div>' +
@@ -465,6 +465,35 @@ function onAliasWheelScroll_(cat) {
     updateAliasSelectedClasses_(cat, idx);
     renderAliasPreview_();
   }, 90);
+}
+
+// Mausrad/Trackpad auf dem Desktop feuert 'wheel'-Events mit der rohen
+// Scroll-Distanz (oft ~100-120px pro Rastung) - bei 44px Itemhoehe ueber-
+// springt das native Scrollen dadurch leicht 2-3 Woerter auf einmal, manche
+// Woerter waren so gar nicht praezise anwaehlbar (Julians Testfund,
+// 2026-09-02). Fix: 'wheel' wird abgefangen (preventDefault) und jedes
+// Event bewegt das Rad um genau EIN Wort, unabhaengig von der Rohdistanz -
+// Touch/Swipe auf Mobilgeraeten feuert keine 'wheel'-Events und bleibt
+// dadurch unveraendert beim nativen Scroll-Snap.
+var _aliasWheelCooldown = {};
+function onAliasWheelWheel_(cat, event) {
+  event.preventDefault();
+  var now = Date.now();
+  if (_aliasWheelCooldown[cat] && now - _aliasWheelCooldown[cat] < 90) { return; }
+  var dir = event.deltaY > 0 ? 1 : -1;
+  var newIdx = Math.max(0, Math.min(4, _aliasPicked[cat] + dir));
+  if (newIdx === _aliasPicked[cat]) { return; }
+  _aliasWheelCooldown[cat] = now;
+  scrollAliasWheelToIndex_(cat, newIdx);
+}
+
+function scrollAliasWheelToIndex_(cat, idx) {
+  var wheel = document.getElementById('alias-wheel-' + cat);
+  if (!wheel) { return; }
+  wheel.scrollTo({ top: idx * ALIAS_ITEM_HEIGHT, behavior: 'smooth' });
+  _aliasPicked[cat] = idx;
+  updateAliasSelectedClasses_(cat, idx);
+  renderAliasPreview_();
 }
 
 function updateAliasSelectedClasses_(cat, idx) {
