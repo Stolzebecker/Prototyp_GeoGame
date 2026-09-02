@@ -1,0 +1,468 @@
+{
+  "de": {
+    "neutral": [
+      "Riesige",
+      "Schlaue",
+      "Wilde",
+      "Flinke",
+      "Bunte",
+      "Mutige",
+      "Goldene",
+      "Schnelle",
+      "Coole",
+      "Starke",
+      "Sanfte",
+      "Helle",
+      "Hohe",
+      "Dunkle",
+      "Heitere",
+      "Kluge",
+      "Tolle",
+      "Brave",
+      "Aktive",
+      "Clevere",
+      "Edle",
+      "Freche",
+      "Frohe",
+      "Junge",
+      "Kleine",
+      "Laute",
+      "Lustige",
+      "Magische",
+      "Muntere",
+      "Nette",
+      "Pfiffige",
+      "Reine",
+      "Stille",
+      "Tapfere",
+      "Treue",
+      "Weise",
+      "Zarte",
+      "Schöne",
+      "Wache",
+      "Große",
+      "Smarte",
+      "Eifrige",
+      "Kühne",
+      "Stolze",
+      "Ferne",
+      "Fitte",
+      "Reife",
+      "Vitale",
+      "Wackere",
+      "Gewitzte"
+    ],
+    "geoAdj": [
+      "Steinige",
+      "Bewaldete",
+      "Pixelige",
+      "Klimatische",
+      "Alpine",
+      "Feuchte",
+      "Trockene",
+      "Grüne",
+      "Eisige",
+      "Sandige",
+      "Neblige",
+      "Sonnige",
+      "Warme",
+      "Kalte",
+      "Flache",
+      "Steile",
+      "Tiefe",
+      "Dichte",
+      "Offene",
+      "Spektrale",
+      "Thermische",
+      "Infrarote",
+      "Optische",
+      "Digitale",
+      "Rote",
+      "Blaue",
+      "Gelbe",
+      "Graue",
+      "Maritime",
+      "Polare",
+      "Tropische",
+      "Urbane",
+      "Ländliche",
+      "Hügelige",
+      "Felsige",
+      "Sumpfige",
+      "Moorige",
+      "Vulkanische",
+      "Küstennahe",
+      "Globale",
+      "Lokale",
+      "Gescannte",
+      "Verpixelte",
+      "Gefilterte",
+      "Farbige",
+      "Kombinierte",
+      "Kartierte",
+      "Räumliche",
+      "Zeitliche",
+      "Geothermische"
+    ],
+    "geoNoun": [
+      {
+        "wort": "Regenschauer",
+        "genus": "der"
+      },
+      {
+        "wort": "Satellit",
+        "genus": "der"
+      },
+      {
+        "wort": "Gletscher",
+        "genus": "der"
+      },
+      {
+        "wort": "Düne",
+        "genus": "die"
+      },
+      {
+        "wort": "Tal",
+        "genus": "das"
+      },
+      {
+        "wort": "Wolke",
+        "genus": "die"
+      },
+      {
+        "wort": "Fluss",
+        "genus": "der"
+      },
+      {
+        "wort": "Ozean",
+        "genus": "der"
+      },
+      {
+        "wort": "Vulkan",
+        "genus": "der"
+      },
+      {
+        "wort": "Krater",
+        "genus": "der"
+      },
+      {
+        "wort": "Insel",
+        "genus": "die"
+      },
+      {
+        "wort": "Wald",
+        "genus": "der"
+      },
+      {
+        "wort": "Berg",
+        "genus": "der"
+      },
+      {
+        "wort": "Klippe",
+        "genus": "die"
+      },
+      {
+        "wort": "Sumpf",
+        "genus": "der"
+      },
+      {
+        "wort": "Wüste",
+        "genus": "die"
+      },
+      {
+        "wort": "Steppe",
+        "genus": "die"
+      },
+      {
+        "wort": "Pixel",
+        "genus": "das"
+      },
+      {
+        "wort": "Sensor",
+        "genus": "der"
+      },
+      {
+        "wort": "Radar",
+        "genus": "das"
+      },
+      {
+        "wort": "Orbit",
+        "genus": "der"
+      },
+      {
+        "wort": "Karte",
+        "genus": "die"
+      },
+      {
+        "wort": "Bild",
+        "genus": "das"
+      },
+      {
+        "wort": "Canyon",
+        "genus": "der"
+      },
+      {
+        "wort": "Fjord",
+        "genus": "der"
+      },
+      {
+        "wort": "Lagune",
+        "genus": "die"
+      },
+      {
+        "wort": "Riff",
+        "genus": "das"
+      },
+      {
+        "wort": "Delta",
+        "genus": "das"
+      },
+      {
+        "wort": "Strom",
+        "genus": "der"
+      },
+      {
+        "wort": "See",
+        "genus": "der"
+      },
+      {
+        "wort": "Meer",
+        "genus": "das"
+      },
+      {
+        "wort": "Gipfel",
+        "genus": "der"
+      },
+      {
+        "wort": "Wiese",
+        "genus": "die"
+      },
+      {
+        "wort": "Tundra",
+        "genus": "die"
+      },
+      {
+        "wort": "Taiga",
+        "genus": "die"
+      },
+      {
+        "wort": "Eisberg",
+        "genus": "der"
+      },
+      {
+        "wort": "Atoll",
+        "genus": "das"
+      },
+      {
+        "wort": "Plateau",
+        "genus": "das"
+      },
+      {
+        "wort": "Senke",
+        "genus": "die"
+      },
+      {
+        "wort": "Geysir",
+        "genus": "der"
+      },
+      {
+        "wort": "Pass",
+        "genus": "der"
+      },
+      {
+        "wort": "Hang",
+        "genus": "der"
+      },
+      {
+        "wort": "Deich",
+        "genus": "der"
+      },
+      {
+        "wort": "Kanal",
+        "genus": "der"
+      },
+      {
+        "wort": "Hafen",
+        "genus": "der"
+      },
+      {
+        "wort": "Küste",
+        "genus": "die"
+      },
+      {
+        "wort": "Hain",
+        "genus": "der"
+      },
+      {
+        "wort": "Dunst",
+        "genus": "der"
+      },
+      {
+        "wort": "Nebel",
+        "genus": "der"
+      },
+      {
+        "wort": "Bucht",
+        "genus": "die"
+      }
+    ]
+  },
+  "en": {
+    "neutral": [
+      "Super",
+      "Giant",
+      "Clever",
+      "Wild",
+      "Swift",
+      "Happy",
+      "Bright",
+      "Brave",
+      "Mighty",
+      "Quick",
+      "Smart",
+      "Calm",
+      "Bold",
+      "Shiny",
+      "Neat",
+      "Lucky",
+      "Grand",
+      "Fancy",
+      "Jolly",
+      "Epic",
+      "Cool",
+      "Hyper",
+      "Cosmic",
+      "Noble",
+      "Keen",
+      "Gentle",
+      "Snappy",
+      "Cheery",
+      "Zesty",
+      "Speedy",
+      "Bouncy",
+      "Radiant",
+      "Eager",
+      "Friendly",
+      "Heroic",
+      "Vivid",
+      "Dynamic",
+      "Agile",
+      "Witty",
+      "Lively",
+      "Sparkly",
+      "Golden",
+      "Stellar",
+      "Astute",
+      "Wise",
+      "Prime",
+      "Supreme",
+      "Sharp",
+      "Nimble",
+      "Daring"
+    ],
+    "geoAdj": [
+      "Rocky",
+      "High-Res",
+      "Climatic",
+      "Forested",
+      "Multispectral",
+      "Pixelated",
+      "Alpine",
+      "Coastal",
+      "Glacial",
+      "Volcanic",
+      "Polar",
+      "Tropical",
+      "Urban",
+      "Rural",
+      "Thermal",
+      "Optical",
+      "Infrared",
+      "Digital",
+      "Spatial",
+      "Spectral",
+      "Oceanic",
+      "Desert",
+      "Hilly",
+      "Muddy",
+      "Snowy",
+      "Icy",
+      "Misty",
+      "Sunny",
+      "Deep",
+      "Shallow",
+      "Steep",
+      "Dense",
+      "Sparse",
+      "Global",
+      "Local",
+      "Scaled",
+      "Charted",
+      "Mapped",
+      "Scanned",
+      "Filtered",
+      "Geothermal",
+      "Maritime",
+      "Fluvial",
+      "Tectonic",
+      "Eolian",
+      "Arid",
+      "Humid",
+      "Wooded",
+      "Grassy",
+      "Tidal"
+    ],
+    "geoNoun": [
+      "Satellite",
+      "Glacier",
+      "Rainshower",
+      "Dune",
+      "Valley",
+      "Cloud",
+      "River",
+      "Ocean",
+      "Volcano",
+      "Crater",
+      "Island",
+      "Forest",
+      "Mountain",
+      "Cliff",
+      "Bay",
+      "Swamp",
+      "Desert",
+      "Steppe",
+      "Pixel",
+      "Sensor",
+      "Radar",
+      "Orbit",
+      "Map",
+      "Image",
+      "Canyon",
+      "Fjord",
+      "Lagoon",
+      "Reef",
+      "Delta",
+      "Stream",
+      "Lake",
+      "Sea",
+      "Peak",
+      "Meadow",
+      "Tundra",
+      "Taiga",
+      "Iceberg",
+      "Atoll",
+      "Plateau",
+      "Basin",
+      "Geyser",
+      "Pass",
+      "Slope",
+      "Dike",
+      "Canal",
+      "Harbor",
+      "Coast",
+      "Grove",
+      "Haze",
+      "Fog"
+    ]
+  }
+}

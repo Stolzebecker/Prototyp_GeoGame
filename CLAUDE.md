@@ -19,7 +19,73 @@ The **runtime is a static site** (`index.html` + `assets/js/telemetry.js` + `ass
 - **Feedback** (seit 2026-08-26) — 1 Zeile pro abgesendetem Freitext-Feedback aus dem Abschlusspopup.
 - **Bestenliste** (seit 2026-08-26) — 1 Zeile pro Durchlauf (`alias`, `total_time_ms`, `total_errors`, `disqualifiziert`). Siehe "Bestenliste/Alias" unten.
 
-**Bestenliste/Alias (seit 2026-08-26, siehe Memory `project_geogame_leaderboard` für die vollständige Entscheidungshistorie):** Optionales Alias-Feld im Personendaten-Formular (`#pf-alias`), lokal in `localStorage` (`geogame_alias`) gespiegelt — dadurch wird der Alias bei Wiederholungsbesuchen automatisch wiederverwendet, ohne neue Abfrage (piggybackt auf `isFirstEverVisit()`). Fällt beim Absenden auf `participant_id` zurück, wenn leer gelassen (schon anonym). `showResults()` schickt einmalig `submitRunSummary(totalTimeMs, totalErrors)` (Werte, die für die bestehende GESAMT-Zeile ohnehin schon berechnet werden) → `handleRunSummary_` in Code.gs setzt `disqualifiziert = totalErrors > DISQUALIFY_ERROR_THRESHOLD` (10 seit 2026-08-27, ursprünglich 5 — siehe dieselbe Konstante `DISQUALIFY_ERROR_THRESHOLD` in app.js). Julians bewusste Entscheidung: **kein separates Opt-in** für die Bestenliste — stattdessen wurde die bestehende "arbeite natürlich, nicht extra schnell"-Instruktion um den Hinweis ergänzt, dass auch Genauigkeit zählt (>10 Fehler = Ausschluss von der Bestenliste), und die Datenschutzerklärung/Consent-Texte wurden um die Offenlegung erweitert, dass Alias+Zeit für andere Teilnehmende sichtbar sind. Faire Vergleichbarkeit der rohen Gesamtzeit trotz zufälliger 8-von-60-Bildauswahl war explizit **kein** Ziel ("nicht schlimm, wie bei vielen Spielen").
+**Bestenliste/Alias (seit 2026-08-26, umgebaut 2026-09-02, siehe Memory `project_geogame_structured_alias` für die vollständige Entscheidungshistorie):** Der Alias wird **nicht mehr frei getippt** (das ursprüngliche `#pf-alias`-Textfeld gab es bis 2026-09-02, kein Profanity-Filter, daher ersetzt). Stattdessen zeigt `tutorial.js` nach dem Personendaten-Formular einen eigenen Bildschirm (`showAliasPickerScreen()`): drei Wortpool-„Räder" im Stil der iOS-Wecker-/Timer-Auswahlwalzen (neutrales Adjektiv / geografisches Adjektiv / geografisches Subjekt, siehe `data/alias_words.json` — je 50 Einträge pro Kategorie und Sprache, Herkunfts-Prompt fürs Nachgenerieren/Erweitern siehe Abschnitt „Alias-Wortlisten generieren" unten). Pro Kategorie werden bei Bildschirmaufbau **5 zufällige Wörter** angeboten (`pickRandomN_()`), durch die per Scroll-Snap (`scroll-snap-type:y mandatory`, kein Freitext, kein Reroll) geblättert wird; die Mitte markieren zwei dünne Linien (`.alias-wheel-highlight`, an `top:50%`+`transform:translateY(-50%)` verankert, nicht an einem festen Pixel-Offset — das war ein realer Bug in der ersten Fassung, siehe unten). Wörter verblassen/verkleinern sich mit Abstand zur Mitte (`dist-0`/`dist-1`-Klassen, gesetzt in `updateAliasSelectedClasses_()`), zusätzlich ein CSS-Farbverlauf an den Rädern oben/unten. **Deutsch bekommt einen Artikel nach dem grammatischen Geschlecht des gewählten Substantivs** (`genus`-Feld je DE-Subjekt-Eintrag: der/die/das — NICHT das persönliche `geschlecht`-Feld aus dem Formular, das ist unabhängig davon), Englisch immer `The` (kein Genus im Englischen). Der Genus wird nur im zusammengesetzten Vorschau-String gezeigt, nicht zusätzlich im Rad-Eintrag selbst (Julians ausdrücklicher Wunsch — ein erster Entwurf zeigte ihn testweise auch im Rad, wirkte redundant). Pflichtfeld, kein Freitext-Fallback. `onAliasPickerContinue()` ruft danach ganz normal `submitPersonData(fields)` mit dem fertigen String auf — `getAlias()`/`setAlias()`/die `localStorage`-Persistenz (`geogame_alias`) in `telemetry.js` sind dabei komplett unverändert geblieben, nur die Erzeugung des Werts hat sich geändert. Fällt beim Absenden auf `participant_id` zurück, wenn aus irgendeinem Grund kein Alias vorliegt (schon anonym) — in der Praxis kommt das seit der Pflichtfeld-Umstellung nicht mehr vor.
+
+**Bug in der ersten Fassung des Auswahlrads (gefunden von Julian noch in derselben Session):** die ursprüngliche Optik hatte Auf/Ab-Pfeiltasten pro Rad und eine gelb gefüllte Markierungsbox bei einem festen `top:48px`-Offset — der Offset ignorierte, dass die Pfeiltasten selbst Platz im Container einnahmen, wodurch die Box sichtbar zu weit oben lag statt genau auf Höhe des zentrierten Worts. Behoben durch (a) Entfernen der Pfeiltasten komplett (näher an der gewünschten iOS-Wecker-Optik, reines Scroll/Swipe wie beim Vorbild), was den Container auf die reine Radhöhe reduziert, und (b) prozentuale Zentrierung (`top:50%`+`translateY(-50%)`) statt eines von Hand berechneten Pixelwerts — dadurch ist die Markierung robust gegen jede künftige Änderung an Radhöhe/Itemzahl, statt bei jeder Anpassung neu von Hand nachgerechnet werden zu müssen.
+
+### Alias-Wortlisten generieren/erweitern (`data/alias_words.json`)
+
+Die 6 Wortlisten (DE/EN × neutral/geo-Adjektiv/geo-Subjekt, je 50 Einträge) wurden nicht von Claude frei erfunden, sondern über folgenden Prompt in einer anderen KI generiert, von Julian manuell in einer Excel-Tabelle geprüft/redigiert und dann von Claude in `data/alias_words.json` übernommen. Bei Bedarf (Erweiterung, neue Sprache, Pool zu klein) denselben Prompt wiederverwenden bzw. anpassen:
+
+```
+Ich baue ein Lernspiel für Schüler:innen zum Thema Fernerkundung/Satellitenbilder
+(Landschaftserkennung, Bildkomplexität). Ich brauche kuratierte Wortlisten für einen
+spielerischen Alias-Generator (Vorbild: der Namensgenerator aus "Super Auto Pets"),
+der einen fertigen Spitznamen aus fest vorgegebenen Bausteinen zusammensetzt -
+KEIN Freitext, nur Auswahl aus Listen.
+
+Zielformat des fertigen Alias:
+- Deutsch: "Der/Die/Das [neutrales Adjektiv] [geographiespezifisches Adjektiv] [geographiespezifisches Substantiv]"
+  Beispiel: "Der Super Steinige Regenschauer"
+- Englisch: "The [neutral adjective] [geography-specific adjective] [geography-specific noun]"
+  Beispiel: "The Super Rocky Rainshower"
+
+Erstelle sechs Wortlisten mit je 50 Einträgen (keine Duplikate innerhalb einer Liste):
+
+1. DEUTSCH - neutrales, fachfremdes, positives/lustiges Adjektiv
+   (z.B. Super, Riesig, Schlau, Wild, Flink).
+   WICHTIG: Gib jedes Adjektiv bereits in der grammatisch korrekten Form für
+   "Der/Die/Das ___e ..." im Nominativ Singular an (diese Endung "-e" ist bei
+   bestimmtem Artikel für alle drei Genera identisch) - also "Riesige" statt
+   "Riesig", "Schlaue" statt "Schlau". Achte auf unregelmäßige Formen
+   (z.B. "Hohe" statt "Hoche", "Dunkle" statt "Dunkele").
+
+2. DEUTSCH - geographiespezifisches Adjektiv, thematisch passend zu
+   Fernerkundung/Satellitenbildern/Landschaftsformen
+   (z.B. Steinig, Hochaufgelöst, Klimatisch, Bewaldet, Multispektral, Pixelig).
+   Gleiche grammatische Regel wie oben: bereits im "-e"-Nominativ dekliniert.
+
+3. DEUTSCH - geographiespezifisches Substantiv
+   (z.B. Regenschauer, Satellit, Gletscher, Düne, Tal, Wolke).
+   Gib zu JEDEM Wort das grammatische Geschlecht an (der/die/das), da der
+   Artikel im fertigen Alias davon abhängt. Format: "Wort (der/die/das)".
+
+4. ENGLISCH - neutral, generic, positive/funny adjective, not geography-specific
+   (e.g. Super, Giant, Clever, Wild, Swift).
+
+5. ENGLISCH - geography-specific adjective, thematically fitting remote sensing/
+   satellite imagery/landscapes (e.g. Rocky, High-Res, Climatic, Forested,
+   Multispectral, Pixelated).
+
+6. ENGLISCH - geography-specific noun
+   (e.g. Satellite, Glacier, Rainshower, Dune, Valley, Cloud).
+
+Weitere Vorgaben:
+- Zielgruppe: Schüler:innen (Sekundarstufe) - Wortschatz altersgerecht und
+  schulisch verständlich halten, keine anstößigen, vulgären oder
+  zweideutigen Begriffe, keine Wortkombination soll bei zufälliger
+  Zusammensetzung unangemessen wirken können.
+- Maximal ca. 14 Zeichen pro Wort (wird auf kleinen Mobile-Bildschirmen in
+  einem Scroll-Rad angezeigt, muss kurz bleiben).
+- Keine Dopplungen innerhalb einer Liste.
+- Gib die Ausgabe als sechs klar getrennte, nummerierte Tabellen aus
+  (Spalten: "Wort", bei Liste 3 zusätzlich "Genus"), damit ich sie 1:1
+  in Excel einfügen kann.
+```
+
+`data/alias_words.json`-Struktur: `{"de": {"neutral": [...50 Strings...], "geoAdj": [...50 Strings...], "geoNoun": [{"wort":"...","genus":"der|die|das"}, ...50]}, "en": {"neutral":[...], "geoAdj":[...], "geoNoun": [...50 Strings...]}}`. Alle Wörter sind bewusst durchgängig großgeschrieben (auch deutsche Adjektive, die normalerweise klein geschrieben würden) — der zusammengesetzte Alias wird wie ein generierter Eigenname behandelt, nicht wie normaler Satztext.
+
+`showResults()` schickt einmalig `submitRunSummary(totalTimeMs, totalErrors)` (Werte, die für die bestehende GESAMT-Zeile ohnehin schon berechnet werden) → `handleRunSummary_` in Code.gs setzt `disqualifiziert = totalErrors > DISQUALIFY_ERROR_THRESHOLD` (10 seit 2026-08-27, ursprünglich 5 — siehe dieselbe Konstante `DISQUALIFY_ERROR_THRESHOLD` in app.js). Julians bewusste Entscheidung: **kein separates Opt-in** für die Bestenliste — stattdessen wurde die bestehende "arbeite natürlich, nicht extra schnell"-Instruktion um den Hinweis ergänzt, dass auch Genauigkeit zählt (>10 Fehler = Ausschluss von der Bestenliste), und die Datenschutzerklärung/Consent-Texte wurden um die Offenlegung erweitert, dass Alias+Zeit für andere Teilnehmende sichtbar sind. Faire Vergleichbarkeit der rohen Gesamtzeit trotz zufälliger 8-von-60-Bildauswahl war explizit **kein** Ziel ("nicht schlimm, wie bei vielen Spielen").
 
 Lesezugriff auf die Bestenliste läuft über einen **dritten, öffentlichen Token** `LEADERBOARD_TOKEN` (in `telemetry.js` und `Code.gs`, getrennt vom privaten `READ_TOKEN`) — `doGet(e)` mit `?mode=leaderboard&token=...` liefert NUR aggregierte Werte (Top-10/volle Liste mit Alias+Zeit+Fehlern, eigene Platzierung, Perzentile pro angefragtem Level), nie rohe Personendaten. Bewusst als **GET** (nicht `doPost`) implementiert, weil einfache GET-Requests keinen CORS-Preflight auslösen und die Antwort — anders als die no-cors-POSTs für alle anderen Submissions — tatsächlich lesbar ist; dieses Muster war schon fürs Auswertungs-Dashboard erprobt (siehe [[reference_geogame_dashboard]]) und wurde 2026-08-26 zusätzlich direkt per Browser-`fetch()` gegen die echte Web-App-URL verifiziert (Response kommt lesbar zurück, kein CORS-Block). `telemetry.js`s `fetchLeaderboard(levelTimes)`/`fetchLeaderboardFull()` übergeben `participantId`+`runToken`, damit der Server über `resolveRun_()` dieselbe `lauf_id` wiederfindet, die der Client wegen der no-cors-Submissions sonst nie erfährt. Eigene Platzierung wird immer separat angezeigt (auch außerhalb der Top 10); Dedupe fürs "bester Lauf pro Person" läuft über `participant_id`, nicht über den Alias-String (Aliase sind nicht eindeutig). Perzentile pro Bild werden aus `Level_Ergebnisse` berechnet (`max(gesamtzeit_ms)` je Lauf+Level, siehe [[reference_geogame_dashboard]] für dieselbe Aggregationslogik), keine redundante Extra-Speicherung. **Ladezeit:** Apps-Script-Requests haben spürbare Latenz (Cold-Start + Sheet-Scan, oft 1-3s) — nicht wegoptimierbar, deshalb zeigt `loadLeaderboard_()` seit 2026-08-26 explizit "Bestenliste wird geladen …"/"Lädt …" statt stillschweigend zu warten (wirkte davor wie ein Fehler, Julians Testfund).
 
@@ -49,7 +115,7 @@ Die Telemetrie-Hooks sitzen in `app.js`: `resetLevelTelemetry()` (in `loadLevel(
 
 ## Rechtliche Bausteine (ebenfalls aus TIER-List übertragen)
 
-Ablauf seit 2026-08-25: `[Sprachwahl]` → `[bestehende Info-Screens]` → `[Consent-Popup]` → `[Personendaten-Formular, nur beim allerersten Durchlauf]` → `[bestehendes Overlay-Tutorial + Übungsrunde]` → Spiel (siehe `tutorial.js`: `onConsentContinue()`, `showPersonFormScreen()`). Bei Wiederholungsspielern (erkannt via vorhandenem `participant_id`) wird das Formular übersprungen, aber jeder Durchlauf bekommt trotzdem eine neue `lauf_id`/`durchlauf_nr` (kein Warnbildschirm wie bei TIER-List — Wiederholung ist hier gewünschtes Verhalten, nicht Ausnahmefall).
+Ablauf seit 2026-09-02: `[Sprachwahl]` → `[bestehende Info-Screens]` → `[Consent-Popup]` → `[Personendaten-Formular, nur beim allerersten Durchlauf]` → `[Alias-Auswahl (Wortpool-Räder), ebenfalls nur beim allerersten Durchlauf]` → `[bestehendes Overlay-Tutorial + Übungsrunde]` → Spiel (siehe `tutorial.js`: `onConsentContinue()`, `showPersonFormScreen()`, `showAliasPickerScreen()`). Bei Wiederholungsspielern (erkannt via vorhandenem `participant_id`) wird das Formular übersprungen, aber jeder Durchlauf bekommt trotzdem eine neue `lauf_id`/`durchlauf_nr` (kein Warnbildschirm wie bei TIER-List — Wiederholung ist hier gewünschtes Verhalten, nicht Ausnahmefall).
 
 Impressum-/Datenschutz-/Quellen-Modals sitzen in `index.html` (`#impressum-modal`, `#datenschutz-modal`, `#quellen-modal`, Klasse `.legal-modal`), geöffnet/geschlossen über `openLegalModal(name)`/`closeLegalModal(name)` in `app.js`, verlinkt aus dem Footer auf dem Startbildschirm. Das Quellen-Modal enthält sowohl den Copernicus-Sentinel-Lizenzhinweis als auch den Hinweis, dass das Startbildschirm-Hintergrundbild KI-generiert ist (seit 2026-08-26: OpenAI GPT-Image-2, zuvor Google Gemini — Bilddatei `Bilder/Deko_und_UI/Startscreen.png` bei einem erneuten Bildwechsel einfach überschreiben, Dateiname bleibt stabil).
 
