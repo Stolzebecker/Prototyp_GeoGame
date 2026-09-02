@@ -181,8 +181,11 @@ def _process_one(tif_path, app):
         dissolved = combined.dissolve(by="klasse", as_index=False)
         dissolved = dissolved.explode(index_parts=False).reset_index(drop=True)
 
-        from shapely.geometry import box as shp_box
-        clip_box = shp_box(west, south, east, north)
+        # Das gedrehte Fenster-Viereck, NICHT die (bei rotierten CRS wie
+        # EPSG:3035 zu grosszuegige) umschliessende Bbox - siehe
+        # pipeline.native_window_to_wgs84_polygon()-Docstring (Bug gefunden
+        # von Julian+Nils an IMG_00072, 2026-09-02).
+        clip_box = gg.native_window_to_wgs84_polygon(ds_crs, win_bounds)
         dissolved["geometry"] = dissolved.geometry.intersection(clip_box)
         dissolved = dissolved[
             dissolved.geometry.is_valid & ~dissolved.geometry.is_empty &

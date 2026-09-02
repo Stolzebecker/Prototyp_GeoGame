@@ -386,6 +386,41 @@ def fetch_worldcover_window(bbox_wgs84, app=None):
 EROSION_MIN_WIDTH_M = 60.0  # siehe Memory project_geogame_visibility_erosion_idea
 
 
+def native_window_to_wgs84_polygon(ds_crs, win_bounds):
+    """Baut das tatsaechliche WGS84-Viereck des Zuschnittfensters, indem die
+    VIER ECKPUNKTE einzeln reprojiziert werden -- NICHT ueber
+    rasterio.warp.transform_bounds()/die umschliessende achsparallele
+    Bounding-Box. Fuer CRSe wie EPSG:3035 (LAEA Europe) abseits des
+    Projektionszentrums ist das native Fenster in WGS84 ein leicht
+    GEDREHTES Viereck, keine achsparallele Box - die umschliessende Bbox
+    ist deshalb immer groesser als das echte Fenster (sie deckt auch die
+    "Eckzwickel" ausserhalb des gedrehten Vierecks ab).
+
+    Bug gefunden von Julian+Nils an IMG_00072 (2026-09-02, siehe Memory
+    project_geogame_real_imagery): der bisherige "strikte" Zuschnitt
+    (naiv gegen shapely.geometry.box(west,south,east,north)) liess
+    OSM/WorldCover-Polygonstuecke aus genau diesen Eckzwickeln durch, die
+    dann bei der Pixel-Bruchteil-Umrechnung (siehe native_geom_to_pixel_
+    fraction/wgs84_geom_to_pixel_fraction, deren np.clip(...,0,1) das
+    Ueberschiessen einfach auf den Rand staucht statt es abzuschneiden)
+    als kerzengerader, leicht schraeger Schnitt am Bildrand sichtbar
+    wurden - viele Punkte landeten exakt auf Bruchteil 0.0/1.0 statt einer
+    natuerlichen Gelaende-Kontur zu folgen. Diese Funktion liefert das
+    fuer den Zuschnitt tatsaechlich richtige (gedrehte) Polygon; die
+    fetch-Bbox fuer OSM/WorldCover-Anfragen darf weiterhin die groesszue-
+    gigere achsparallele Box sein (etwas mehr Rohdaten laden ist
+    harmlos), nur der abschliessende Zuschnitt muss praezise sein."""
+    from rasterio.warp import transform as warp_transform
+    from rasterio.crs import CRS
+    from shapely.geometry import Polygon
+
+    left, bottom, right, top = win_bounds
+    xs = [left, right, right, left]
+    ys = [top, top, bottom, bottom]
+    lons, lats = warp_transform(ds_crs, CRS.from_epsg(4326), xs, ys)
+    return Polygon(zip(lons, lats))
+
+
 def native_geom_to_pixel_fraction(geom, win_bounds):
     """Wie wgs84_geom_to_pixel_fraction, aber fuer eine Geometrie, die
     bereits im nativen Raster-CRS vorliegt -- reine affine Skalierung, kein
@@ -740,9 +775,11 @@ def run_pipeline(app):
             dissolved = combined.dissolve(by="klasse", as_index=False)
             dissolved = dissolved.explode(index_parts=False).reset_index(drop=True)
 
-            # Strict clip to image bounds – removes anything outside the image
-            from shapely.geometry import box as shp_box
-            clip_box = shp_box(west, south, east, north)
+            # Strict clip to image bounds – removes anything outside the image.
+            # Das gedrehte Fenster-Viereck, NICHT die (bei rotierten CRS wie
+            # EPSG:3035 zu grosszuegige) umschliessende Bbox - siehe
+            # native_window_to_wgs84_polygon()-Docstring.
+            clip_box = native_window_to_wgs84_polygon(ds.crs, win_bounds)
             dissolved["geometry"] = dissolved.geometry.intersection(clip_box)
             dissolved = dissolved[
                 dissolved.geometry.is_valid &
