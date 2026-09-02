@@ -220,19 +220,14 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
 
 ## Zusätzliches Arbeitspaket (unabhängig vom Mobile-Umbau, für eine der nächsten Sitzungen)
 
-- [ ] **Alias-Vergabe ohne Freitext, inspiriert von SuperAutoPets** — Julian
-  möchte das aktuelle Freitext-Alias-Feld im Personendaten-Formular (siehe
-  [[project_geogame_leaderboard]]) durch eine Auswahl aus generierten/
-  kuratierten Namen ersetzen (z. B. Adjektiv+Tier-Kombination o. ä.), damit
-  keine beleidigenden/anstößigen Aliase in der öffentlich sichtbaren
-  Bestenliste auftauchen können — löst das Problem strukturell (kein
-  Freitext mehr) statt über eine Schimpfwort-Filterliste, die ohnehin nie
-  vollständig ist. Betrifft Desktop UND Mobile gleichermaßen, kein direkter
-  Bezug zum Touch-Umbau — kann unabhängig vom `mobile-support`-Branch
-  bearbeitet werden. Noch nicht gegrillt/spezifiziert (Wortlisten-Umfang,
-  ob Nutzer aus mehreren Vorschlägen wählen dürfen oder ein fester Name
-  zugewiesen wird, ob das bestehende Freitext-Feld ganz entfällt oder als
-  Fallback bleibt) — vor Umsetzung mit Julian klären.
+- [x] **Alias-Vergabe ohne Freitext, inspiriert von SuperAutoPets** — ERLEDIGT
+  2026-09-02, siehe [[project_geogame_structured_alias]] und CLAUDE.md
+  (Abschnitt "Bestenliste/Alias") für die vollständige Umsetzung: eigener
+  Bildschirm mit drei Wortpool-Rädern (neutrales Adjektiv/geo-Adjektiv/
+  geo-Subjekt, `data/alias_words.json`), Artikel nach Genus des Substantivs
+  (DE) bzw. fest "The" (EN), Pflichtfeld, kein Freitext-Fallback mehr. Auf
+  `main` und `mobile-support` gleichermaßen umgesetzt (Commit
+  `2877b3a`/`2ef691d`).
 
 ## Offene Punkte für später
 
