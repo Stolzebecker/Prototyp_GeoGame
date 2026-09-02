@@ -344,6 +344,72 @@ function showPersonFormScreen() {
         '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
       '</div>' +
     '</div>';
+
+  enhanceSelectsForTouch_();
+}
+
+// ── Custom-Select fuer Touch (siehe mobile.css fuer den Hintergrund) ────
+// Natives <select>-Popup wird vom Betriebssystem gerendert und ignoriert
+// jedes CSS-transform der Seite - auf einem per Rotationstrick erzwungenen
+// Querformat erscheint es deshalb nicht gedreht. Das native <select>
+// bleibt im DOM (nur optisch versteckt, siehe mobile.css) und liefert
+// weiterhin ganz normal seinen .value - onPersonFormContinue() liest also
+// unveraendert von den echten <select>-Elementen, nur die Bedienoberflaeche
+// ist ein selbstgebautes Button+Listen-Widget aus normalen DOM-Elementen,
+// das sich korrekt mitdreht.
+var _customSelectOutsideClickBound = false;
+function enhanceSelectsForTouch_() {
+  if (document.documentElement.dataset.device !== 'touch') { return; }
+
+  document.querySelectorAll('.tut-form-row select').forEach(function (sel) {
+    if (sel.dataset.enhanced) { return; }
+    sel.dataset.enhanced = '1';
+
+    var wrap = document.createElement('div');
+    wrap.className = 'custom-select';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'custom-select-btn';
+    btn.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+
+    var list = document.createElement('div');
+    list.className = 'custom-select-list';
+    list.hidden = true;
+
+    Array.prototype.forEach.call(sel.options, function (opt) {
+      var ob = document.createElement('button');
+      ob.type = 'button';
+      ob.className = 'custom-select-opt';
+      ob.textContent = opt.text;
+      ob.onclick = function () {
+        sel.value = opt.value;
+        btn.textContent = opt.text;
+        list.hidden = true;
+      };
+      list.appendChild(ob);
+    });
+
+    btn.onclick = function () {
+      document.querySelectorAll('.custom-select-list').forEach(function (l) {
+        if (l !== list) { l.hidden = true; }
+      });
+      list.hidden = !list.hidden;
+    };
+
+    wrap.appendChild(btn);
+    wrap.appendChild(list);
+    sel.insertAdjacentElement('afterend', wrap);
+  });
+
+  if (!_customSelectOutsideClickBound) {
+    _customSelectOutsideClickBound = true;
+    document.addEventListener('click', function (e) {
+      document.querySelectorAll('.custom-select-list').forEach(function (list) {
+        if (!list.hidden && !list.parentElement.contains(e.target)) { list.hidden = true; }
+      });
+    });
+  }
 }
 
 function onPersonFormContinue() {

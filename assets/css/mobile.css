@@ -110,3 +110,97 @@ html[data-device="touch"] #stage,
 html[data-device="touch"] #trash {
   touch-action: none;
 }
+
+/* ── Kompaktere Info-/Formular-Panels auf Touch (WP3, 2026-09-02) ────────
+   Julians Testfund: Tutorial-Textbloecke passten nicht auf ein Handy-
+   Display (Rotationstrick macht die physische Geraetebreite zur
+   verfuegbaren Hoehe - bei einem Telefon oft nur ~370-390px minus
+   Randabstand). Kleinere Schrift/Abstaende verringern, wie oft ueberhaupt
+   gescrollt werden muss; der margin:auto-Fix in tutorial.css sorgt
+   zusaetzlich dafuer, dass der Rest bei Bedarf wirklich vollstaendig
+   erreichbar bleibt. */
+html[data-device="touch"] .tut-info-panel {
+  padding: 16px 18px;
+  gap: 8px;
+  /* Julians Beobachtung (2026-09-02): ein Handy ist im Verhaeltnis deutlich
+     "laenglicher" als ein Tablet/PC - nach dem Rotationstrick ist genau
+     diese Laenge die verfuegbare BREITE im Querformat. tutorial.css nutzt
+     fuer die Panel-Breite bewusst vw (88vw) - das bezieht sich bei einem
+     tief verschachtelten Element aber weiterhin auf den ECHTEN, unge-
+     drehten Viewport (siehe Kommentar dort), liefert auf Touch also die
+     physische Geraete-BREITE (kurze Kante) statt der sichtbaren Quer-
+     format-Breite. vh dagegen liefert die physische Geraete-HOEHE (lange
+     Kante bei einem Handy) - genau das, was nach der Drehung die sichtbare
+     Breite ist. Ein deutlich breiteres Panel laesst Text auf weniger
+     Zeilen umbrechen und reduziert dadurch direkt den Scroll-Bedarf. */
+  width: min(640px, 84vh);
+}
+html[data-device="touch"] .tut-info-panel h2 {
+  font-size: 19px;
+}
+html[data-device="touch"] .tut-info-panel p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+html[data-device="touch"] .tut-info-panel .tut-note {
+  font-size: 11px;
+}
+
+/* Personendaten-Formular: die neu gewonnene Panel-Breite (siehe oben) fuer
+   ein zweispaltiges Layout nutzen statt eine lange Einzelspalte - halbiert
+   die Zeilenzahl und damit den Scroll-Bedarf auf dem Handy. Titel/Intro/
+   Fehlerhinweis/Weiter-Button bleiben ueber beide Spalten hinweg. */
+html[data-device="touch"] .tut-info-panel:has(.tut-form-row) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  align-items: start;
+}
+html[data-device="touch"] .tut-info-panel:has(.tut-form-row) h2,
+html[data-device="touch"] .tut-info-panel:has(.tut-form-row) > p,
+html[data-device="touch"] .tut-info-panel:has(.tut-form-row) .tut-form-error,
+html[data-device="touch"] .tut-info-panel:has(.tut-form-row) .tut-btn-row {
+  grid-column: 1 / -1;
+}
+
+/* ── Custom-Select statt natives <select> auf Touch (WP3, 2026-09-02) ───
+   Julians Testfund: das native Auswahl-Popup (und ebenso die virtuelle
+   Tastatur) wird vom Betriebssystem gerendert, nicht von der Seite - es
+   ignoriert jedes CSS-transform der Seite und erscheint dadurch NICHT
+   gedreht, waehrend der Rest der Oberflaeche erzwungen im Querformat
+   steht. Das laesst sich nicht "staerker drehen" (harte Plattformgrenze,
+   betrifft jede Website/App mit CSS-Rotationstrick). Fix: das native
+   <select> bleibt im DOM (Formularlogik/-werte unveraendert), wird aber
+   nur optisch versteckt und durch ein selbstgebautes Button+Listen-Widget
+   ersetzt (siehe enhanceSelectsForTouch_() in tutorial.js) - das sind
+   normale DOM-Elemente und drehen sich deshalb korrekt mit. */
+html[data-device="touch"] .tut-form-row select {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.custom-select { position: relative; }
+.custom-select-btn {
+  width: 100%; min-height: 44px; text-align: left;
+  padding: 8px 32px 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+  font-family: inherit; font-size: 0.92rem; background: var(--panel-soft); color: #1a1a1a;
+  position: relative;
+}
+.custom-select-btn::after {
+  content: "▾"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted);
+}
+.tut-form-row.invalid .custom-select-btn { border-color: var(--warn); }
+.custom-select-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10;
+  max-height: 38vw; overflow-y: auto;
+  background: var(--panel-soft); border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.custom-select-opt {
+  display: block; width: 100%; min-height: 44px; text-align: left;
+  padding: 10px 12px; border: none; border-bottom: 1px solid var(--line);
+  background: none; font-family: inherit; font-size: 0.88rem; color: #1a1a1a;
+}
+.custom-select-opt:last-child { border-bottom: none; }
+.custom-select-opt:active { background: rgba(12,164,209,.12); }

@@ -9,12 +9,14 @@
 /* ── Language Selection ─────────────────────────────────── */
 #lang-screen{
   position:fixed;inset:0;z-index:4000;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;
   background:var(--bg);
+  overflow:auto;
 }
 .lang-panel{
   display:flex;flex-direction:column;align-items:center;gap:20px;
   padding:32px 40px;
+  margin:auto;
   background:var(--panel-soft);
   border:1px solid var(--line);border-top:3px solid var(--accent2);
   border-radius:10px;
@@ -41,15 +43,24 @@
 #tutorial-info-screen{
   position:fixed;inset:0;z-index:3500;
   display:none;
-  align-items:center;justify-content:center;
   background:var(--bg);
   padding:20px;overflow:auto;
 }
 #tutorial-info-screen.active{display:flex;}
 
+/* margin:auto statt align-items/justify-content:center auf dem Container -
+   bekannter Flexbox-Bug: bei ueberlaufendem Inhalt "zentriert" ein Flex-
+   Container mit align-items:center den Overflow symmetrisch in nicht
+   erreichbaren Raum, wodurch selbst mit overflow:auto ein Teil des Inhalts
+   (typischerweise oben) durch Scrollen nie sichtbar wird. margin:auto auf
+   dem Kind zentriert nur, wenn Platz da ist, und faellt sonst auf normalen
+   (voll scrollbaren) Fluss zurueck. Julians Testfund auf dem iPhone
+   (2026-09-02): Tutorial-Infotexte passten nicht auf den Bildschirm und
+   blieben auch nach dem Scrollen teilweise unerreichbar. */
 .tut-info-panel{
   width:min(640px,88vw);
   padding:28px 32px;
+  margin:auto;
   background:var(--panel-soft);
   border:1px solid var(--line);border-top:3px solid var(--accent2);
   border-radius:10px;
