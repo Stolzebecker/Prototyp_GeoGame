@@ -32,17 +32,51 @@
    Darstellung - kann einzelne Modals im Querformat etwas knapper
    bemessen wirken lassen als optimal. Bei Bedarf in WP3 gezielt
    nachschärfen, keine grundsätzliche Funktionsstörung.
+
+   WP3-Fix (2026-09-02, Julians Testfund auf echtem iPhone): zwei
+   verwandte Probleme durch die feste Safari-Chrome-Annahme von vh/vw
+   und dadurch, dass praktisch KEINE Pufferzone zu den physischen
+   Bildschirmraendern bestand:
+   1. "Safari-UI ueberlappt das Spiel" - klassischer iOS-Safari-Bug:
+      100vh/100vw beziehen sich auf die GROESSTMOEGLICHE Ansicht (Chrome
+      eingeklappt), nicht auf die aktuell sichtbare Flaeche. Wenn Safaris
+      Adressleiste/Toolbar ausgeklappt ist, ragt unsere exakt 100vh/100vw
+      grosse, feste Box dadurch teilweise UNTER Safaris eigene UI - siehe
+      https://developer.mozilla.org/en-US/docs/Web/CSS/length#dvh. Fix:
+      dvh/dvw (dynamic viewport units, seit iOS 15.4) statt vh/vw - diese
+      verfolgen die tatsaechlich sichtbare Flaeche live mit.
+   2. "Versehentliches Oeffnen der Menueleiste beim Wischen vom unteren
+      Rand" - der Rotationstrick bildet den CSS-oben/unten/links/rechts-
+      Rand des gedrehten Inhalts auf physisch RECHTS/LINKS/OBEN/UNTEN des
+      (weiterhin im Hochformat gehaltenen) Geraets ab (Eckpunkt-Nachweis
+      per getBoundingClientRect() gemessen, siehe Commit): #topbar (CSS-
+      oben) landet physisch RECHTS, #bottom mit Papierkorb+Label-Leiste
+      (CSS-unten) landet physisch LINKS. Der Papierkorb sass dadurch nur
+      ~20px vom physischen UNTEREN Bildschirmrand entfernt - exakt der
+      Bereich, den iOS fuer die Home-Indicator-Wischgeste (rauf = Home/
+      App-Wechsler) reserviert; die Label-Leiste sass ebenso dicht am
+      physisch LINKEN/OBEREN Rand, wo Safaris eigene Zurueck/Vorwaerts-
+      Wischgesten fuer die Seitennavigation greifen. Diese System-/
+      Browsergesten lassen sich aus keiner Website (auch keiner nativen
+      App) per CSS/JS vollstaendig unterdruecken - einzige verlaessliche
+      Gegenmassnahme ist, interaktive Elemente per Puffer von allen vier
+      physischen Raendern fernzuhalten. Fix: einheitliches Padding auf der
+      gedrehten body-Box (box-sizing:border-box, daher bleibt die exakte
+      100dvh/100dvw-Rotationsgeometrie unangetastet, nur die Nutzflaeche
+      innen schrumpft leicht).
 */
 @media (orientation: portrait) {
   html[data-device="touch"] body {
     position: fixed;
     top: 0;
     left: 100%;
-    width: 100vh;
-    height: 100vw;
+    width: 100dvh;
+    height: 100dvw;
     transform-origin: 0 0;
     transform: rotate(90deg);
     overflow: hidden;
+    box-sizing: border-box;
+    padding: 18px;
   }
 }
 
