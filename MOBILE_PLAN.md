@@ -1,11 +1,17 @@
 # Mobile/Touch-Umbau — Arbeitspaket-Plan
 
 Verfolgt den Umbau von SCOPE/GeoGame auf eine automatische Geräteweiche
-(Computer vs. Handy/Tablet) mit eigenem Touch-optimierten Modus. Arbeit läuft
-auf dem Branch `mobile-support`, jedes fertige/verifizierte Arbeitspaket wird
-einzeln nach `main` gemergt (nicht alles am Stück am Ende). Entschieden über
-eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
-`project_geogame_mobile_plan`.
+(Computer vs. Handy/Tablet) mit eigenem Touch-optimierten Modus. Entschieden
+über eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und
+Memory `project_geogame_mobile_plan`.
+
+**Branch-Historie (wichtig, falls hier noch alte Verweise auftauchen):** WP0–WP2
+liefen auf einem separaten Branch `mobile-support`, der nach jedem verifizierten
+Arbeitspaket schrittweise nach `main` gemergt wurde. Am 2026-09-02 (nach
+Abschluss von WP2 + dem Alias-Umbau) hat Julian entschieden, beide Branches
+endgültig zusammenzuführen und **ab sofort nur noch auf `main` zu arbeiten** —
+`mobile-support` wurde gelöscht (lokal und remote). WP3+ läuft direkt auf
+`main` weiter, kein neuer Feature-Branch dafür.
 
 ## Settled decisions (nicht ohne Rückfrage neu verhandeln)
 
@@ -216,7 +222,10 @@ eine Grilling-Runde mit Julian am 2026-08-27 — Details siehe unten und Memory
 - [ ] **WP7 — End-to-End-QA & Rollout**
   - Kompletter Durchlauf auf echten Geräten (Handy + Tablet)
   - Desktop-Regressionscheck
-  - Finaler Merge nach `main`
+  - ~~Finaler Merge nach `main`~~ — entfällt, siehe Branch-Historie oben:
+    `mobile-support` wurde bereits 2026-09-02 vorzeitig (mitten in WP2/3) auf
+    Julians Wunsch final nach `main` gemergt und gelöscht, kein separater
+    Merge-Schritt am WP7-Ende mehr nötig.
 
 ## Zusätzliches Arbeitspaket (unabhängig vom Mobile-Umbau, für eine der nächsten Sitzungen)
 
