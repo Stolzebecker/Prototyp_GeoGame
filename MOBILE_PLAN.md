@@ -208,10 +208,26 @@ endgültig zusammenzuführen und **ab sofort nur noch auf `main` zu arbeiten** �
     Script-Konsole bereitgestellt werden (Bereitstellungen verwalten →
     Version bearbeiten → Neue Version) — der Git-Commit allein deployed
     nichts.
-- [ ] **WP3 — UI-Layout für Touch/kleine Screens** *(nächstes Paket)*
-  - Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
-  - Touch-taugliche Zielgrößen (≥ ca. 44px)
-  - Getrennte Breakpoints Tablet vs. Handy
+- [ ] **WP3 — UI-Layout für Touch/kleine Screens** *(begonnen 2026-09-02)*
+  - [x] **Safari-Chrome-Überlappung + Rand-Wischgesten** *(erledigt 2026-09-02,
+    Julians Testfund auf echtem iPhone)* — `assets/css/mobile.css`:
+    `100vh`/`100vw` → `100dvh`/`100dvw` (dynamic viewport units, folgen
+    Safaris ein-/ausklappender Adressleiste live statt der größtmöglichen
+    Ansicht) behebt die Überlappung; zusätzlich 18px Sicherheitsabstand
+    (`padding`, `box-sizing:border-box`) auf der gedrehten `body`-Box zu
+    allen vier physischen Rändern gegen versehentlich ausgelöste iOS-
+    Systemgesten (Home-Indicator-Wischgeste, Safari-Zurück/Vorwärts-
+    Navigation) — per `getBoundingClientRect()` nachgemessen: der
+    Rotationstrick bildet CSS-oben/unten/links/rechts auf physisch
+    rechts/links/oben/unten ab (Papierkorb landete nur ~20px vom
+    physischen unteren Rand entfernt, exakt der Home-Indicator-Zone).
+    Diese Systemgesten sind aus keiner Website/App per CSS/JS vollständig
+    unterdrückbar, nur durch Abstand zu entschärfen. **Noch nicht auf
+    echtem Gerät re-verifiziert** — nur strukturell per
+    `getBoundingClientRect()`-Messung im Browser-Pane bestätigt.
+  - [ ] Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
+  - [ ] Touch-taugliche Zielgrößen (≥ ca. 44px) — systematische Prüfung
+  - [ ] Getrennte Breakpoints Tablet vs. Handy
 - [ ] **WP4 — In-Game-Zoom/Pan (bedingt)**
   - Entscheidung nach WP2/WP3-Prototyp mit Julian, ob überhaupt nötig
 - [ ] **WP5 — Telemetrie-Erweiterung**
