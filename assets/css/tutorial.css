@@ -131,6 +131,49 @@
 .tut-form-error{color:var(--warn);font-size:0.85rem;margin:-6px 0 0;display:none;}
 .tut-form-error.visible{display:block;}
 
+/* ── Alias-Wortpool-Raeder (seit 2026-09-02, siehe tutorial.js) ───────────
+   Optik angelehnt an den iOS-Wecker/Timer-Auswahlwalzen: weiche Ausblendung
+   an den Raendern statt hartem Rand, duenne Trennlinien statt gefuellter
+   Box zur Markierung der Mitte, Woerter werden mit wachsendem Abstand zur
+   Mitte kleiner/blasser (siehe dist-0/1/2-Klassen, gesetzt in
+   updateAliasSelectedClasses_ in tutorial.js). */
+.alias-preview{
+  font-size:19px;font-weight:700;color:#0a3f70;text-align:center;
+  padding:10px 14px;background:var(--panel-soft);
+  border:1px solid var(--line);border-radius:6px;min-height:1.4em;
+}
+.alias-wheel-row{position:relative;display:flex;gap:6px;justify-content:center;}
+.alias-wheel-highlight{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  height:44px;
+  border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);
+  pointer-events:none;z-index:5;
+}
+.alias-wheel-col{position:relative;flex:1;min-width:0;}
+.alias-wheel-col::before,
+.alias-wheel-col::after{
+  content:'';position:absolute;left:0;right:0;height:64px;
+  pointer-events:none;z-index:3;
+}
+.alias-wheel-col::before{top:0;   background:linear-gradient(to bottom, var(--panel-soft) 0%, transparent 100%);}
+.alias-wheel-col::after {bottom:0;background:linear-gradient(to top,    var(--panel-soft) 0%, transparent 100%);}
+.alias-wheel{
+  width:100%;height:220px;overflow-y:auto;
+  scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+  position:relative;z-index:2;scrollbar-width:none;
+}
+.alias-wheel::-webkit-scrollbar{display:none;}
+.alias-wheel-track{display:flex;flex-direction:column;}
+.alias-wheel-pad{height:88px;flex:0 0 auto;}
+.alias-wheel-item{
+  height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  scroll-snap-align:center;text-align:center;padding:0 4px;line-height:1.2;
+  color:var(--muted);font-size:13px;opacity:.35;
+  transition:color .15s,font-weight .15s,font-size .15s,opacity .15s;
+}
+.alias-wheel-item.dist-1{color:#2a2a2a;font-size:14px;opacity:.6;}
+.alias-wheel-item.dist-0{color:#0a3f70;font-weight:700;font-size:16px;opacity:1;}
+
 /* ── Overlay tutorial (over satellite image) ─────────────── */
 #tutorial-overlay{
   position:fixed;inset:0;z-index:3000;

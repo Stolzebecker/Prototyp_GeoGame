@@ -74,15 +74,16 @@ const TUT_TEXTS = {
     formGis:         'Vorerfahrung mit Kartenlesen / GIS / Fernerkundung',
     formGeschlecht:  'Geschlecht',
     formGeraet:      'Womit nehmen Sie teil?',
-    formAlias:       'Alias für die Bestenliste (optional, für andere sichtbar)',
-    formAliasPlaceholder: 'z. B. Spitzname – ohne Angabe wird Ihr anonymer Kennwert genutzt',
     formOptionLeer:  'Keine Angabe',
-    formContinue:    'Weiter zum Tutorial',
+    formContinue:    'Weiter',
     formRequiredHint: 'Bitte füllen Sie alle mit * markierten Pflichtfelder aus.',
     formBildungOptions: ['Kein Schulabschluss','Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
     formGisOptions: ['Keine Erfahrung','Grundkenntnisse','Fortgeschritten','Experte'],
     formGeschlechtOptions: ['Männlich','Weiblich','Divers'],
     formGeraetOptions: ['Computer/Laptop','Tablet','Handy'],
+    aliasPickerTitle:    'Wähle deinen Spielnamen',
+    aliasPickerIntro:    'Stelle deinen Alias für die Bestenliste aus drei Wörtern zusammen – scrolle jedes Rad, bis dir eine Kombination gefällt.',
+    aliasPickerContinue: 'Fertig',
   },
   en: {
     info: [
@@ -151,15 +152,16 @@ const TUT_TEXTS = {
     formGis:         'Prior experience with map reading / GIS / remote sensing',
     formGeschlecht:  'Gender',
     formGeraet:      'What are you using to participate?',
-    formAlias:       'Alias for the leaderboard (optional, visible to others)',
-    formAliasPlaceholder: 'e.g. a nickname – if left blank, your anonymous identifier is used',
     formOptionLeer:  'Prefer not to say',
-    formContinue:    'Continue to tutorial',
+    formContinue:    'Continue',
     formRequiredHint: 'Please fill in all fields marked with * (required).',
     formBildungOptions: ['No school-leaving qualification','Lower secondary school','Secondary school','High school diploma / A-levels','Vocational training','Bachelor\'s degree','Master\'s / Diplom / Magister','Doctorate'],
     formGisOptions: ['No experience','Basic knowledge','Advanced','Expert'],
     formGeschlechtOptions: ['Male','Female','Non-binary'],
     formGeraetOptions: ['Computer/Laptop','Tablet','Phone'],
+    aliasPickerTitle:    'Choose your player name',
+    aliasPickerIntro:    'Put together your leaderboard alias from three words – scroll each wheel until you like the combination.',
+    aliasPickerContinue: 'Done',
   },
 };
 
@@ -302,8 +304,9 @@ function onConsentContinue() {
 }
 
 // ── 2c. Personendaten-Formular (nur beim allerersten Durchlauf) ──────────────
-// Pflichtfelder: alle außer Studienfach ("falls zutreffend") und Alias
-// (bewusst optional fürs Bestenliste-Feature, siehe formAliasPlaceholder).
+// Pflichtfelder: alle außer Studienfach ("falls zutreffend"). Der Alias wird
+// nicht mehr hier abgefragt, sondern auf einem eigenen Bildschirm danach
+// zusammengeklickt, siehe showAliasPickerScreen().
 var PF_REQUIRED_IDS = ['pf-alter', 'pf-bildung', 'pf-gis', 'pf-geschlecht', 'pf-geraet'];
 
 function showPersonFormScreen() {
@@ -336,8 +339,6 @@ function showPersonFormScreen() {
         '<select id="pf-geschlecht">' + opts(texts.formGeschlechtOptions) + '</select></div>' +
       '<div class="tut-form-row" data-field="pf-geraet"><label>' + reqLabel('pf-geraet', texts.formGeraet) + '</label>' +
         '<select id="pf-geraet">' + opts(texts.formGeraetOptions) + '</select></div>' +
-      '<div class="tut-form-row" data-field="pf-alias"><label>' + texts.formAlias + '</label>' +
-        '<input type="text" id="pf-alias" placeholder="' + texts.formAliasPlaceholder + '" maxlength="40"></div>' +
       '<p id="pf-error-hint" class="tut-form-error">' + texts.formRequiredHint + '</p>' +
       '<div class="tut-btn-row">' +
         '<button class="tut-btn" onclick="onPersonFormContinue()">' + texts.formContinue + '</button>' +
@@ -360,15 +361,149 @@ function onPersonFormContinue() {
     return;
   }
 
-  submitPersonData({
+  _pendingPersonFields = {
     alter: document.getElementById('pf-alter').value,
     bildungsabschluss: document.getElementById('pf-bildung').value,
     studienfach: document.getElementById('pf-studienfach').value,
     gisErfahrung: document.getElementById('pf-gis').value,
     geschlecht: document.getElementById('pf-geschlecht').value,
     geraet: document.getElementById('pf-geraet').value,
-    alias: document.getElementById('pf-alias').value.trim(),
+  };
+  document.getElementById('tutorial-info-screen').classList.remove('active');
+  showAliasPickerScreen();
+}
+
+// ── 2d. Alias-Auswahl (eigener Bildschirm, nur beim allerersten Durchlauf) ───
+// Ersetzt seit 2026-09-02 das frühere freie Textfeld (siehe Memory
+// project_geogame_structured_alias): der Alias wird aus drei Wortpool-Raedern
+// zusammengeklickt (neutrales Adjektiv / geo-Adjektiv / geo-Subjekt), je 5
+// zufaellige Woerter pro Rad aus data/alias_words.json. Deutsch bekommt einen
+// Artikel nach dem Genus des gewaehlten Substantivs, Englisch immer "The"
+// (keine Genus-Unterscheidung noetig). Pflichtfeld, kein Freitext-Fallback.
+var ALIAS_ITEM_HEIGHT = 44;
+var ALIAS_MAX_DIST     = 2;
+var ALIAS_CATEGORIES  = ['neutral', 'geoAdj', 'geoNoun'];
+var _aliasWordsData      = null;
+var _pendingPersonFields = null;
+var _aliasOffered = { neutral: [], geoAdj: [], geoNoun: [] };
+var _aliasPicked  = { neutral: 0,  geoAdj: 0,  geoNoun: 0  };
+var _aliasScrollTimers = {};
+
+function loadAliasWordsData_() {
+  if (_aliasWordsData) { return Promise.resolve(_aliasWordsData); }
+  return fetch('data/alias_words.json')
+    .then(function (res) { return res.json(); })
+    .then(function (json) { _aliasWordsData = json; return json; });
+}
+
+function pickRandomN_(arr, n) {
+  var copy = arr.slice();
+  for (var i = copy.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+  }
+  return copy.slice(0, n);
+}
+
+function showAliasPickerScreen() {
+  var texts = TUT_TEXTS[tutLang];
+  loadAliasWordsData_().then(function (data) {
+    var pool = data[tutLang];
+    _aliasOffered.neutral = pickRandomN_(pool.neutral, 5);
+    _aliasOffered.geoAdj  = pickRandomN_(pool.geoAdj, 5);
+    _aliasOffered.geoNoun = pickRandomN_(pool.geoNoun, 5);
+    _aliasPicked = { neutral: 0, geoAdj: 0, geoNoun: 0 };
+
+    var screen = document.getElementById('tutorial-info-screen');
+    screen.classList.add('active');
+    screen.innerHTML =
+      '<div class="tut-info-panel alias-picker">' +
+        '<h2>' + texts.aliasPickerTitle + '</h2>' +
+        '<p>' + texts.aliasPickerIntro + '</p>' +
+        '<div class="alias-preview" id="alias-preview"></div>' +
+        '<div class="alias-wheel-row">' +
+          '<div class="alias-wheel-highlight"></div>' +
+          buildAliasWheelCol_('neutral') +
+          buildAliasWheelCol_('geoAdj') +
+          buildAliasWheelCol_('geoNoun') +
+        '</div>' +
+        '<div class="tut-btn-row">' +
+          '<button class="tut-btn" onclick="onAliasPickerContinue()">' + texts.aliasPickerContinue + '</button>' +
+        '</div>' +
+      '</div>';
+
+    ALIAS_CATEGORIES.forEach(function (cat) { updateAliasSelectedClasses_(cat, 0); });
+    renderAliasPreview_();
   });
+}
+
+function buildAliasWheelCol_(cat) {
+  var items = _aliasOffered[cat];
+  var rows = items.map(function (item, i) {
+    var label = (cat === 'geoNoun') ? (tutLang === 'de' ? item.wort : item) : item;
+    return '<div class="alias-wheel-item" data-idx="' + i + '">' + label + '</div>';
+  }).join('');
+  return (
+    '<div class="alias-wheel-col">' +
+      '<div class="alias-wheel" id="alias-wheel-' + cat + '" onscroll="onAliasWheelScroll_(\'' + cat + '\')">' +
+        '<div class="alias-wheel-track">' +
+          '<div class="alias-wheel-pad"></div>' + rows + '<div class="alias-wheel-pad"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function onAliasWheelScroll_(cat) {
+  clearTimeout(_aliasScrollTimers[cat]);
+  _aliasScrollTimers[cat] = setTimeout(function () {
+    var wheel = document.getElementById('alias-wheel-' + cat);
+    if (!wheel) { return; }
+    var idx = Math.round(wheel.scrollTop / ALIAS_ITEM_HEIGHT);
+    idx = Math.max(0, Math.min(4, idx));
+    _aliasPicked[cat] = idx;
+    updateAliasSelectedClasses_(cat, idx);
+    renderAliasPreview_();
+  }, 90);
+}
+
+function updateAliasSelectedClasses_(cat, idx) {
+  var wheel = document.getElementById('alias-wheel-' + cat);
+  if (!wheel) { return; }
+  var items = wheel.querySelectorAll('.alias-wheel-item');
+  items.forEach(function (el) {
+    var itemIdx = parseInt(el.getAttribute('data-idx'), 10);
+    var dist = Math.min(Math.abs(itemIdx - idx), ALIAS_MAX_DIST);
+    el.className = 'alias-wheel-item dist-' + dist;
+  });
+}
+
+function composeAlias_() {
+  var neutralWord = _aliasOffered.neutral[_aliasPicked.neutral];
+  var geoAdjWord  = _aliasOffered.geoAdj[_aliasPicked.geoAdj];
+  var nounEntry   = _aliasOffered.geoNoun[_aliasPicked.geoNoun];
+  var artikel, nounWord;
+  if (tutLang === 'de') {
+    var genusMap = { der: 'Der', die: 'Die', das: 'Das' };
+    artikel  = genusMap[nounEntry.genus] || 'Der';
+    nounWord = nounEntry.wort;
+  } else {
+    artikel  = 'The';
+    nounWord = nounEntry;
+  }
+  return artikel + ' ' + neutralWord + ' ' + geoAdjWord + ' ' + nounWord;
+}
+
+function renderAliasPreview_() {
+  var el = document.getElementById('alias-preview');
+  if (el) { el.textContent = composeAlias_(); }
+}
+
+function onAliasPickerContinue() {
+  var finalAlias = composeAlias_();
+  var fields = _pendingPersonFields || {};
+  fields.alias = finalAlias;
+  submitPersonData(fields);
   document.getElementById('tutorial-info-screen').classList.remove('active');
   startOverlayTutorial();
 }
