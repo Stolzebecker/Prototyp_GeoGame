@@ -6,6 +6,23 @@
    bestehende Layout unverändert.
    ============================================================ */
 
+/* ── Textauswahl auf Touch deaktivieren ──────────────────────
+   Julians Testfund: langes Antippen von Text loeste die native iOS/
+   Android-Textauswahl aus (blaue Markierung, Kopieren-Menue) - waehrend
+   des Spielens nie gewollt, es gibt nichts zu kopieren. Bewusst NICHT
+   in den Rotations-Media-Query gepackt (siehe unten), da das Problem
+   unabhaengig von der erzwungenen Querformat-Situation auftritt (auch
+   z.B. wenn ein Tablet bereits physisch im Querformat gehalten wird).
+   Formularfelder (input/textarea) sind davon nicht betroffen - dort
+   bleibt Texteingabe/-auswahl unabhaengig von einem geerbten
+   user-select:none auf einem Vorfahren moeglich.
+*/
+html[data-device="touch"] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* ── Erzwungenes Querformat ──────────────────────────────────
    Julians ausdrücklicher Wunsch: die Anwendung läuft auf Touch-
    Geräten IMMER im Querformat, unabhängig davon, wie das Gerät
