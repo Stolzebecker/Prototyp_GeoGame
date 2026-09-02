@@ -107,6 +107,8 @@ async function boot(){
   // haben eigene Tipp-Gesten dafuer (siehe MOBILE_PLAN.md WP1).
   if(applyUrlActivation_()) toggleDebug();
 
+  relocatePhoneControls_();
+
   // Size the stage to 4:3 now that DOM is ready
 
   try{
@@ -124,6 +126,36 @@ async function boot(){
   ss.style.display = 'flex';
 
   setupImagePreview();
+}
+
+// Nur auf Handys (nicht Tablet - siehe data-tier, Julian ist mit der
+// Tablet-Version bereits zufrieden): #label-bar/#trash physisch aus #bottom
+// in #sidebar-right umziehen, damit Bild links und Kategorien+Papierkorb
+// rechts stehen statt untereinander - nutzt die im erzwungenen Querformat
+// reichlich vorhandene Breite statt der knappen Hoehe (Julians Idee,
+// 2026-09-02). Rein per JS statt CSS, weil CSS keine Elemente zwischen
+// verschiedenen Flex-Eltern umsortieren kann; sicher, da app.js ueberall
+// nur per getElementById('label-bar')/elTrash zugreift, nie relativ zum
+// urspruenglichen Elternelement.
+function relocatePhoneControls_(){
+  if(document.documentElement.dataset.tier !== 'phone') return;
+  const sidebarRight = document.getElementById('sidebar-right');
+  const topbar = document.getElementById('topbar');
+  const labelBar = document.getElementById('label-bar');
+  const trash = document.getElementById('trash');
+  const btnHint = document.getElementById('btn-hint');
+  if(sidebarRight && topbar && labelBar && trash && btnHint){
+    // Reihenfolge: Topbar-Infos oben in der Spalte, dann Chips, dann der
+    // "Ich komme nicht weiter"-Hinweisbutton, dann Papierkorb ganz unten
+    // (siehe margin-top:auto in mobile.css) - Julian wollte ausdruecklich
+    // auch Topbar und Hinweisbutton mit umziehen, nicht nur Chips/Trash,
+    // damit das Bild links die VOLLE Hoehe nutzen kann statt Elemente oben
+    // drueber/darunter durchlaufen zu lassen.
+    sidebarRight.appendChild(topbar);
+    sidebarRight.appendChild(labelBar);
+    sidebarRight.appendChild(btnHint);
+    sidebarRight.appendChild(trash);
+  }
 }
 
 // ── Start ───────────────────────────────────────────────────
@@ -462,6 +494,16 @@ function toggleDebug(){
   updateHintLayersVisibility();
 }
 
+// Ein-/Ausklappen des Debug-Panel-Inhalts (Julians Wunsch, 2026-09-02): das
+// Panel selbst bleibt an Ort und Stelle (nicht in die Seitenspalte umziehen,
+// im Gegensatz zu den anderen Steuerelementen) - es soll nur moeglich sein,
+// den Inhalt kurzzeitig auszublenden, um das darunterliegende Satellitenbild
+// zu sehen, ohne den Debug-Modus komplett zu verlassen (der die Hitbox-
+// Overlay-Zeichnung selbst mit ausschalten wuerde).
+function toggleDebugPanelCollapsed(){
+  document.getElementById('debug-panel').classList.toggle('collapsed');
+}
+
 // "Ich komme nicht weiter"-Knopf: zeigt die Hitbox-Overlay-Zeichnung plus eine
 // schlanke Ebenenumschaltung (Checkboxen ohne QA-Steuerung/Level-Navigation,
 // die für Teilnehmende nicht gedacht ist). Wird separat von debugTriggered
@@ -474,6 +516,12 @@ function showHint(){
   redrawDebug();
   updateHintLayersVisibility();
   showFeedback('Lösung wird angezeigt', 'ok');
+}
+
+// Gleiches Ein-/Ausklappen wie beim Debug-Panel (Julians Wunsch,
+// 2026-09-02) - auch dieses schlankere Panel sass fest ueber dem Bild.
+function toggleHintLayersPanelCollapsed(){
+  document.getElementById('hint-layers-panel').classList.toggle('collapsed');
 }
 
 function isTypingTarget_(target){

@@ -259,3 +259,149 @@ html[data-device="touch"] .tut-form-row select {
 }
 .custom-select-opt:last-child { border-bottom: none; }
 .custom-select-opt:active { background: rgba(12,164,209,.12); }
+
+/* ── Alias-Raeder kompakter auf Touch (WP3, 2026-09-02) ──────────────────
+   Julians Testfund: die Desktop-Massgroesse (5 sichtbare Reihen a 44px =
+   220px Radhoehe) allein fraß auf einem Handy im erzwungenen Querformat
+   (oft nur ~370-390px Gesamthoehe) den Grossteil des Platzes und erzwang
+   starkes Scrollen. 3 statt 5 sichtbare Reihen a 30px (90px statt 220px) -
+   die Werte MUESSEN exakt zu ALIAS_ITEM_HEIGHT in tutorial.js passen,
+   sonst desynchronisiert die Scroll-Snap-Positionsberechnung von der
+   Optik (siehe Kommentar dort). */
+html[data-device="touch"] .alias-wheel {
+  height: 90px;
+}
+html[data-device="touch"] .alias-wheel-pad {
+  height: 30px;
+}
+html[data-device="touch"] .alias-wheel-item {
+  height: 30px;
+  font-size: 11px;
+}
+html[data-device="touch"] .alias-wheel-item.dist-1 {
+  font-size: 12px;
+}
+html[data-device="touch"] .alias-wheel-item.dist-0 {
+  font-size: 13px;
+}
+html[data-device="touch"] .alias-wheel-highlight {
+  height: 30px;
+}
+html[data-device="touch"] .alias-wheel-col::before,
+html[data-device="touch"] .alias-wheel-col::after {
+  height: 24px;
+}
+html[data-device="touch"] .alias-preview {
+  padding: 6px 10px;
+  font-size: 15px;
+}
+html[data-device="touch"] .alias-picker p {
+  margin-bottom: 0;
+}
+
+/* Overlay-Tutorial-Tooltip: gleiche vw/vh-Problematik wie ueberall sonst
+   auf dieser Seite - siehe --landscape-w/-h-Definition oben. */
+html[data-device="touch"] #tut-tooltip {
+  width: min(420px, calc(var(--landscape-w) * 0.8));
+  padding: 12px 16px;
+}
+html[data-device="touch"] #tut-tooltip h3 {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+html[data-device="touch"] #tut-tooltip p {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+/* ── Spiel-Layout auf dem Handy: Bild links, Bedienung rechts (WP3,
+   2026-09-02) ────────────────────────────────────────────────────────
+   Julians Idee: im erzwungenen Querformat ist die Hoehe knapp, die Breite
+   reichlich - #label-bar/#trash bisher in #bottom UNTER dem Bild kosteten
+   wertvolle Hoehe, waehrend #sidebar-left/#sidebar-right (bisher rein
+   dekorative Letterbox-Flaechen neben dem exakt-4:3-Bild) ungenutzt
+   blieben. Bewusst NUR fuers Handy (data-tier="phone"), nicht Tablet -
+   Julian ist mit der Tablet-Version bereits zufrieden, dort ist genug
+   Hoehe vorhanden. Die eigentliche Umhaengung von #label-bar/#trash nach
+   #sidebar-right passiert in JS (relocatePhoneControls_() in app.js) -
+   CSS kann Elemente nicht zwischen verschiedenen Flex-Eltern umsortieren. */
+html[data-tier="phone"] #bottom {
+  display: none;
+}
+html[data-tier="phone"] #sidebar-left {
+  flex: 0 0 0;
+  min-width: 0;
+}
+html[data-tier="phone"] #sidebar-right {
+  flex: 1 1 auto;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: linear-gradient(180deg,var(--panel-dark) 0%,var(--panel) 100%);
+  color: initial;
+  font-size: initial;
+  letter-spacing: normal;
+  overflow-y: auto;
+}
+/* Topbar (Marke/Fortschritt/Zeit+Fehler) wird von app.js:
+   relocatePhoneControls_() ebenfalls in #sidebar-right umgehaengt (Julians
+   ausdruecklicher Wunsch: nicht nur die untere Leiste, auch die obere soll
+   nach rechts ruecken, damit das Bild links die VOLLE Bildschirmhoehe
+   bekommt statt dass die Topbar oben quer drueberlaeuft). Die Desktop-
+   Topbar ist eine breite Reihe (fixe 380px-Fortschrittsbreite) - in der
+   schmalen Spalte stattdessen alles untereinander. */
+html[data-tier="phone"] #sidebar-right #topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0 0 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--accent);
+  background: none;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+html[data-tier="phone"] #sidebar-right #progress-wrap {
+  width: 100%;
+}
+html[data-tier="phone"] #sidebar-right #stats {
+  gap: 16px;
+  justify-content: center;
+}
+html[data-tier="phone"] #sidebar-right .stat-val {
+  font-size: 15px;
+}
+html[data-tier="phone"] #sidebar-right .stat-label {
+  font-size: 7px;
+}
+
+html[data-tier="phone"] #sidebar-right #label-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+html[data-tier="phone"] #sidebar-right #label-bar-title {
+  width: 100%;
+}
+html[data-tier="phone"] #sidebar-right #trash {
+  margin-top: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+/* "Ich komme nicht weiter" ist auf Desktop position:fixed (bottom-left der
+   Buehne) - in der Spalte stattdessen normaler Fluss, damit es sich mit
+   einreiht statt ueber dem jetzt hier befindlichen Papierkorb zu schweben. */
+html[data-tier="phone"] #sidebar-right #btn-hint {
+  position: static;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}

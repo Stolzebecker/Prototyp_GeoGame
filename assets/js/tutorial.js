@@ -446,7 +446,16 @@ function onPersonFormContinue() {
 // zufaellige Woerter pro Rad aus data/alias_words.json. Deutsch bekommt einen
 // Artikel nach dem Genus des gewaehlten Substantivs, Englisch immer "The"
 // (keine Genus-Unterscheidung noetig). Pflichtfeld, kein Freitext-Fallback.
-var ALIAS_ITEM_HEIGHT = 44;
+// Auf Touch deutlich kleiner + weniger sichtbare Reihen (3 statt 5) - die
+// Raeder verbrauchten mit der Desktop-Groesse einen Grossteil der ohnehin
+// knappen Hoehe im erzwungenen Querformat und erzwangen starkes Scrollen
+// (Julians Testfund, 2026-09-02). Muss exakt zur CSS-Hoehe von
+// .alias-wheel-item passen (siehe mobile.css), sonst desynchronisiert die
+// Scroll-Snap-Positionsberechnung von der tatsaechlichen Optik. Ein Rad
+// ist kein einzeln antippbares Element wie ein Button, sondern eine
+// Wisch-/Scroll-Flaeche - die sonst im Projekt geltende 44px-Mindest-
+// zielgroesse gilt hier deshalb nicht pro Zeile.
+var ALIAS_ITEM_HEIGHT = (document.documentElement.dataset.device === 'touch') ? 30 : 44;
 var ALIAS_MAX_DIST     = 2;
 var ALIAS_CATEGORIES  = ['neutral', 'geoAdj', 'geoNoun'];
 var _aliasWordsData      = null;

@@ -171,8 +171,18 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
   box-shadow:0 6px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius:4px;
 }
-#debug-panel-title{color:var(--warn);letter-spacing:.12em;margin-bottom:10px;font-size:10px}
-#debug-panel-hint{color:var(--muted);font-size:9px;letter-spacing:.06em}
+#debug-panel-title{color:var(--warn);letter-spacing:.12em;margin-bottom:10px;font-size:10px;
+  cursor:pointer;display:flex;align-items:center;gap:4px}
+#debug-panel-hint{color:var(--muted);font-size:9px;letter-spacing:.06em;flex:1}
+#debug-panel-collapse-btn{color:var(--muted);font-size:11px;transition:transform .15s}
+/* Julians Wunsch (2026-09-02): Panel-Inhalt ausblenden koennen, um das
+   darunterliegende Satellitenbild zu sehen, ohne den Debug-Modus (und damit
+   die Hitbox-Overlay-Zeichnung) komplett zu verlassen. Panel selbst bleibt
+   an Ort und Stelle - nur #debug-panel-body wird versteckt. */
+#debug-panel.collapsed{min-width:0}
+#debug-panel.collapsed #debug-panel-title{margin-bottom:0}
+#debug-panel.collapsed #debug-panel-body{display:none}
+#debug-panel.collapsed #debug-panel-collapse-btn{transform:rotate(-90deg)}
 #debug-checks{display:grid;gap:8px;margin-top:2px}
 .debug-check-row{display:flex;align-items:center;gap:8px;cursor:pointer}
 .debug-check-row input[type=checkbox]{
@@ -521,8 +531,17 @@ tr:hover td{background:rgba(12,164,209,0.06);}
   box-shadow:0 6px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius:4px;
 }
-#hint-layers-title{color:var(--accent);letter-spacing:.12em;margin-bottom:10px;font-size:10px}
+#hint-layers-title{color:var(--accent);letter-spacing:.12em;margin-bottom:10px;font-size:10px;
+  cursor:pointer;display:flex;align-items:center}
+#hint-layers-collapse-btn{color:var(--muted);font-size:11px;transition:transform .15s;margin-left:auto}
 #hint-layers-checks{display:grid;gap:8px}
+/* Gleiches Ein-/Ausklappen wie beim Debug-Panel (Julians Wunsch,
+   2026-09-02), damit auch dieses Panel das Satellitenbild darunter nicht
+   dauerhaft verdeckt. */
+#hint-layers-panel.collapsed{min-width:0}
+#hint-layers-panel.collapsed #hint-layers-title{margin-bottom:0}
+#hint-layers-panel.collapsed #hint-layers-checks{display:none}
+#hint-layers-panel.collapsed #hint-layers-collapse-btn{transform:rotate(-90deg)}
 
 /* ── FAMILIARITY-GALLERY (Wiedererkennungs-Check am Spielende) ── */
 #familiarity-gallery-screen{display:none;position:fixed;inset:0;
