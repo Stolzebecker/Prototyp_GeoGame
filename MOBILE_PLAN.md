@@ -222,10 +222,36 @@ endgültig zusammenzuführen und **ab sofort nur noch auf `main` zu arbeiten** �
     rechts/links/oben/unten ab (Papierkorb landete nur ~20px vom
     physischen unteren Rand entfernt, exakt der Home-Indicator-Zone).
     Diese Systemgesten sind aus keiner Website/App per CSS/JS vollständig
-    unterdrückbar, nur durch Abstand zu entschärfen. **Noch nicht auf
-    echtem Gerät re-verifiziert** — nur strukturell per
-    `getBoundingClientRect()`-Messung im Browser-Pane bestätigt.
-  - [ ] Verdichtung/Umbau der bestehenden Anordnung ohne Informationsverlust
+    unterdrückbar, nur durch Abstand zu entschärfen. Auf echtem iPhone von
+    Julian bestätigt (Folgesitzung selben Tages).
+  - [x] **Native Textauswahl, Flexbox-Scroll-Bug, native Selects, Panel-
+    Breite, Alias-Räder, Handy-Spiellayout, ein-/ausklappbare Debug-Panels**
+    *(erledigt 2026-09-02, mehrere Iterationsrunden mit Julian auf echtem
+    iPhone)* — Details siehe Memory `project_geogame_mobile_plan` und die
+    Commit-Historie (`7e31439`..`7e44b3d`). Kurzfassung: `user-select:none`;
+    `margin:auto` statt `align-items:center` gegen einen Flexbox-Bug, der
+    überlaufenden Text unerreichbar machte; native `<select>`-Popups durch
+    ein selbstgebautes Button+Listen-Widget ersetzt (natives Select/
+    virtuelle Tastatur folgen nicht dem CSS-Rotationstrick — harte
+    Plattformgrenze, nur bei Selects umgehbar); `--landscape-w`/
+    `--landscape-h`-Custom-Properties statt roher `vw`/`vh` (wichtig: rohe
+    Einheiten kippen bei tatsächlicher physischer Quer-Drehung ins
+    Gegenteil, siehe Memory); Alias-Räder von 5 auf 3 sichtbare Reihen
+    verkleinert; auf `data-tier="phone"` (NICHT Tablet) Topbar/Chips/
+    Papierkorb/Hinweisbutton in die bisher leere Seitenspalte neben dem
+    Bild umgezogen (`relocatePhoneControls_()` in app.js), `#bottom`
+    ausgeblendet; Debug-Panel + Hinweis-Ebenenpanel bekamen einen Ein-/
+    Ausklapp-Pfeil (Standard: ausgeklappt), Debug-Panel bleibt bewusst an
+    Ort und Stelle.
+  - **Julians Rückmeldung am Ende der Sitzung: "besser als zuvor, aber es
+    gibt noch einiges anzupassen" — ohne weitere Spezifizierung.** Nächste
+    Sitzung: zuerst konkret nachfragen, was noch genau stört, nicht
+    annehmen. Bekannte Selbst-Verifikations-Lücke (siehe Memory): ob Bild/
+    Bedienung auf dem Handy tatsächlich links/rechts (statt oben/unten)
+    stehen, konnte Claude sich selbst nicht zuverlässig über Screenshots/
+    Koordinaten bestätigen - das war zumindest zum Zeitpunkt von Julians
+    "besser als zuvor" wohl grundsaetzlich in die richtige Richtung
+    unterwegs, aber unklar wie vollstaendig.
   - [ ] Touch-taugliche Zielgrößen (≥ ca. 44px) — systematische Prüfung
   - [ ] Getrennte Breakpoints Tablet vs. Handy
 - [ ] **WP4 — In-Game-Zoom/Pan (bedingt)**
