@@ -331,50 +331,68 @@ html[data-device="touch"] #tut-tooltip p {
   margin: 0 0 8px;
 }
 
-/* ── Vollbild-Hinweis-Popup kompakter auf Touch (2026-09-23) ─────────────
-   Julians Testfund auf echtem iPhone: die Desktop-Massgroesse (640px breite
-   Anleitungsbilder, grosszuegige Legal-Modal-Polsterung) war im erzwungenen
-   Querformat (oft nur ~350-400px sichtbare Hoehe) viel zu gross, selbst nach
-   dem engeren Zuschnitt der Bilder selbst - gleiche Ursache/gleiches Muster
-   wie schon bei .tut-info-panel oben: var(--landscape-w)/(-h) statt fixer
-   px-Werte, damit es auf die tatsaechlich sichtbare Flaeche passt statt auf
-   eine angenommene Desktop-Groesse. */
+/* ── Vollbild-Hinweis-Popup kompakter auf Touch (2026-09-23, verschaerft
+   nach Julians zweitem Testfund auf echtem iPhone - die erste Kompaktierung
+   reichte auf seinem Geraet noch nicht, er musste weiterhin scrollen) ──────
+   var(--landscape-w)/(-h) statt fixer px-Werte, damit es auf die tatsaechlich
+   sichtbare Flaeche passt statt auf eine angenommene Desktop-Groesse (gleiches
+   Muster wie .tut-info-panel oben). Zusaetzlicher Hebel diesmal: die beiden
+   Anleitungsbilder stehen auf Touch NEBENEINANDER statt untereinander (siehe
+   .fs-hint-steps unten) - im erzwungenen Querformat ist die Breite reichlich
+   vorhanden, die Hoehe knapp (dieselbe Ressourcen-Abwaegung wie beim Handy-
+   Spiellayout weiter unten in dieser Datei), eine Bildreihe statt zwei
+   spart die Haelfte der vertikal benoetigten Bildhoehe. */
 html[data-device="touch"] #fullscreen-hint-modal .legal-modal-card {
-  width: min(480px, calc(var(--landscape-w) * 0.84));
-  padding: 14px 18px;
+  width: min(560px, calc(var(--landscape-w) * 0.92));
+  padding: 10px 16px;
 }
 html[data-device="touch"] #fullscreen-hint-modal h1 {
-  font-size: 1.05rem;
-  margin-bottom: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 5px;
 }
 html[data-device="touch"] #fullscreen-hint-modal p {
-  font-size: 0.8rem;
-  line-height: 1.4;
-  margin-bottom: 8px;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-steps {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
 html[data-device="touch"] #fullscreen-hint-modal .fs-hint-step {
-  margin-bottom: 8px;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
 }
 html[data-device="touch"] #fullscreen-hint-modal .fs-hint-step img {
   width: auto;
   max-width: 100%;
-  max-height: calc(var(--landscape-h) * 0.24);
-  margin: 0 auto 6px;
+  max-height: calc(var(--landscape-h) * 0.32);
+  margin: 0 auto 4px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-step p {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  margin-bottom: 0;
 }
 html[data-device="touch"] #fullscreen-hint-modal .fs-hint-actions {
-  margin-top: 8px;
-  gap: 8px;
+  margin-top: 5px;
+  gap: 6px;
 }
 html[data-device="touch"] #fullscreen-hint-modal .fs-hint-actions button {
-  padding: 8px 14px;
-  font-size: 0.82rem;
+  padding: 6px 12px;
+  font-size: 0.76rem;
 }
 html[data-device="touch"] #fullscreen-hint-modal .fs-hint-note {
-  font-size: 0.74rem;
-  margin-top: 6px;
+  font-size: 0.66rem;
+  line-height: 1.25;
+  margin-top: 4px;
 }
-html[data-device="touch"] #fullscreen-hint-modal .fs-hint-skip {
-  margin-top: 8px;
+html[data-device="touch"] #fullscreen-hint-modal .legal-modal-card button.fs-hint-skip {
+  margin-top: 5px;
+  font-size: 0.7rem;
+  padding: 2px;
 }
 
 /* ── Spiel-Layout auf dem Handy: Bild links, Bedienung rechts (WP3,

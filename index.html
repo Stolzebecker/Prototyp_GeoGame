@@ -33,9 +33,9 @@
 
   <!-- Fonts: Segoe UI is system-native on Windows; fallback via Google Fonts -->
 
-  <link rel="stylesheet" href="assets/css/style.css?v=fs-hint5">
-  <link rel="stylesheet" href="assets/css/tutorial.css?v=fs-hint5">
-  <link rel="stylesheet" href="assets/css/mobile.css?v=fs-hint5">
+  <link rel="stylesheet" href="assets/css/style.css?v=fs-hint6">
+  <link rel="stylesheet" href="assets/css/tutorial.css?v=fs-hint6">
+  <link rel="stylesheet" href="assets/css/mobile.css?v=fs-hint6">
 </head>
 <body>
 
@@ -87,8 +87,8 @@
   <div class="legal-modal-card">
     <h1>Datenschutzerklärung</h1>
     <p><strong>Verantwortliche Stelle:</strong> Julian Stolz, Pädagogische Hochschule Heidelberg (rgeo), Telefon 06221.477.795, E-Mail <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a> — zugleich Ansprechperson für Rückfragen zu dieser Studie.</p>
-    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht, Endgerät, optional ein selbst gewählter Alias — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
-    <p><strong>Bestenliste (öffentlich sichtbar):</strong> Anders als die übrigen Daten sind Ihre Gesamtzeit sowie Ihr selbst gewählter Alias (ersatzweise der oben genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste <strong>für andere Teilnehmende sichtbar</strong> — Durchläufe mit mehr als 10 Fehlern erscheinen dort nicht. Bitte wählen Sie einen Alias, der keine Rückschlüsse auf Ihre Identität zulässt; ein selbst gewählter Alias kann je nach Formulierung theoretisch dennoch Rückschlüsse ermöglichen, wofür wir keine Verantwortung übernehmen können.</p>
+    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht, Endgerät, ein aus vorgegebenen Wortbausteinen zusammengestellter Alias — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
+    <p><strong>Bestenliste (öffentlich sichtbar):</strong> Anders als die übrigen Daten sind Ihre Gesamtzeit sowie Ihr Alias (ersatzweise der oben genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste <strong>für andere Teilnehmende sichtbar</strong> — Durchläufe mit mehr als 10 Fehlern erscheinen dort nicht. Der Alias wird beim ersten Spielen aus vorgegebenen, unbedenklichen Wortbausteinen zusammengestellt (keine freie Texteingabe) und lässt daher keine Rückschlüsse auf Ihre Identität zu.</p>
     <p><strong>Speicherung:</strong> Die Daten werden über eine Google-Apps-Script-Anwendung in eine Google-Tabelle im Konto der Studienleitung übertragen und dort gespeichert; mit Ausnahme der oben genannten, öffentlich sichtbaren Bestenliste hat nur die Studienleitung Zugriff.</p>
     <p><strong>Lokale Speicherung (localStorage):</strong> Ihr Browser speichert den oben genannten zufälligen Kennwert, Ihren gewählten Alias (falls vergeben) sowie einen Hinweis darauf, ob Sie den Fragebogen bereits ausgefüllt haben, technisch notwendig lokal auf Ihrem Gerät (kein Cookie, kein Tracking, keine Übertragung an Dritte). Diese Daten können Sie jederzeit über die Einstellungen Ihres Browsers löschen.</p>
     <p><strong>Freiwilligkeit &amp; Widerruf:</strong> Die Teilnahme ist freiwillig. Solange Ihre Angaben über den zufälligen Kennwert noch zuordenbar sind, können Sie deren Löschung jederzeit formlos bei der oben genannten Ansprechperson verlangen.</p>
@@ -127,13 +127,15 @@
     </div>
     <div id="fs-hint-ios-view" style="display:none">
       <h1>Vollbildmodus auf dem iPhone</h1>
-      <div class="fs-hint-step">
-        <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt1.jpg" alt="Symbolleisten-Symbol links neben der Adresszeile antippen">
-        <p><strong>1.</strong> Tippe links neben der Adresszeile auf dieses Symbol.</p>
-      </div>
-      <div class="fs-hint-step">
-        <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt2.jpg" alt="Im Menü „Symbolleiste ausblenden“ antippen">
-        <p><strong>2.</strong> Im Menü auf „Symbolleiste ausblenden“ tippen.</p>
+      <div class="fs-hint-steps">
+        <div class="fs-hint-step">
+          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt1.jpg" alt="Symbolleisten-Symbol links neben der Adresszeile antippen">
+          <p><strong>1.</strong> Tippe links neben der Adresszeile auf dieses Symbol.</p>
+        </div>
+        <div class="fs-hint-step">
+          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt2.jpg" alt="Im Menü „Symbolleiste ausblenden“ antippen">
+          <p><strong>2.</strong> Im Menü auf „Symbolleiste ausblenden“ tippen.</p>
+        </div>
       </div>
       <div class="fs-hint-actions">
         <button type="button" class="secondary" onclick="backToFullscreenHintMain_()">‹ Zurück</button>
@@ -468,10 +470,10 @@
 <!-- Practice success message -->
 <div id="tut-success-msg"></div>
 
-<script src="assets/js/device.js?v=fs-hint5"></script>
-<script src="assets/js/telemetry.js?v=fs-hint5"></script>
-<script src="assets/js/app.js?v=fs-hint5"></script>
-<script src="assets/js/tutorial.js?v=fs-hint5"></script>
-<script src="assets/js/touch-triggers.js?v=fs-hint5"></script>
+<script src="assets/js/device.js?v=fs-hint6"></script>
+<script src="assets/js/telemetry.js?v=fs-hint6"></script>
+<script src="assets/js/app.js?v=fs-hint6"></script>
+<script src="assets/js/tutorial.js?v=fs-hint6"></script>
+<script src="assets/js/touch-triggers.js?v=fs-hint6"></script>
 </body>
 </html>
