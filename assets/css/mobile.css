@@ -85,9 +85,18 @@ html[data-device="touch"] {
   html[data-device="touch"] body {
     height: 100dvh;
     box-sizing: border-box;
-    padding-top: max(24px, env(safe-area-inset-top));
+    /* Oben/unten schlanker als links/rechts (Julians Wunsch 2026-09-23,
+       um dem Satellitenbild mehr Hoehe zu geben - das Bild wird rein ueber
+       die verfuegbare Hoehe skaliert, siehe #stage{height:100%;aspect-
+       ratio:4/3}, jeder gesparte Pixel oben/unten kommt ihm direkt zugute).
+       Nicht auf 0 gesetzt, wie Julian ausdruecklich wollte: Notch/Dynamic-
+       Island sitzt im echten Querformat zwar so gut wie nie oben (sondern
+       links/rechts, je nach Drehrichtung), aber ein kleiner Puffer bleibt
+       als Sicherheitsnetz. Links/rechts bleiben bei 24px, da dort im
+       Querformat die Dynamic Island/der Notch tatsaechlich landen kann. */
+    padding-top: max(10px, env(safe-area-inset-top));
     padding-right: max(24px, env(safe-area-inset-right));
-    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
     padding-left: max(24px, env(safe-area-inset-left));
   }
   html[data-device="touch"] #start-screen,
@@ -97,9 +106,9 @@ html[data-device="touch"] {
   html[data-device="touch"] #results-screen,
   html[data-device="touch"] #image-preview-modal,
   html[data-device="touch"] #familiarity-gallery-screen {
-    top: max(24px, env(safe-area-inset-top));
+    top: max(10px, env(safe-area-inset-top));
     right: max(24px, env(safe-area-inset-right));
-    bottom: max(24px, env(safe-area-inset-bottom));
+    bottom: max(10px, env(safe-area-inset-bottom));
     left: max(24px, env(safe-area-inset-left));
   }
 }
@@ -497,8 +506,8 @@ html[data-tier="phone"] #sidebar-right {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: 10px;
-  padding: 10px;
+  gap: 3px;
+  padding: 5px;
   background: linear-gradient(180deg,var(--panel-dark) 0%,var(--panel) 100%);
   color: initial;
   font-size: initial;
@@ -516,9 +525,9 @@ html[data-tier="phone"] #sidebar-right #topbar {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
-  padding: 0 0 8px;
-  margin-bottom: 4px;
+  gap: 2px;
+  padding: 0 0 5px;
+  margin-bottom: 2px;
   border-bottom: 1px solid var(--accent);
   background: none;
   width: 100%;
@@ -528,30 +537,96 @@ html[data-tier="phone"] #sidebar-right #topbar {
 html[data-tier="phone"] #sidebar-right #progress-wrap {
   width: 100%;
 }
+/* SCOPE-Marke sitzt jetzt (siehe relocatePhoneControls_() in app.js) als
+   erstes Kind in dieser Zeile statt in einer eigenen Zeile darueber - spart
+   eine ganze Zeile Hoehe. Reihenfolge: SCOPE | LEVEL 1/8 | ... | 0% (Prozent
+   per margin-left:auto ganz nach rechts gedrueckt, "LEVEL 1/8" ruecken direkt
+   neben die Marke statt ueber den ganzen Rest verteilt zu werden). */
+html[data-tier="phone"] #sidebar-right #progress-label {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 2px;
+}
+html[data-tier="phone"] #sidebar-right #progress-label #prog-pct {
+  margin-left: auto;
+}
+html[data-tier="phone"] #sidebar-right #topbar .brand {
+  flex-shrink: 0;
+}
+/* Julians Testfund (2026-09-23): trotz der bereits kompakteren Phone-Tier-
+   Werte wirkte die Seitenleiste im Spiel noch sehr luftig (viel ungenutzter
+   Platz zwischen Zeit/Fehler-Block und den Labels) und musste gescrollt
+   werden. Groesster Hebel: die 4 Label-Buttons standen einzeln untereinander
+   (4 Zeilen) - als 2x2-Raster (siehe #label-bar unten) halbiert sich ihr
+   Platzbedarf, dieselbe "Breite reichlich, Hoehe knapp"-Abwaegung wie schon
+   beim Vollbild-Popup und den iOS-Anleitungsbildern. Zusaetzlich Abstaende/
+   Schrift ueberall in dieser Spalte weiter verkleinert. */
 html[data-tier="phone"] #sidebar-right #stats {
-  gap: 16px;
+  gap: 10px;
   justify-content: center;
 }
 html[data-tier="phone"] #sidebar-right .stat-val {
-  font-size: 15px;
+  font-size: 13px;
 }
 html[data-tier="phone"] #sidebar-right .stat-label {
   font-size: 7px;
+  margin-top: 0;
 }
 
 html[data-tier="phone"] #sidebar-right #label-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;
+  display: grid;
+  /* minmax(0,1fr) statt 1fr: Grid-Spalten haben sonst ein implizites
+     min-width:auto und schrumpfen nie unter die Breite des laengsten
+     unzerbrechlichen Wort-Tokens - "Grünland/Landwirtschaft" (kein
+     natuerlicher Umbruchpunkt am "/") sprengte dadurch real gemessen die
+     Spaltenbreite um ~10px ueber den Seitenleisten-Rand hinaus. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 5px;
+  /* Desktop-Basisregel (style.css) setzt align-items:center fuers dortige
+     Flex-Layout - das "leckt" hier durch und verhindert, dass kuerzere
+     Chips (Wald/Wasser) ihre Rasterzeile wie gewuenscht ausfuellen (sie
+     wurden stattdessen nur mittig in der volleren Zeilenhoehe der
+     laengeren Nachbarn platziert). stretch macht alle 4 wirklich gleich
+     hoch, nicht nur zeilenweise gleich. */
+  align-items: stretch;
 }
 html[data-tier="phone"] #sidebar-right #label-bar-title {
+  grid-column: 1 / -1;
+  margin-right: 0;
+  font-size: 9px;
+}
+html[data-tier="phone"] #sidebar-right .label-chip {
   width: 100%;
+  min-width: 0;
+  /* Einheitliche Hoehe (Julians Wunsch, 2026-09-23): ohne das behielt jeder
+     Button nur seine eigene Inhaltshoehe (1 vs. 2 Zeilen je nach Textlaenge),
+     was uneinheitlich aussah. min-height statt fester height, damit ein
+     unerwartet langer Text nie abgeschnitten wird - der ermittelte
+     Schlechtestfall ("Grünland/Landwirtschaft", 2 Zeilen bei 10.5px) passt
+     bei 40px mit etwas Reserve. */
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 4px 6px;
+  font-size: 10.5px;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 html[data-tier="phone"] #sidebar-right #trash {
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
+  min-height: 44px;
+  gap: 1px;
+  padding: 2px;
+}
+html[data-tier="phone"] #sidebar-right #trash > div:first-child {
+  font-size: 15px;
 }
 /* "Ich komme nicht weiter" ist auf Desktop position:fixed (bottom-left der
    Buehne) - in der Spalte stattdessen normaler Fluss, damit es sich mit
@@ -561,4 +636,6 @@ html[data-tier="phone"] #sidebar-right #btn-hint {
   width: 100%;
   box-sizing: border-box;
   text-align: center;
+  padding: 6px 14px;
+  font-size: 12px;
 }

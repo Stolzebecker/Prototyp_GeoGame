@@ -156,6 +156,18 @@ function relocatePhoneControls_(){
     sidebarRight.appendChild(labelBar);
     sidebarRight.appendChild(btnHint);
     sidebarRight.appendChild(trash);
+
+    // SCOPE-Marke in die Fortschritts-Zeile umhaengen (Julians Testfund
+    // 2026-09-23): stand vorher als eigene Zeile ueber "LEVEL x/8 · 0%",
+    // kostete dadurch eine ganze Zeile Hoehe fuer nur ein einzelnes Wort -
+    // steht jetzt mit auf derselben Zeile (siehe mobile.css: #progress-label
+    // wird dafuer zur Flex-Reihe umgebaut). Nur einmal einfuegen (Funktion
+    // wird mehrfach aufgerufen, siehe boot()).
+    const brand = topbar.querySelector('.brand');
+    const progressLabel = document.getElementById('progress-label');
+    if(brand && progressLabel && progressLabel.firstChild !== brand){
+      progressLabel.insertBefore(brand, progressLabel.firstChild);
+    }
   }
 }
 
@@ -543,7 +555,16 @@ function renderLabels(lv){
   CONFIG.labels.forEach(lb=>{
     const chip=document.createElement('div');
     chip.className='label-chip'; chip.id='chip-'+lb.id;
-    chip.dataset.id=lb.id; chip.textContent=lb.icon+' '+lb.text;
+    chip.dataset.id=lb.id;
+    // Nullbreiten-Leerzeichen (U+200B) nach jedem "/" einfuegen (seit
+    // 2026-09-23): rein optisch folgenlos, gibt dem Browser aber einen
+    // sauberen, sinnvollen Umbruchpunkt ("Gebäude/" | "Infrastruktur")
+    // statt dass CSS overflow-wrap:break-word (Phone-Tier, siehe mobile.css)
+    // mangels Alternative mitten im Wort bricht und einzelne Buchstaben
+    // ("...Infrastruktu" / "r") auf einer eigenen Zeile isoliert - Julians
+    // Testfund. Nur die Anzeige betrifft das (chip.textContent), lb.text
+    // selbst bleibt fuer Telemetrie/Debug-Panel unveraendert.
+    chip.textContent=lb.icon+' '+lb.text.replace(/\//g,'/​');
     chip.addEventListener('pointerdown',e=>{
       if(chip.classList.contains('used')) return;
       // Waehrend ein Drag laeuft, weitere Pointer (z.B. zweiter Finger)
