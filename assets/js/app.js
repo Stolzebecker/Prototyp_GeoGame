@@ -126,6 +126,7 @@ async function boot(){
   ss.style.display = 'flex';
 
   setupImagePreview();
+  showFullscreenHint_();
 }
 
 // Nur auf Handys (nicht Tablet - siehe data-tier, Julian ist mit der
@@ -1517,6 +1518,35 @@ function openLegalModal(name){
 function closeLegalModal(name){
   const el = document.getElementById(name+'-modal');
   if(el) el.classList.remove('active');
+}
+
+// ── Vollbildmodus-Empfehlung (seit 2026-09-23) ─────────────────
+// Erscheint bei jedem Sitzungsstart auf dem Startbildschirm (siehe boot()) -
+// bewusst kein localStorage-Merker, da der Vollbildmodus selbst i.d.R. ohnehin
+// nicht ueber einen Reload hinweg erhalten bleibt. iOS Safari unterstuetzt die
+// Fullscreen API fuer normale Seiteninhalte bis heute nicht (nur <video>) -
+// dafuer gibt es die Bildanleitung als zweiten Weg, siehe CLAUDE.md.
+function showFullscreenHint_(){
+  backToFullscreenHintMain_();
+  document.getElementById('fullscreen-hint-modal').classList.add('active');
+}
+function dismissFullscreenHint_(){
+  document.getElementById('fullscreen-hint-modal').classList.remove('active');
+}
+function activateFullscreenMode_(){
+  const el = document.documentElement;
+  if(!el.requestFullscreen) return;
+  el.requestFullscreen({ navigationUI: 'hide' })
+    .then(() => dismissFullscreenHint_())
+    .catch(() => {}); // z.B. iPhone Safari: Aufruf schlaegt lautlos fehl, dafuer gibt es die iOS-Anleitung
+}
+function showIosFullscreenGuide_(){
+  document.getElementById('fs-hint-main-view').style.display = 'none';
+  document.getElementById('fs-hint-ios-view').style.display = 'block';
+}
+function backToFullscreenHintMain_(){
+  document.getElementById('fs-hint-main-view').style.display = 'block';
+  document.getElementById('fs-hint-ios-view').style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', boot);

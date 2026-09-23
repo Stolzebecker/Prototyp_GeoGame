@@ -455,13 +455,21 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 /* ── LEGAL-MODALS (Impressum/Datenschutz/Quellen) ── */
 .legal-modal{
   display:none;position:fixed;inset:0;z-index:5000;
-  background:rgba(0,0,0,0.5);align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.5);justify-content:center;
   padding:20px;overflow:auto;
 }
 .legal-modal.active{display:flex}
+/* margin:auto statt align-items:center auf dem Container - bekannter Flexbox-
+   Bug: bei ueberlaufendem Inhalt "zentriert" ein Flex-Container mit
+   align-items:center den Overflow symmetrisch in nicht erreichbaren Raum,
+   wodurch selbst mit overflow:auto ein Teil des Inhalts (typischerweise oben)
+   durch Scrollen nie sichtbar wird - siehe tutorial.css fuer denselben Fix,
+   dort urspruenglich gefunden (Julians Testfund 2026-09-02). Hier faellig
+   geworden durch den neuen, zweibildrigen Vollbild-Hinweis-Modal-Inhalt. */
 .legal-modal-card{
   max-width:600px;width:100%;background:var(--panel-soft);border:1px solid var(--line);
   border-radius:10px;padding:22px 28px;box-shadow:0 12px 48px rgba(0,0,0,0.3);
+  margin:auto;
 }
 .legal-modal-card h1{font-size:1.3rem;color:#0a3f70;margin-bottom:14px;}
 .legal-modal-card p{line-height:1.6;color:#2a2a2a;margin-bottom:12px;}
@@ -503,6 +511,20 @@ tr:hover td{background:rgba(12,164,209,0.06);}
   margin-right:auto;
 }
 .legal-modal-card button.warn:hover{background:rgba(183,25,24,.08);}
+
+/* ── VOLLBILD-HINWEIS (seit 2026-09-23) ── */
+.fs-hint-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.fs-hint-actions button{margin-top:0;}
+.fs-hint-note{font-size:0.82rem;color:var(--muted);margin-top:10px;}
+.legal-modal-card button.fs-hint-skip{display:block;margin:14px auto 0;
+  background:none;border:none;border-bottom:none;
+  color:var(--muted);font-size:0.85rem;text-decoration:underline;cursor:pointer;
+  padding:4px;}
+.legal-modal-card button.fs-hint-skip:hover{color:#0a3f70;background:none;}
+.fs-hint-step{margin-bottom:16px;}
+.fs-hint-step img{width:100%;border-radius:8px;border:1px solid var(--line);
+  display:block;margin-bottom:8px;}
+.fs-hint-step p{margin-bottom:0;}
 
 /* ── TEILEN-FALLBACK (seit 2026-08-26) ── */
 .share-platform-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
