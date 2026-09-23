@@ -468,6 +468,15 @@ function redrawDebug(){
   elDebugCanvas.style.top    = '0';
   elDebugCtx.clearRect(0,0,w,h);
 
+  // Handy: duennere Konturen/kleinere Beschriftung (Julians Testfund
+  // 2026-09-23, im selben Aufwasch wie die kleinere Lupe - beides bemass
+  // sich bisher nach Desktop-Groessen und wirkte auf dem kleinen Bildschirm
+  // unverhaeltnismaessig dominant ueber dem eigentlichen Satellitenbild).
+  const isPhone = getDeviceTier() === 'phone';
+  const zoneLineWidth = isPhone ? 1.2 : 2;
+  const labelFontPx = isPhone ? 8 : 11;
+  const labelStrokeWidth = isPhone ? 2 : 3;
+
   zones.forEach(zone=>{
     if(!debugActive[zone.klasse]) return;
     const col=klasseColour[zone.klasse];
@@ -480,18 +489,18 @@ function redrawDebug(){
     elDebugCtx.closePath();
     elDebugCtx.fillStyle=col.fill;
     elDebugCtx.strokeStyle=col.stroke;
-    elDebugCtx.lineWidth=2;
+    elDebugCtx.lineWidth=zoneLineWidth;
     elDebugCtx.fill();
     elDebugCtx.stroke();
 
     // Centroid label
     const cx=ring.reduce((s,p)=>s+p[0],0)/ring.length*w;
     const cy=ring.reduce((s,p)=>s+p[1],0)/ring.length*h;
-    elDebugCtx.font='bold 11px "Segoe UI",system-ui,sans-serif';
+    elDebugCtx.font='bold '+labelFontPx+'px "Segoe UI",system-ui,sans-serif';
     elDebugCtx.textAlign='center';
     elDebugCtx.textBaseline='middle';
     elDebugCtx.strokeStyle='rgba(0,0,0,0.85)';
-    elDebugCtx.lineWidth=3;
+    elDebugCtx.lineWidth=labelStrokeWidth;
     elDebugCtx.strokeText(zone.klasse,cx,cy);
     elDebugCtx.fillStyle='#fff';
     elDebugCtx.fillText(zone.klasse,cx,cy);
@@ -857,9 +866,15 @@ function handleStageDrop(fx,fy,localX,localY){
     if(isOptional) trashFilled[draggingId] = true;
 
     const lbl = CONFIG.labels.find(l => l.id === draggingId);
-    const txt  = '✓ ' + (lbl ? lbl.icon + ' ' + lbl.text : draggingId);
+    // Auf dem Handy nur ein kleines Haekchen-Badge statt Icon+Text (Julians
+    // Testfund 2026-09-23): der volle Textblock verdeckte auf dem kleinen
+    // Bildschirm einen spuerbaren Teil des Satellitenbilds selbst. Auf
+    // Desktop/Tablet bleibt der ausfuehrliche Text (genug Platz, zusaetzlicher
+    // Kontext nicht stoerend).
+    const isPhone = getDeviceTier() === 'phone';
+    const txt = isPhone ? '✓' : '✓ ' + (lbl ? lbl.icon + ' ' + lbl.text : draggingId);
     const ok   = document.createElement('div');
-    ok.className = 'zone-ok'; ok.textContent = txt;
+    ok.className = 'zone-ok' + (isPhone ? ' zone-ok-compact' : ''); ok.textContent = txt;
     ok.style.left = localX + 'px'; ok.style.top = localY + 'px';
     elStage.appendChild(ok);
     markChipUsed(draggingId);

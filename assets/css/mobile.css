@@ -481,6 +481,125 @@ html[data-device="touch"] #fullscreen-hint-modal .legal-modal-card button.fs-hin
   padding: 2px;
 }
 
+/* ── Debug-Panel kleiner auf dem Handy (2026-09-23) ───────────────────────
+   Julians eigentlicher Kernpunkt (praezisiert nach Nachfrage): nicht in
+   erster Linie Lupe/Konturen, sondern die Debug-Panel-Karte selbst (Check-
+   boxen, Alle-an/aus, Level-Navigation, Aufgaben-Steuerung) - die war fuers
+   Desktop bemessen und nahm auf dem kleinen Bildschirm unverhaeltnismaessig
+   viel vom Satellitenbild ein. */
+html[data-tier="phone"] #debug-panel {
+  min-width: 130px;
+  padding: 7px 9px;
+  font-size: 9px;
+  top: 6px;
+  right: 6px;
+}
+html[data-tier="phone"] #debug-panel-title {
+  font-size: 8px;
+  margin-bottom: 5px;
+  gap: 3px;
+}
+html[data-tier="phone"] #debug-panel-hint {
+  font-size: 7px;
+}
+html[data-tier="phone"] #debug-panel-collapse-btn {
+  font-size: 9px;
+}
+html[data-tier="phone"] #debug-checks {
+  gap: 4px;
+  margin-top: 1px;
+}
+html[data-tier="phone"] .debug-check-row {
+  gap: 5px;
+}
+html[data-tier="phone"] .debug-check-row input[type=checkbox] {
+  width: 11px;
+  height: 11px;
+}
+html[data-tier="phone"] .debug-swatch {
+  width: 9px;
+  height: 9px;
+}
+html[data-tier="phone"] .debug-check-label {
+  font-size: 9px;
+}
+html[data-tier="phone"] #debug-btns {
+  margin-top: 6px;
+  padding-top: 6px;
+  gap: 5px;
+}
+html[data-tier="phone"] .debug-btn {
+  padding: 3px 0;
+  font-size: 8px;
+}
+html[data-tier="phone"] .debug-section {
+  margin-top: 5px;
+  padding-top: 6px;
+}
+html[data-tier="phone"] .debug-section-title {
+  font-size: 7px;
+  margin-bottom: 4px;
+}
+html[data-tier="phone"] .debug-nav-row {
+  gap: 4px;
+}
+html[data-tier="phone"] .debug-nav-btn {
+  flex-basis: 24px;
+}
+html[data-tier="phone"] .debug-level-info {
+  font-size: 8px;
+}
+html[data-tier="phone"] .debug-task-col {
+  gap: 4px;
+}
+/* Hint-Layers-Panel (schlanke Variante ohne QA-Steuerung, siehe "Ich komme
+   nicht weiter") teilt denselben Desktop-bemessenen Look. */
+html[data-tier="phone"] #hint-layers-panel {
+  padding: 7px 9px;
+  font-size: 9px;
+  top: 6px;
+  right: 6px;
+}
+html[data-tier="phone"] #hint-layers-title {
+  font-size: 8px;
+  margin-bottom: 5px;
+}
+html[data-tier="phone"] #hint-layers-checks {
+  gap: 4px;
+}
+
+/* ── Lupe/Debug-Reticle kleiner auf dem Handy (2026-09-23) ───────────────
+   Julians Testfund: die Lupe (fix 250px Durchmesser, fuers Desktop bemessen)
+   nahm auf einem kleinen Handybildschirm einen unverhaeltnismaessig grossen
+   Teil des Satellitenbilds ein. Reiner CSS-transform:scale() statt die JS-
+   Konstante LOUPE_D zu aendern - das haette auch die Drag-Positionierungs-
+   Mathematik (Puffer-Abstand zum Finger, Clamping an die Buehnenraender in
+   app.js) mit verschieben muessen. scale() schrumpft nur die Optik um den
+   bereits korrekt berechneten Mittelpunkt, ohne dass sich an der Positions-
+   logik etwas aendert - muss mit dem bestehenden translate(-50%,-50%) der
+   Basisregel kombiniert werden (die zweite transform-Deklaration ersetzt die
+   erste komplett, nicht additiv). */
+html[data-tier="phone"] #loupe {
+  transform: translate(-50%, -50%) scale(0.62);
+}
+
+/* ── Kompaktes Bestaetigungs-Badge auf dem Handy (2026-09-23) ────────────
+   Ersetzt den vollen ".zone-ok"-Textblock (Icon+Klassenname) durch ein
+   kleines rundes Haekchen-Badge, siehe app.js: handleStageDrop() setzt die
+   Klasse nur auf Phone-Tier. Grund: der Textblock verdeckte auf dem kleinen
+   Bildschirm spuerbar viel vom eigentlichen Satellitenbild. */
+.zone-ok-compact {
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+}
+
 /* ── Spiel-Layout auf dem Handy: Bild links, Bedienung rechts (WP3,
    2026-09-02) ────────────────────────────────────────────────────────
    Julians Idee: im erzwungenen Querformat ist die Hoehe knapp, die Breite
@@ -582,6 +701,15 @@ html[data-tier="phone"] #sidebar-right #label-bar {
      natuerlicher Umbruchpunkt am "/") sprengte dadurch real gemessen die
      Spaltenbreite um ~10px ueber den Seitenleisten-Rand hinaus. */
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* Julians Testfund (2026-09-23): unter den Buttons blieb sichtbar Luft vor
+     dem Papierkorb, weil #trash die per margin-top:auto uebrige Hoehe fuer
+     sich beanspruchte, statt dass die Buttons selbst sie nutzen. flex:1 auf
+     das Grid + 1fr-Zeilen (statt automatisch inhaltsbreiter Zeilen) lassen
+     die Button-Reihen stattdessen wachsen - die Buttons werden dadurch
+     spuerbar groesser/leichter zu treffen. */
+  grid-template-rows: auto 1fr 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 5px;
   /* Desktop-Basisregel (style.css) setzt align-items:center fuers dortige
      Flex-Layout - das "leckt" hier durch und verhindert, dass kuerzere

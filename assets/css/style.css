@@ -198,6 +198,17 @@ body{font-family:var(--font-ui);background:var(--bg);color:var(--text);
   box-shadow:0 2px 6px rgba(0,0,0,0.08);transition:all .12s;}
 .debug-btn:hover{border-color:var(--accent2);color:#8a6500;
   transform:translateY(-1px);}
+/* Level-Navigation/Aufgaben-Steuerung im Debug-Panel: vormals Inline-Styles
+   in index.html, seit 2026-09-23 als Klassen ausgelagert, damit sie auf dem
+   Handy (siehe mobile.css) responsiv ueberschrieben werden koennen - Werte
+   1:1 aus den ehemaligen Inline-Styles uebernommen, am Desktop aendert sich
+   dadurch nichts. */
+.debug-section{margin-top:8px;border-top:1px solid #1e2d3d;padding-top:10px;}
+.debug-section-title{color:#4a6080;font-size:9px;letter-spacing:.08em;margin-bottom:7px;}
+.debug-nav-row{display:flex;align-items:center;gap:6px;}
+.debug-nav-btn{flex:0 0 32px;}
+.debug-level-info{flex:1;text-align:center;font-size:10px;color:#cdd9e5;letter-spacing:.05em;}
+.debug-task-col{display:flex;flex-direction:column;gap:6px;}
 #debug-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:490}
 
 /* LOUPE — bewusst unveraendert: liegt ueber dem Satellitenbild selbst, nicht
