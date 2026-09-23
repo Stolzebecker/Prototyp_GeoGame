@@ -118,7 +118,23 @@ html[data-device="touch"] {
     transform: rotate(90deg);
     overflow: hidden;
     box-sizing: border-box;
-    padding: 18px;
+    /* Notch/Dynamic-Island/Home-Indicator (Julians Testfund 2026-09-23:
+       UI-Elemente wie die SCOPE-Marke/der Papierkorb wirkten oben/unten
+       abgeschnitten): env(safe-area-inset-*) lieferte bislang ueberall 0,
+       weil das <meta name="viewport">-Tag kein viewport-fit=cover gesetzt
+       hatte (Pflichtvoraussetzung dafuer, siehe index.html) - die feste
+       18px-Pufferzone war also nirgends durch den tatsaechlichen Notch-/
+       Dynamic-Island-/Home-Indicator-Bereich abgesichert. Welche der vier
+       physischen Kanten (Notch vs. Home-Indicator) nach der 90°-Drehung auf
+       welche CSS-Seite faellt, wurde bewusst NICHT einzeln hergeleitet -
+       siehe MOBILE_PLAN.md/project_geogame_mobile_plan-Memory: Claudes
+       eigene Geometrie-Herleitung zur visuellen Ausrichtung nach der
+       Rotation lag in dieser Codebase schon mehrfach falsch. Stattdessen
+       hier sicherheitshalber der groesste der vier realen Insets auf ALLE
+       vier CSS-Seiten angewandt (etwas mehr Puffer als noetig auf den
+       Seiten ohne Notch/Indicator, aber nie zu wenig auf der, die ihn hat). */
+    padding: max(18px, env(safe-area-inset-top), env(safe-area-inset-right),
+      env(safe-area-inset-bottom), env(safe-area-inset-left));
   }
 }
 
@@ -313,6 +329,52 @@ html[data-device="touch"] #tut-tooltip p {
   font-size: 12px;
   line-height: 1.4;
   margin: 0 0 8px;
+}
+
+/* ── Vollbild-Hinweis-Popup kompakter auf Touch (2026-09-23) ─────────────
+   Julians Testfund auf echtem iPhone: die Desktop-Massgroesse (640px breite
+   Anleitungsbilder, grosszuegige Legal-Modal-Polsterung) war im erzwungenen
+   Querformat (oft nur ~350-400px sichtbare Hoehe) viel zu gross, selbst nach
+   dem engeren Zuschnitt der Bilder selbst - gleiche Ursache/gleiches Muster
+   wie schon bei .tut-info-panel oben: var(--landscape-w)/(-h) statt fixer
+   px-Werte, damit es auf die tatsaechlich sichtbare Flaeche passt statt auf
+   eine angenommene Desktop-Groesse. */
+html[data-device="touch"] #fullscreen-hint-modal .legal-modal-card {
+  width: min(480px, calc(var(--landscape-w) * 0.84));
+  padding: 14px 18px;
+}
+html[data-device="touch"] #fullscreen-hint-modal h1 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+html[data-device="touch"] #fullscreen-hint-modal p {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-step {
+  margin-bottom: 8px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-step img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(var(--landscape-h) * 0.24);
+  margin: 0 auto 6px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-actions {
+  margin-top: 8px;
+  gap: 8px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-actions button {
+  padding: 8px 14px;
+  font-size: 0.82rem;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-note {
+  font-size: 0.74rem;
+  margin-top: 6px;
+}
+html[data-device="touch"] #fullscreen-hint-modal .fs-hint-skip {
+  margin-top: 8px;
 }
 
 /* ── Spiel-Layout auf dem Handy: Bild links, Bedienung rechts (WP3,
