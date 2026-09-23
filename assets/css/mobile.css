@@ -38,13 +38,69 @@ html[data-device="touch"] {
    die richtige physische Achse zeigen - alles unten benutzt nur noch
    var(--landscape-w)/var(--landscape-h), nie direkt vw/vh. */
 html[data-device="touch"] {
-  --landscape-w: 100vw;
-  --landscape-h: 100vh;
+  --landscape-w: 100dvw;
+  --landscape-h: 100dvh;
 }
 @media (orientation: portrait) {
   html[data-device="touch"] {
-    --landscape-w: 100vh;
-    --landscape-h: 100vw;
+    --landscape-w: 100dvh;
+    --landscape-h: 100dvw;
+  }
+}
+
+/* ── Notch/Dynamic-Island/Home-Indicator bei PHYSISCH bereits gehaltenem
+   Querformat (2026-09-23) ────────────────────────────────────────────────
+   Bislang war die Notch-/Home-Indicator-Pufferung (siehe die grosse
+   @media(orientation:portrait)-Regel unten) NUR fuer den Rotationstrick-Fall
+   definiert - also nur, wenn das Geraet physisch im Hochformat gehalten und
+   die Drehung per CSS simuliert wird. Julians Testfund (2026-09-23): auf
+   seinem echten iPhone haelt er das Geraet zum Spielen laengst physisch quer
+   (wofuer der Rotationstrick gar nicht erst greift, siehe die "IMMER im
+   Querformat, unabhaengig von der Haltung"-Anforderung oben) - fuer GENAU
+   diesen Fall gab es bislang ueberhaupt keinen Puffer, keinen dvh-Fix,
+   nichts, obwohl es vermutlich die haeufigere Haltung fuer ein Querformat-
+   Spiel ist. Kein Rotations-Mapping noetig wie im anderen Fall - die vier
+   env(safe-area-inset-*)-Werte entsprechen hier direkt den vier CSS-Seiten.
+
+   WICHTIGE KORREKTUR, real im Browser-Pane per getBoundingClientRect()
+   verifiziert (nicht nur theoretisch hergeleitet - siehe die Lehre aus
+   project_geogame_mobile_plan dazu, Claudes eigener Geometrie-Herleitung
+   hier grundsaetzlich zu misstrauen): Padding auf body wirkt NUR auf
+   normal-Flow-Nachfahren. #start-screen, alle .legal-modal (inkl. dieses
+   Vollbild-Popups), #lang-screen, #tutorial-info-screen, #results-screen,
+   #image-preview-modal & #familiarity-gallery-screen sind aber
+   position:fixed - und selbst mit einem transform auf body (das einen
+   "containing block" fuer sie erzeugt) bezieht sich ihr inset:0 auf dessen
+   PADDING-BOX, nicht die Content-Box, spannt sich also trotzdem bis an den
+   ausseren Rand auf. Deshalb hier stattdessen direkt: die betroffenen
+   fixed-Vollbild-Screens selbst bekommen inset-Werte ungleich 0 (siehe
+   Regel direkt danach) - das umgeht die containing-block-Problematik
+   komplett, da fixed ohne transformierten Vorfahren ganz normal gegen den
+   Viewport aufloest. Der Transform-Versuch auf body wurde deshalb wieder
+   entfernt (siehe Git-Historie), body-Padding bleibt trotzdem stehen, weil
+   es fuer normal-Flow-Inhalte (z. B. #topbar/#sidebar-right im Spiel
+   selbst, siehe die "SCOPE-Titel abgeschnitten"-Meldung) weiterhin korrekt
+   und noetig ist. */
+@media (orientation: landscape) {
+  html[data-device="touch"] body {
+    height: 100dvh;
+    box-sizing: border-box;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-right: max(24px, env(safe-area-inset-right));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    padding-left: max(24px, env(safe-area-inset-left));
+  }
+  html[data-device="touch"] #start-screen,
+  html[data-device="touch"] .legal-modal,
+  html[data-device="touch"] #lang-screen,
+  html[data-device="touch"] #tutorial-info-screen,
+  html[data-device="touch"] #results-screen,
+  html[data-device="touch"] #image-preview-modal,
+  html[data-device="touch"] #familiarity-gallery-screen {
+    top: max(24px, env(safe-area-inset-top));
+    right: max(24px, env(safe-area-inset-right));
+    bottom: max(24px, env(safe-area-inset-bottom));
+    left: max(24px, env(safe-area-inset-left));
   }
 }
 
@@ -133,7 +189,28 @@ html[data-device="touch"] {
        hier sicherheitshalber der groesste der vier realen Insets auf ALLE
        vier CSS-Seiten angewandt (etwas mehr Puffer als noetig auf den
        Seiten ohne Notch/Indicator, aber nie zu wenig auf der, die ihn hat). */
-    padding: max(18px, env(safe-area-inset-top), env(safe-area-inset-right),
+    padding: max(24px, env(safe-area-inset-top), env(safe-area-inset-right),
+      env(safe-area-inset-bottom), env(safe-area-inset-left));
+  }
+  /* Gleiche Korrektur wie im @media(orientation:landscape)-Block oben, aus
+     demselben Grund: body's Padding wirkt nur auf normal-Flow-Nachfahren,
+     nicht auf diese position:fixed-Vollbild-Screens (deren inset:0 bezieht
+     sich auf body's PADDING-Box, die trotz Padding bis an den aeusseren Rand
+     reicht) - direkte inset-Werte auf den Screens selbst umgehen das. */
+  html[data-device="touch"] #start-screen,
+  html[data-device="touch"] .legal-modal,
+  html[data-device="touch"] #lang-screen,
+  html[data-device="touch"] #tutorial-info-screen,
+  html[data-device="touch"] #results-screen,
+  html[data-device="touch"] #image-preview-modal,
+  html[data-device="touch"] #familiarity-gallery-screen {
+    top: max(24px, env(safe-area-inset-top), env(safe-area-inset-right),
+      env(safe-area-inset-bottom), env(safe-area-inset-left));
+    right: max(24px, env(safe-area-inset-top), env(safe-area-inset-right),
+      env(safe-area-inset-bottom), env(safe-area-inset-left));
+    bottom: max(24px, env(safe-area-inset-top), env(safe-area-inset-right),
+      env(safe-area-inset-bottom), env(safe-area-inset-left));
+    left: max(24px, env(safe-area-inset-top), env(safe-area-inset-right),
       env(safe-area-inset-bottom), env(safe-area-inset-left));
   }
 }
