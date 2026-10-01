@@ -631,14 +631,26 @@ const TOUCH_EDGE_ZONE_PX = 160;
 // ja nicht ueber dem Bild. Kleinerer Wert = staerkere Spreizung (Faktor ca.
 // Bildbreite / TOUCH_AIM_BAND_PX), aber weniger Feinheit.
 const TOUCH_AIM_BAND_PX = 210;
+// Das Band endet bewusst VOR dem physischen Rand (Julians Testfund
+// 2026-10-01: der Daumen kommt ganz am Rand nicht mehr hin, iOS ignoriert dort
+// zudem Beruehrungen) - wer das Band erreicht hat, hat die rechte Bildkante.
+const TOUCH_AIM_RIGHT_MARGIN_PX = 45;
+// Vertikal endet das Band ueber dem Papierkorb (er liegt unten im Menue und
+// wuerde sonst den Weg zur untersten Bildzeile versperren, weil ein Finger
+// darauf als Papierkorb-Ablage zaehlt), mit demselben Spreizprinzip.
+const TOUCH_AIM_TRASH_GAP_PX = 12;
 function phoneAimPoint_(e){
   const img = elSatImg.getBoundingClientRect();
   const sb  = document.getElementById('sidebar-right');
   const sbr = sb ? sb.getBoundingClientRect() : null;
-  const right = (sbr && sbr.width>0) ? sbr.right : window.innerWidth - 24;
+  const edge = (sbr && sbr.width>0) ? Math.min(sbr.right, window.innerWidth) : window.innerWidth - 24;
+  const right = edge - TOUCH_AIM_RIGHT_MARGIN_PX;
   const left  = right - TOUCH_AIM_BAND_PX;
-  const t = Math.max(0, Math.min(1, (e.clientX - left) / (right - left)));
-  return {x: img.left + t * img.width, y: e.clientY};
+  const tx = Math.max(0, Math.min(1, (e.clientX - left) / (right - left)));
+  const tr = elTrash.getBoundingClientRect();
+  const yBottom = (tr.height>0 && tr.top > img.top + 60) ? tr.top - TOUCH_AIM_TRASH_GAP_PX : img.bottom;
+  const ty = Math.max(0, Math.min(1, (e.clientY - img.top) / (yBottom - img.top)));
+  return {x: img.left + tx * img.width, y: img.top + ty * img.height};
 }
 function effectiveDragPoint_(e){
   if(e.pointerType !== 'touch') return {x:e.clientX, y:e.clientY};
@@ -648,11 +660,10 @@ function effectiveDragPoint_(e){
   return {x:e.clientX, y:e.clientY - TOUCH_DRAG_OFFSET_Y * f};
 }
 
-// Handy: die Lupe haengt LINKS neben dem Finger (Julians Wunsch) und liegt
-// damit ueber dem leeren Menuebereich statt ueber dem Bild. Dafuer muss sie
-// aus #stage (overflow:hidden) heraus - sie wird waehrend eines Handy-Drags
+// Handy: die Lupe haengt rechts neben der Nadel (siehe pointermove). Sie
+// muss dafuer aus #stage (overflow:hidden) heraus - sie wird waehrend eines Handy-Drags
 // an <body> gehaengt und per position:fixed in Viewport-Koordinaten gesetzt.
-const LOUPE_FINGER_GAP = 45;
+const LOUPE_NEEDLE_GAP = 30;
 function setLoupeHost_(fixed){
   const host = fixed ? document.body : elStage;
   if(elLoupe.parentElement !== host) host.appendChild(elLoupe);
@@ -697,8 +708,12 @@ function setupMouseEvents(){
         elLoupe.style.display='block';
         const vis = elLoupe.getBoundingClientRect().width;
         const r = (vis>0 ? vis : LOUPE_D*0.62) / 2;
-        const cx = Math.max(r+4, e.clientX - r - LOUPE_FINGER_GAP);
-        const cy = Math.max(r+4, Math.min(window.innerHeight - r - 4, e.clientY));
+        // Lupe haengt an der NADEL (rechts davon, gleiche Hoehe), nicht am
+        // Finger - die Nadel laeuft durch die Spreizung schneller als der
+        // Finger, eine fingerbezogene Lupe hinkte ihr hinterher. Nie ueber
+        // den Finger hinaus (Sicherheitsklammer).
+        const cx = Math.min(eff.x + r + LOUPE_NEEDLE_GAP, e.clientX - r - 20);
+        const cy = Math.max(r+4, Math.min(window.innerHeight - r - 4, eff.y));
         elLoupe.style.left=cx+'px'; elLoupe.style.top=cy+'px';
       } else if(draggingId){
         let ox=slx-LOUPE_R-OFFSET, oy=sly-LOUPE_R-OFFSET;
