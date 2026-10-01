@@ -107,7 +107,7 @@ async function boot(){
   // haben eigene Tipp-Gesten dafuer (siehe MOBILE_PLAN.md WP1).
   if(applyUrlActivation_()) toggleDebug();
 
-  relocatePhoneControls_();
+  relocateControls_();
 
   // Size the stage to 4:3 now that DOM is ready
 
@@ -129,17 +129,17 @@ async function boot(){
   showFullscreenHint_();
 }
 
-// Nur auf Handys (nicht Tablet - siehe data-tier, Julian ist mit der
-// Tablet-Version bereits zufrieden): #label-bar/#trash physisch aus #bottom
-// in #sidebar-right umziehen, damit Bild links und Kategorien+Papierkorb
-// rechts stehen statt untereinander - nutzt die im erzwungenen Querformat
-// reichlich vorhandene Breite statt der knappen Hoehe (Julians Idee,
-// 2026-09-02). Rein per JS statt CSS, weil CSS keine Elemente zwischen
-// verschiedenen Flex-Eltern umsortieren kann; sicher, da app.js ueberall
-// nur per getElementById('label-bar')/elTrash zugreift, nie relativ zum
-// urspruenglichen Elternelement.
-function relocatePhoneControls_(){
-  if(document.documentElement.dataset.tier !== 'phone') return;
+// Fuer ALLE Geraete (seit 2026-10-01, vorher nur Handy): Topbar, #label-bar,
+// #trash und der Hinweisbutton ziehen physisch in #sidebar-right um, damit
+// das Bild links die volle Hoehe bekommt und die Bedienung als Spalte rechts
+// steht (Julians Skizze fuer Laptop/Tablet; das Handy hat in mobile.css sein
+// eigenes, kompakteres Layout). Rein per JS statt CSS, weil CSS keine
+// Elemente zwischen verschiedenen Flex-Eltern umsortieren kann; sicher, da
+// app.js ueberall nur per getElementById('label-bar')/elTrash zugreift, nie
+// relativ zum urspruenglichen Elternelement. Alle Tiers teilen dieselbe DOM-
+// Struktur, nur das CSS unterscheidet sich - deshalb kein Zurueckbauen bei
+// Tier-Wechseln noetig.
+function relocateControls_(){
   const sidebarRight = document.getElementById('sidebar-right');
   const topbar = document.getElementById('topbar');
   const labelBar = document.getElementById('label-bar');
@@ -1091,20 +1091,32 @@ function checkLevelComplete(){
     stopTimer();
     results.push({image:lv.id, imgSrc:lv.imgSrc, time:Date.now()-levelStartTime, errors:currentErrors});
     submitLevelTelemetry(lv.id);
-    if(getDeviceTier()==='phone') showNextPopup_();
-    else document.getElementById('btn-next').style.display='block';
+    showNextPopup_();
   }
 }
 
-// Handy (Julians Wunsch 2026-10-01): "Weiter" erscheint wie das
-// Bestaetigen/Verwerfen-Feld als Karte ueber den Kategorien statt als
-// schwebender Button unten rechts. Gleiche Klassen (.drop-confirm*), damit
-// beides optisch identisch bleibt; loadLevel()/renderLabels() raeumen es weg.
+// "Weiter" erscheint als Karte im Stil des Bestaetigen/Verwerfen-Feldes statt
+// als schwebender Button unten rechts (Julians Wunsch 2026-10-01). Handy:
+// ueber den Kategorien (ersetzt kurz die Chips). Laptop/Tablet: ueber
+// "Nicht vorhanden" + "Ich komme nicht weiter" (die Klassen bleiben
+// sichtbar). Gleiche Klassen (.drop-confirm*), damit alles optisch
+// identisch bleibt; loadLevel()/cancelPendingDrop_() raeumen es weg.
 function showNextPopup_(){
-  const bar = document.getElementById('label-bar');
   const old = document.getElementById('drop-confirm'); if(old) old.remove();
   const box = document.createElement('div');
   box.className = 'drop-confirm'; box.id = 'drop-confirm';
+  let host;
+  if(getDeviceTier()==='phone'){
+    host = document.getElementById('label-bar');
+  } else {
+    host = document.getElementById('sidebar-right');
+    const tr = document.getElementById('trash'), hint = document.getElementById('btn-hint');
+    box.classList.add('drop-confirm-lower');
+    box.style.left   = tr.offsetLeft + 'px';
+    box.style.width  = tr.offsetWidth + 'px';
+    box.style.top    = tr.offsetTop + 'px';
+    box.style.height = (hint.offsetTop + hint.offsetHeight - tr.offsetTop) + 'px';
+  }
   const title = document.createElement('div');
   title.className = 'drop-confirm-title';
   title.textContent = '✓ Level geschafft';
@@ -1114,7 +1126,7 @@ function showNextPopup_(){
   go.className = 'drop-confirm-btn drop-confirm-ok'; go.textContent = 'WEITER ›';
   go.addEventListener('click', ()=>{ box.remove(); nextLevel(); });
   btns.append(go); box.append(title, btns);
-  bar.appendChild(box);
+  host.appendChild(box);
 }
 
 // Baut aus dem levelTelemetry-Zustand die Level_Ergebnisse-Zeilen (1 je

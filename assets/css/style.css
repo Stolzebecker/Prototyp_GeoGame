@@ -606,3 +606,125 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 .familiarity-mark-btn{top:6px;right:6px;}
 .familiarity-cell.marked .familiarity-mark-btn{
   background:var(--accent2);color:#0a3f70;border-color:#c99400;}
+
+/* ── SPIEL-LAYOUT LAPTOP + TABLET: Bild links (volle Hoehe), Bedienung als
+   Spalte rechts (Julians Skizze, 2026-10-01) ─────────────────────────────
+   app.js relocateControls_() hat Topbar/#label-bar/#trash/#btn-hint dafuer
+   physisch in #sidebar-right umgehaengt. Das Handy (data-tier="phone") hat
+   in mobile.css sein eigenes, kompakteres Layout und ist hier ausgenommen.
+   Buehnengroesse per Container-Query-Einheiten (stage-outer ist der Container)
+   statt vw/vh: die Hoehe ist 100%, aber nie breiter, als neben der Spalte
+   Platz ist - sonst wuerde das Bild in schmalen Fenstern die Spalte
+   verdraengen (und ein reines max-width wuerde das 4:3-Verhaeltnis brechen). */
+html:not([data-tier="phone"]) #bottom { display: none; }
+html:not([data-tier="phone"]) #stage-outer {
+  container-type: size;
+  justify-content: center;
+  --side-w: clamp(200px, 21cqw, 300px);
+}
+html:not([data-tier="phone"]) #sidebar-left {
+  flex: 0 0 0;
+  width: 0;
+}
+html:not([data-tier="phone"]) #stage {
+  height: 100%; /* Fallback fuer Browser ohne Container-Query-Einheiten */
+  height: min(100cqh, calc((100cqw - var(--side-w)) * 0.75));
+  align-self: center;
+}
+html:not([data-tier="phone"]) #sidebar-right {
+  position: relative;
+  flex: 1 1 var(--side-w);
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  /* Die Basisregel (Platzhalter-Letterbox) setzt Farbe/Schrift fuer
+     zentrierten Text - hier zuruecksetzen, sonst "lecken" sie in die Chips. */
+  color: initial;
+  font-size: initial;
+  letter-spacing: normal;
+}
+/* Topbar-Inhalte werden zu eigenen Karten in der Spalte (Fortschritt und
+   Zeit/Fehler getrennt, wie in der Skizze). */
+html:not([data-tier="phone"]) #sidebar-right #topbar {
+  display: contents;
+}
+html:not([data-tier="phone"]) #sidebar-right #progress-wrap,
+html:not([data-tier="phone"]) #sidebar-right #stats {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(12,164,209,0.1);
+  flex-shrink: 0;
+}
+/* SCOPE-Marke sitzt (per JS) in der Fortschrittszeile: SCOPE | LEVEL 1/8 | 0 % */
+html:not([data-tier="phone"]) #sidebar-right #progress-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+html:not([data-tier="phone"]) #sidebar-right #progress-label #prog-pct {
+  margin-left: auto;
+}
+html:not([data-tier="phone"]) #sidebar-right #topbar .brand {
+  flex-shrink: 0;
+}
+html:not([data-tier="phone"]) #sidebar-right #stats {
+  justify-content: space-around;
+  gap: 12px;
+}
+/* Klassen: grosse Buttons untereinander, teilen sich die uebrige Hoehe. */
+html:not([data-tier="phone"]) #sidebar-right #label-bar {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+html:not([data-tier="phone"]) #sidebar-right #label-bar-title {
+  margin: 0;
+  flex-shrink: 0;
+}
+html:not([data-tier="phone"]) #sidebar-right .label-chip {
+  flex: 1 1 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px 10px;
+  font-size: 15px;
+  line-height: 1.25;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+}
+/* Papierkorb, dann Hinweis-Button (DOM-Reihenfolge hat sie umgekehrt). */
+html:not([data-tier="phone"]) #sidebar-right #trash {
+  order: 9;
+  width: 100%;
+  min-height: 76px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+html:not([data-tier="phone"]) #sidebar-right #btn-hint {
+  order: 10;
+  position: static;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 9px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

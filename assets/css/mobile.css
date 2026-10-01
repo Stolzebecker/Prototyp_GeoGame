@@ -842,3 +842,12 @@ html[data-tier="phone"] #topbar,
 html[data-tier="phone"] #sidebar-right {
   z-index: 650;
 }
+
+/* Laptop/Tablet: "Weiter"-Karte liegt ueber "Nicht vorhanden" + "Ich komme
+   nicht weiter" (Position/Groesse setzt app.js showNextPopup_ inline). */
+.drop-confirm.drop-confirm-lower {
+  inset: auto;
+  /* #btn-hint hat z-index:800 (war frueher ein schwebender Button) - die Karte
+     muss darueber liegen, da sie ihn mit abdeckt. */
+  z-index: 900;
+}
