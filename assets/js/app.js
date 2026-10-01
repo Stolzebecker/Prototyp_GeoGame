@@ -856,7 +856,8 @@ function clearPendingUi_(){
   elPin.style.display='none'; elLoupe.style.display='none';
 }
 function cancelPendingDrop_(){
-  if(!_pendingDrop) return;
+  // Raeumt auch das "Weiter"-Feld (showNextPopup_) weg, nicht nur eine
+  // offene Rueckfrage.
   _pendingDrop = null; clearPendingUi_();
 }
 function resolvePendingDrop_(confirm){
@@ -1090,8 +1091,30 @@ function checkLevelComplete(){
     stopTimer();
     results.push({image:lv.id, imgSrc:lv.imgSrc, time:Date.now()-levelStartTime, errors:currentErrors});
     submitLevelTelemetry(lv.id);
-    document.getElementById('btn-next').style.display='block';
+    if(getDeviceTier()==='phone') showNextPopup_();
+    else document.getElementById('btn-next').style.display='block';
   }
+}
+
+// Handy (Julians Wunsch 2026-10-01): "Weiter" erscheint wie das
+// Bestaetigen/Verwerfen-Feld als Karte ueber den Kategorien statt als
+// schwebender Button unten rechts. Gleiche Klassen (.drop-confirm*), damit
+// beides optisch identisch bleibt; loadLevel()/renderLabels() raeumen es weg.
+function showNextPopup_(){
+  const bar = document.getElementById('label-bar');
+  const old = document.getElementById('drop-confirm'); if(old) old.remove();
+  const box = document.createElement('div');
+  box.className = 'drop-confirm'; box.id = 'drop-confirm';
+  const title = document.createElement('div');
+  title.className = 'drop-confirm-title';
+  title.textContent = '✓ Level geschafft';
+  const btns = document.createElement('div');
+  btns.className = 'drop-confirm-btns';
+  const go = document.createElement('button');
+  go.className = 'drop-confirm-btn drop-confirm-ok'; go.textContent = 'WEITER ›';
+  go.addEventListener('click', ()=>{ box.remove(); nextLevel(); });
+  btns.append(go); box.append(title, btns);
+  bar.appendChild(box);
 }
 
 // Baut aus dem levelTelemetry-Zustand die Level_Ergebnisse-Zeilen (1 je
