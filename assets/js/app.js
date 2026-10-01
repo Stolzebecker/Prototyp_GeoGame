@@ -592,6 +592,7 @@ function renderLabels(lv){
 // ── Drag ────────────────────────────────────────────────────
 function beginDrag(id,label,chipEl,e){
   draggingId=id; chipEl.classList.add('lifting');
+  _loupeSide='right';
   elFloatChip.textContent=label; elFloatChip.style.display='block';
   positionFloatChip(e.clientX,e.clientY);
 }
@@ -666,6 +667,7 @@ function effectiveDragPoint_(e){
 // muss dafuer aus #stage (overflow:hidden) heraus - sie wird waehrend eines Handy-Drags
 // an <body> gehaengt und per position:fixed in Viewport-Koordinaten gesetzt.
 const LOUPE_NEEDLE_GAP = 30;
+let _loupeSide = 'right';
 function setLoupeHost_(fixed){
   const host = fixed ? document.body : elStage;
   if(elLoupe.parentElement !== host) host.appendChild(elLoupe);
@@ -711,12 +713,24 @@ function setupMouseEvents(){
         elLoupe.style.display='block';
         const vis = elLoupe.getBoundingClientRect().width;
         const r = (vis>0 ? vis : LOUPE_D*0.62) / 2;
-        // Lupe haengt an der NADEL (rechts davon, gleiche Hoehe), nicht am
-        // Finger - die Nadel laeuft durch die Spreizung schneller als der
-        // Finger, eine fingerbezogene Lupe hinkte ihr hinterher. Nie ueber
-        // den Finger hinaus (Sicherheitsklammer).
-        const cx = Math.min(eff.x + r + LOUPE_NEEDLE_GAP, e.clientX - r - 20);
-        const cy = Math.max(r+4, Math.min(window.innerHeight - r - 4, eff.y));
+        // Lupe haengt an der NADEL (gleiche Hoehe), nicht am Finger - die
+        // Nadel laeuft durch die Spreizung schneller als der Finger, eine
+        // fingerbezogene Lupe hinkte ihr hinterher. Sie sitzt rechts der
+        // Nadel und wechselt nur dann (mit Hysterese) nach links, wenn sie
+        // sonst ins Menue (#sidebar-right) ragen wuerde - Julians Testfund
+        // 2026-10-01: sie lag ueber den Menueelementen. Vertikal bleibt sie
+        // innerhalb des Bildes (sonst ragt sie in die Topbar).
+        const sbr = document.getElementById('sidebar-right').getBoundingClientRect();
+        const menuLeft = sbr.width>0 ? sbr.left : window.innerWidth;
+        const R = r + LOUPE_NEEDLE_GAP;
+        const fitsRight = eff.x + R + r <= menuLeft - 4;
+        if(_loupeSide==='right' && !fitsRight) _loupeSide='left';
+        else if(_loupeSide==='left' && eff.x + R + r <= menuLeft - 4 - 24) _loupeSide='right';
+        let cx = _loupeSide==='right' ? Math.min(eff.x + R, e.clientX - r - 20) : eff.x - R;
+        cx = Math.max(r+4, cx);
+        const cyMin = imgRect.top + r, cyMax = imgRect.bottom - r;
+        const cy = cyMax > cyMin ? Math.max(cyMin, Math.min(cyMax, eff.y))
+                                 : Math.max(r+4, Math.min(window.innerHeight - r - 4, eff.y));
         elLoupe.style.left=cx+'px'; elLoupe.style.top=cy+'px';
       } else if(draggingId){
         let ox=slx-LOUPE_R-OFFSET, oy=sly-LOUPE_R-OFFSET;

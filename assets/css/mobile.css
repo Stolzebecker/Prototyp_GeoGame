@@ -832,3 +832,13 @@ html[data-tier="phone"] #sidebar-right #label-bar {
   background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
 }
 .drop-confirm-btn:active { transform: translateY(1px); }
+
+/* Ebenen auf dem Handy (2026-10-01): die Lupe haengt waehrend des Drags an
+   <body> (z-index 600, siehe oben) und lag dadurch ueber Topbar und
+   Seitenleiste (z-index 100 bzw. auto), waehrend sie auf Desktop/Tablet in
+   #stage steckt und nie ueber ein Menue ragen kann. Menue jetzt ueber der
+   Lupe - app.js haelt sie ausserdem per Position aus dem Menue heraus. */
+html[data-tier="phone"] #topbar,
+html[data-tier="phone"] #sidebar-right {
+  z-index: 650;
+}
