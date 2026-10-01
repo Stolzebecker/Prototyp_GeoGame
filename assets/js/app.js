@@ -193,6 +193,7 @@ function startExperiment(){
 async function loadLevel(i){
   currentLevel=i; currentErrors=0;
   zones=[]; zoneFilled={}; trashFilled={}; draggingId=null;
+  cancelPendingDrop_();
   resetLevelTelemetry();
   stopTimer();
   document.getElementById('stat-err-val').textContent='0';
@@ -578,7 +579,7 @@ function renderLabels(lv){
       if(chip.classList.contains('used')) return;
       // Waehrend ein Drag laeuft, weitere Pointer (z.B. zweiter Finger)
       // ignorieren - das Spiel kennt nur einen aktiven Drag gleichzeitig.
-      if(draggingId) return;
+      if(draggingId || _pendingDrop) return;
       e.preventDefault();
       _activeDragPointerId = e.pointerId;
       try{ chip.setPointerCapture(e.pointerId); }catch(err){ /* Maus/aeltere Browser brauchen das nicht */ }
@@ -594,9 +595,10 @@ function beginDrag(id,label,chipEl,e){
   elFloatChip.textContent=label; elFloatChip.style.display='block';
   positionFloatChip(e.clientX,e.clientY);
 }
-function endDrag(){
+function endDrag(keepAim){
   if(draggingId){ const c=document.getElementById('chip-'+draggingId); if(c) c.classList.remove('lifting'); }
-  draggingId=null; elFloatChip.style.display='none'; elPin.style.display='none';
+  draggingId=null; elFloatChip.style.display='none';
+  if(!keepAim) elPin.style.display='none';
   _activeDragPointerId = null;
 }
 function positionFloatChip(cx,cy){
@@ -677,6 +679,7 @@ let _activeDragPointerId = null;
 function setupMouseEvents(){
   document.addEventListener('pointermove',e=>{
     if(draggingId && e.pointerId!==_activeDragPointerId) return; // anderer Finger, ignorieren
+    if(_pendingDrop) return; // Nadel/Lupe stehen fest, bis bestaetigt/verworfen
     if(levelTelemetry){
       if(_lastMouseX!==null){
         levelTelemetry.mouseDistance += Math.hypot(e.clientX-_lastMouseX, e.clientY-_lastMouseY);
@@ -756,6 +759,7 @@ function setupMouseEvents(){
   document.addEventListener('pointerup',e=>{
     if(draggingId && e.pointerId!==_activeDragPointerId) return;
     if(!draggingId){ endDrag(); return; }
+    let keepAim = false;
     // Papierkorb zuerst pruefen, anhand der echten Zeigerposition (siehe
     // Begruendung im pointermove-Handler oben) - erst wenn das nicht
     // zutrifft, zaehlt der versetzte Praezisions-Reticle fuer die Buehne.
@@ -775,11 +779,19 @@ function setupMouseEvents(){
         const fy=(tipY-imgRect2.top)/imgRect2.height;
         // localX/Y for zone-ok label positioning: relative to stage
         const localX=tipX-stgRect2.left, localY=tipY-stgRect2.top;
-        handleStageDrop(fx,fy,localX,localY);
+        if(e.pointerType==='touch' && getDeviceTier()==='phone'){
+          // Handy: nicht sofort werten, erst Bestaetigen/Verwerfen (siehe
+          // showDropConfirm_) - die Nadel stoppt dafuer am Zielpunkt.
+          showDropConfirm_({id:draggingId, fx, fy, localX, localY});
+          keepAim = true;
+        } else {
+          handleStageDrop(fx,fy,localX,localY);
+        }
       }
     }
+    if(e.pointerType==='touch' && !keepAim) elLoupe.style.display='none';
     elTrash.classList.remove('drag-over');
-    endDrag();
+    endDrag(keepAim);
   });
 
   // Abgebrochene Geste (z.B. System-/Browser-Geste unterbricht den Touch) -
@@ -794,6 +806,52 @@ function setupMouseEvents(){
     if(draggingId) return; // waehrend eines Drags nicht ausblenden
     elLoupe.style.display='none'; elPin.style.display='none';
   });
+}
+
+// ── Ablage bestaetigen (nur Handy) ───────────────────────────
+// Julians Wunsch (2026-10-01): auf dem Handy gab es keine Moeglichkeit, einen
+// Drag abzubrechen. Nach dem Loslassen auf dem Bild bleibt die Nadel samt
+// Lupe stehen, und ein Bestaetigen/Verwerfen-Feld ersetzt kurz die Chips.
+// Erst "Bestaetigen" ruft handleStageDrop() auf (und zaehlt damit Versuch/
+// Fehler); "Verwerfen" wertet nichts und laesst den Chip frei. Papierkorb-
+// Ablagen werden nicht abgefragt (dort liegt der Finger echt darauf).
+let _pendingDrop = null;
+function showDropConfirm_(p){
+  _pendingDrop = p;
+  const bar = document.getElementById('label-bar');
+  const lbl = CONFIG.labels.find(l => l.id === p.id);
+  const box = document.createElement('div');
+  box.className = 'drop-confirm'; box.id = 'drop-confirm';
+  const title = document.createElement('div');
+  title.className = 'drop-confirm-title';
+  title.textContent = (lbl ? lbl.icon + ' ' + lbl.text : p.id) + ' hier ablegen?';
+  const btns = document.createElement('div');
+  btns.className = 'drop-confirm-btns';
+  const no = document.createElement('button');
+  no.className = 'drop-confirm-btn drop-confirm-no'; no.textContent = '✕ Verwerfen';
+  no.addEventListener('click', ()=>resolvePendingDrop_(false));
+  const ok = document.createElement('button');
+  ok.className = 'drop-confirm-btn drop-confirm-ok'; ok.textContent = '✓ Bestätigen';
+  ok.addEventListener('click', ()=>resolvePendingDrop_(true));
+  btns.append(no, ok); box.append(title, btns);
+  bar.appendChild(box);
+}
+function clearPendingUi_(){
+  const box = document.getElementById('drop-confirm');
+  if(box) box.remove();
+  elPin.style.display='none'; elLoupe.style.display='none';
+}
+function cancelPendingDrop_(){
+  if(!_pendingDrop) return;
+  _pendingDrop = null; clearPendingUi_();
+}
+function resolvePendingDrop_(confirm){
+  const p = _pendingDrop; if(!p) return;
+  _pendingDrop = null; clearPendingUi_();
+  if(!confirm) return;
+  draggingId = p.id;
+  try{ handleStageDrop(p.fx, p.fy, p.localX, p.localY); }
+  finally{ draggingId = null; }
 }
 
 // ── Loupe ───────────────────────────────────────────────────
@@ -811,12 +869,22 @@ function updateLoupe(lx,ly,stageW,stageH){
   _loupeFx = lx / elStage.offsetWidth;
   _loupeFy = ly / elStage.offsetHeight;
 
-  elLoupeCtx.clearRect(0, 0, LOUPE_D, LOUPE_D);
-  elLoupeCtx.drawImage(elSatImg,
-    lx * scaleX - srcW/2,
-    ly * scaleY - srcH/2,
-    srcW, srcH,
-    0, 0, LOUPE_D, LOUPE_D);
+  // Randfall (Julians Testfund 2026-10-01): ragt das Lupenfenster ueber die
+  // Bildkante hinaus, kuerzt drawImage() die Quelle selbst und streckt den
+  // Rest auf die ganze Lupe - das Bild wirkte am Rand verzerrt. Stattdessen
+  // Quelle UND Ziel hier gemeinsam beschneiden, Aussenbereich dunkel fuellen.
+  const sx = lx * scaleX - srcW/2, sy = ly * scaleY - srcH/2;
+  const kx = LOUPE_D / srcW,       ky = LOUPE_D / srcH;
+  const x0 = Math.max(0, sx), y0 = Math.max(0, sy);
+  const x1 = Math.min(elSatImg.naturalWidth, sx + srcW);
+  const y1 = Math.min(elSatImg.naturalHeight, sy + srcH);
+  elLoupeCtx.fillStyle = '#1b2430';
+  elLoupeCtx.fillRect(0, 0, LOUPE_D, LOUPE_D);
+  if(x1 > x0 && y1 > y0){
+    elLoupeCtx.drawImage(elSatImg,
+      x0, y0, x1 - x0, y1 - y0,
+      (x0 - sx) * kx, (y0 - sy) * ky, (x1 - x0) * kx, (y1 - y0) * ky);
+  }
 
   if(debugMode) drawDebugInLoupe(_loupeFx, _loupeFy, elStage.offsetWidth, elStage.offsetHeight);
 }

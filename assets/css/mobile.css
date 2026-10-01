@@ -772,3 +772,63 @@ html[data-tier="phone"] #sidebar-right #btn-hint {
   padding: 6px 14px;
   font-size: 12px;
 }
+
+/* ── Ablage bestaetigen/verwerfen, nur Handy (2026-10-01) ─────────────────
+   Ersetzt waehrend der Rueckfrage die Chips im Label-Raster (siehe app.js
+   showDropConfirm_). Grosse Tap-Ziele, da unter Zeitdruck bedient. */
+html[data-tier="phone"] #sidebar-right #label-bar {
+  position: relative;
+}
+.drop-confirm {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+  /* Gleicher Kartenstil wie die Tutorial-Panels: gedaempftes Grau, hellblauer
+     Rahmen, goldener Streifen oben. */
+  background: var(--panel-soft, #f4f6f8);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent2);
+  border-radius: 4px;
+}
+.drop-confirm-title {
+  color: #0a3f70;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-align: center;
+}
+.drop-confirm-btns {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+.drop-confirm-btn {
+  flex: 1;
+  min-height: 56px;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a3f70;
+  cursor: pointer;
+}
+/* Hauptaktion: goldener Verlaufsbutton wie "Weiter"/.tut-btn */
+.drop-confirm-ok {
+  border: none;
+  border-bottom: 3px solid #8a6500;
+  background: linear-gradient(180deg, #ffe566 0%, #fdc300 55%, #c99400 100%);
+  box-shadow: 0 4px 14px rgba(253,195,0,.35), inset 0 1px 0 rgba(255,255,255,.5);
+}
+/* Nebenaktion: weisser Chip-Button wie die Label-Chips */
+.drop-confirm-no {
+  border: 1px solid var(--accent);
+  border-bottom: 3px solid #0a3f70;
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+}
+.drop-confirm-btn:active { transform: translateY(1px); }
