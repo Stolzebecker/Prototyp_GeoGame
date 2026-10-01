@@ -420,6 +420,10 @@ tr:hover td{background:rgba(12,164,209,0.06);}
   background:rgba(244,245,247,0.94);
   backdrop-filter:blur(3px);
   gap:32px;
+  /* #stage setzt cursor:none (fuer die Lupe) - das Overlay liegt darin und
+     erbte das, die Maus war zwischen den Levels unsichtbar (ausser ueber
+     dem Button, der einen eigenen Cursor hat). */
+  cursor:default;
 }
 #ready-overlay.active{display:flex}
 #ready-level-tag{
