@@ -591,6 +591,7 @@ function renderLabels(lv){
 // ── Drag ────────────────────────────────────────────────────
 function beginDrag(id,label,chipEl,e){
   draggingId=id; chipEl.classList.add('lifting');
+  _loupeDock='left'; elLoupe.classList.remove('loupe-docked');
   elFloatChip.textContent=label; elFloatChip.style.display='block';
   positionFloatChip(e.clientX,e.clientY);
 }
@@ -611,9 +612,33 @@ function positionFloatChip(cx,cy){
 // Lupe+Ziel-Reticle (und damit auch die tatsaechliche Ablage-Hittest-Position)
 // wandern versetzt.
 const TOUCH_DRAG_OFFSET_Y = 70;
+// Randadaptiver Versatz (2026-10-01, Julians Testfund am Handy): bei festem
+// Versatz liegt der Zielpunkt IMMER 70px ueber dem Finger - steht der Finger
+// am unteren Bildschirmrand (weiter kommt er nicht), bleiben die untersten
+// 70px des Bildes unerreichbar. Deshalb schrumpft der Versatz in den letzten
+// TOUCH_EDGE_ZONE_PX vor dem unteren Rand stufenlos auf 0. Der Zielpunkt
+// bleibt dabei monoton in der Fingerposition (Ableitung 1+70/160 > 0), es
+// gibt also keine Spruenge, nur eine leicht schnellere Bewegung des Ziels
+// in der Randzone. Nach oben/links/rechts braucht es nichts: dort ist der
+// Versatz entweder 0 (x) oder zeigt vom Rand weg (y).
+const TOUCH_EDGE_ZONE_PX = 160;
 function effectiveDragPoint_(e){
   if(e.pointerType !== 'touch') return {x:e.clientX, y:e.clientY};
-  return {x:e.clientX, y:e.clientY - TOUCH_DRAG_OFFSET_Y};
+  const limit = window.innerHeight - 6;
+  const f = Math.max(0, Math.min(1, (limit - e.clientY) / TOUCH_EDGE_ZONE_PX));
+  return {x:e.clientX, y:e.clientY - TOUCH_DRAG_OFFSET_Y * f};
+}
+
+// Feste Lupen-Ecke auf dem Handy (2026-10-01, Julians Wunsch): statt die
+// Lupe relativ zur Nadel mitwandern (und an Raendern auf die andere Seite
+// klappen) zu lassen, sitzt sie fest in einer oberen Buehnenecke und wechselt
+// nur dann in die andere, wenn die Nadel ihr nahekommt.
+const LOUPE_DOCK_MARGIN = 6;      // Abstand der Lupe zum Buehnenrand
+const LOUPE_DOCK_CLEARANCE = 30;  // so nah darf die Nadel kommen, bevor die Lupe wechselt
+let _loupeDock = 'left';
+function dockedLoupeCenter_(side, sw, r){
+  const x = side==='left' ? LOUPE_DOCK_MARGIN + r : sw - LOUPE_DOCK_MARGIN - r;
+  return {x, y: LOUPE_DOCK_MARGIN + r};
 }
 
 // Returns the bounding rect of the satellite image (4:3 box),
@@ -647,7 +672,21 @@ function setupMouseEvents(){
 
       const LOUPE_R=LOUPE_D/2, OFFSET=30;
       const sw=stageRect.width, sh=stageRect.height;
-      if(draggingId){
+      if(draggingId && getDeviceTier()==='phone'){
+        // Sichtbarer Radius (CSS verkleinert die Lupe auf dem Handy per
+        // scale(), siehe mobile.css) - fuer Abstand/Randberechnung noetig.
+        elLoupe.style.display='block';
+        const vis = elLoupe.getBoundingClientRect().width;
+        const r = (vis>0 ? vis : LOUPE_D*0.62) / 2;
+        let c = dockedLoupeCenter_(_loupeDock, sw, r);
+        if(Math.hypot(slx-c.x, sly-c.y) < r + LOUPE_DOCK_CLEARANCE){
+          _loupeDock = _loupeDock==='left' ? 'right' : 'left';
+          c = dockedLoupeCenter_(_loupeDock, sw, r);
+        }
+        elLoupe.classList.add('loupe-docked');
+        elLoupe.style.left=c.x+'px'; elLoupe.style.top=c.y+'px';
+      } else if(draggingId){
+        elLoupe.classList.remove('loupe-docked');
         let ox=slx-LOUPE_R-OFFSET, oy=sly-LOUPE_R-OFFSET;
         if(ox-LOUPE_R<0) ox=slx+LOUPE_R+OFFSET;
         if(oy-LOUPE_R<0) oy=sly+LOUPE_R+OFFSET;
@@ -655,6 +694,7 @@ function setupMouseEvents(){
         oy=Math.max(LOUPE_R,Math.min(sh-LOUPE_R,oy));
         elLoupe.style.left=ox+'px'; elLoupe.style.top=oy+'px';
       } else {
+        elLoupe.classList.remove('loupe-docked');
         elLoupe.style.left=slx+'px'; elLoupe.style.top=sly+'px';
       }
       elLoupe.style.display='block';
