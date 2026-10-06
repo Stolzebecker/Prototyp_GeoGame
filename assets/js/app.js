@@ -989,8 +989,10 @@ function logDropAttempt(label, ziel, xFrac, yFrac, getroffeneKlassenArr, korrekt
 // ── Drop on stage ────────────────────────────────────────────
 function handleStageDrop(fx,fy,localX,localY){
   const hitKlassen=new Set();
+  const absentNow = (CONFIG.levels[currentLevel] || {}).absent || [];
   for(const zone of zones){
     if(zoneFilled[zone.klasse]) continue;
+    if(absentNow.includes(zone.klasse)) continue; // Rest-Polygon einer absenten Klasse: nicht ablegbar
     if(pointHitsZone(fx,fy,zone.fracRing)) hitKlassen.add(zone.klasse);
   }
 
@@ -1072,7 +1074,11 @@ function checkLevelComplete(){
   // Klassen die auf der Karte platziert werden müssen:
   // alle die in den Zonen vorkommen UND nicht in absent_optional sind
   const zoneKlassen = [...new Set(zones.map(z => z.klasse))];
-  const mustPlace   = zoneKlassen.filter(k => !absentOpt.includes(k));
+  // Klassen in lv.absent sind laut config nicht vorhanden und gehoeren NUR in
+  // den Papierkorb - auch wenn die GeoJSON versehentlich ein Rest-Polygon dafuer
+  // enthaelt (Bugfund 2026-10-06: IMG_00072 hatte "Gebäude" als absent, aber noch
+  // zwei Mini-Polygone; Papierkorb korrekt, "Weiter" kam trotzdem nie).
+  const mustPlace   = zoneKlassen.filter(k => !absentOpt.includes(k) && !lv.absent.includes(k));
 
   const zonesOk = mustPlace.length === 0 || mustPlace.every(k => zoneFilled[k]);
   // absent: must be in trash
