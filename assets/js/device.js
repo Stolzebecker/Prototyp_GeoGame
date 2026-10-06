@@ -27,6 +27,15 @@ function detectInteractionMode_(){
 // Logik in mobile.css, die ohnehin auf die lange Kante abzielt.
 function detectLayoutTier_(mode){
   if(mode !== 'touch') return 'desktop';
+  // Vollbild (Nils' Android-Testfund 2026-10-06): im Vollbildmodus blendet das
+  // Geraet Status-/Navigationsleiste aus, innerWidth/innerHeight wachsen dadurch
+  // um ~100-150px. Ein Geraet knapp unter der Schwelle (z.B. 412x915-CSS-px-
+  // Handys, im Browser ~780 lange Kante) kippte so beim Aktivieren des Vollbilds
+  // von "phone" auf "tablet" - das Tablet-Layout (76px-Papierkorb, 48px-Chips)
+  // passt nicht in die ~412px Hoehe, die UI-Elemente ueberlappten. Waehrend
+  // Vollbild deshalb den bisherigen Tier behalten; nach Verlassen wird mit den
+  // wieder normalen Massen neu bewertet (= derselbe Tier wie vorher).
+  if(_activeTier && document.fullscreenElement) return _activeTier;
   const longEdge = Math.max(window.innerWidth, window.innerHeight);
   return longEdge >= 900 ? 'tablet' : 'phone';
 }

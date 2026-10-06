@@ -333,16 +333,16 @@
   </div>
 </div>
 
-<!-- Post-Abfrage: Konzentration/Ablenkung/Ort (Platzhalterfragen) + Bekanntheit-Check,
-     nach dem letzten Level, vor dem Abschlusspopup. Die 4 Platzhalterfragen sind bewusst
-     austauschbar angelegt (siehe CLAUDE.md) - Fragetexte/Skalen können jederzeit durch
+<!-- Post-Abfrage: Konzentration/Ablenkung/Ort/Wachheit + Bekanntheit-Check,
+     nach dem letzten Level, vor dem Abschlusspopup. Die 4 Fragen sind inhaltlich noch
+     nicht literaturbasiert und bewusst austauschbar angelegt (siehe CLAUDE.md) - Fragetexte/Skalen können jederzeit durch
      literaturbasierte Items ersetzt werden, ohne Markup/Logik drumherum anzufassen. -->
 <div id="familiarity-modal" class="legal-modal">
   <div class="legal-modal-card">
     <h1>Noch ein paar Fragen zum Abschluss</h1>
 
     <div class="pq-question">
-      <p class="pq-label">Wie konzentriert waren Sie während des Spiels? <span class="pq-placeholder-tag">Platzhalterfrage 1</span></p>
+      <p class="pq-label">Wie konzentriert waren Sie während des Spiels?</p>
       <div class="likert-row" data-question="konzentration">
         <span class="likert-end">gar nicht</span>
         <label><input type="radio" name="pq-konzentration" value="1">1</label>
@@ -355,12 +355,12 @@
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wo befanden Sie sich während des Spielens? <span class="pq-placeholder-tag">Platzhalterfrage 2</span></p>
+      <p class="pq-label">Wo befanden Sie sich während des Spielens?</p>
       <input type="text" id="pq-ort" placeholder="z. B. zuhause am Schreibtisch, unterwegs, …">
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wurden Sie während des Spiels unterbrochen oder abgelenkt (z.&nbsp;B. durch andere Personen, Geräusche, Benachrichtigungen)? <span class="pq-placeholder-tag">Platzhalterfrage 3</span></p>
+      <p class="pq-label">Wurden Sie während des Spiels unterbrochen oder abgelenkt (z.&nbsp;B. durch andere Personen, Geräusche, Benachrichtigungen)?</p>
       <div class="likert-row" data-question="ablenkung">
         <span class="likert-end">gar nicht</span>
         <label><input type="radio" name="pq-ablenkung" value="1">1</label>
@@ -373,7 +373,7 @@
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wie wach/ausgeruht waren Sie beim Spielen? <span class="pq-placeholder-tag">Platzhalterfrage 4</span></p>
+      <p class="pq-label">Wie wach/ausgeruht waren Sie beim Spielen?</p>
       <div class="likert-row" data-question="wachheit">
         <span class="likert-end">sehr müde</span>
         <label><input type="radio" name="pq-wachheit" value="1">1</label>
