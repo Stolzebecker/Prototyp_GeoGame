@@ -33,15 +33,15 @@
 
   <!-- Fonts: Segoe UI is system-native on Windows; fallback via Google Fonts -->
 
-  <link rel="stylesheet" href="assets/css/style.css?v=fs-hint28">
-  <link rel="stylesheet" href="assets/css/tutorial.css?v=fs-hint28">
-  <link rel="stylesheet" href="assets/css/mobile.css?v=fs-hint28">
+  <link rel="stylesheet" href="assets/css/style.css?v=antrag2">
+  <link rel="stylesheet" href="assets/css/tutorial.css?v=antrag2">
+  <link rel="stylesheet" href="assets/css/mobile.css?v=antrag2">
 </head>
 <body>
 
 <div id="loading">
   <div class="spinner"></div>
-  <div id="loading-text">LADE KONFIGURATION …</div>
+  <div id="loading-text" data-i18n="loading">LADE KONFIGURATION …</div>
 </div>
 
 <!-- Vorlade-Overlay (seit 2026-08-26): laedt alle 8 Session-Level (Bild +
@@ -49,7 +49,7 @@
      Ladefehler-Meldung mehr auftreten kann - siehe app.js: preloadSessionLevels() -->
 <div id="preload-overlay">
   <div class="spinner"></div>
-  <div id="preload-text">Level werden vorbereitet …</div>
+  <div id="preload-text" data-i18n="preload.text">Level werden vorbereitet …</div>
   <div id="preload-bar-wrap"><div id="preload-bar"></div></div>
 </div>
 
@@ -57,51 +57,39 @@
   <div class="start-panel">
     <h1>SCOPE</h1>
     <p class="start-subtitle">Spatial Complexity Observation and Perception Experiment</p>
-    <button id="btn-start" onclick="startTutorial()">Experiment starten ›</button>
+    <button id="btn-start" onclick="startTutorial()" data-i18n="start.btn">Experiment starten ›</button>
   </div>
   <footer id="app-footer" class="app-footer">
-    <span>Hintergrundbild Startbildschirm mit OpenAI GPT-Image-2 erstellt.</span>
-    <a href="#" onclick="openLegalModal('quellen');return false;">Quellenangaben</a>
-    <a href="#" onclick="openLegalModal('impressum');return false;">Impressum</a>
-    <a href="#" onclick="openLegalModal('datenschutz');return false;">Datenschutz</a>
+    <span data-i18n="start.credit">Hintergrundbild Startbildschirm mit OpenAI GPT-Image-2 erstellt.</span>
+    <a href="#" onclick="openLegalModal('quellen');return false;" data-i18n="footer.sources">Quellenangaben</a>
+    <a href="#" onclick="openLegalModal('impressum');return false;" data-i18n="footer.imprint">Impressum</a>
+    <a href="#" onclick="openLegalModal('datenschutz');return false;" data-i18n="footer.privacy">Datenschutz</a>
+    <a href="#" id="start-lang-toggle" onclick="toggleStartLang_();return false;" data-i18n="footer.lang">English</a>
     <a href="#" id="device-override-link" onclick="toggleDeviceOverride_();return false;"></a>
   </footer>
 </div>
 
 <div id="impressum-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Impressum</h1>
-    <p><strong>Verantwortlich für diese Studie und Ansprechperson für Rückfragen:</strong><br>
-      Julian Stolz<br>
-      Pädagogische Hochschule Heidelberg<br>
-      Research Group for Earth Observation (rgeo)<br>
-      Czernyring 22/10-12<br>
-      69115 Heidelberg<br>
-      Telefon: 06221.477.795<br>
-      E-Mail: <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a></p>
-    <button type="button" onclick="closeLegalModal('impressum')">Schließen</button>
+    <h1 data-i18n="imp.title">Impressum</h1>
+    <div data-i18n-html="imp.html"></div>
+    <button type="button" onclick="closeLegalModal('impressum')" data-i18n="common.close">Schließen</button>
   </div>
 </div>
 
 <div id="datenschutz-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Datenschutzerklärung</h1>
-    <p><strong>Verantwortliche Stelle:</strong> Julian Stolz, Pädagogische Hochschule Heidelberg (rgeo), Telefon 06221.477.795, E-Mail <a href="mailto:stolz@ph-heidelberg.de">stolz@ph-heidelberg.de</a> — zugleich Ansprechperson für Rückfragen zu dieser Studie.</p>
-    <p><strong>Welche Daten werden erhoben?</strong> Beim allerersten Spielen auf diesem Gerät: Angaben aus einem kurzen Fragebogen (u. a. Alter, höchster Bildungs-/akademischer Abschluss, Studienfach, Vorerfahrung mit Kartenlesen/GIS/Fernerkundung, Geschlecht, Endgerät, ein aus vorgegebenen Wortbausteinen zusammengestellter Alias — die endgültige Liste der abgefragten Kategorien kann sich im Projektverlauf noch ändern). Bei jedem Durchlauf zusätzlich: Ihre Interaktionen während des Spiels (u. a. welches Objekt wo abgelegt wurde, benötigte Zeit, Fehlversuche, Nutzung von Papierkorb/Karte), sowie technische Geräte- und Browserdaten (u. a. Bildschirmgröße, Spracheinstellung, Zeitzone, Eingabeart, Fokuswechsel während eines Levels). Es werden <strong>keine</strong> Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erhoben. Ein zufällig im Browser erzeugter Kennwert dient ausschließlich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen, ohne dass Rückschlüsse auf Ihre Identität möglich sind.</p>
-    <p><strong>Bestenliste (öffentlich sichtbar):</strong> Anders als die übrigen Daten sind Ihre Gesamtzeit sowie Ihr Alias (ersatzweise der oben genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste <strong>für andere Teilnehmende sichtbar</strong> — Durchläufe mit mehr als 10 Fehlern erscheinen dort nicht. Der Alias wird beim ersten Spielen aus vorgegebenen, unbedenklichen Wortbausteinen zusammengestellt (keine freie Texteingabe) und lässt daher keine Rückschlüsse auf Ihre Identität zu.</p>
-    <p><strong>Speicherung:</strong> Die Daten werden über eine Google-Apps-Script-Anwendung in eine Google-Tabelle im Konto der Studienleitung übertragen und dort gespeichert; mit Ausnahme der oben genannten, öffentlich sichtbaren Bestenliste hat nur die Studienleitung Zugriff.</p>
-    <p><strong>Lokale Speicherung (localStorage):</strong> Ihr Browser speichert den oben genannten zufälligen Kennwert, Ihren gewählten Alias (falls vergeben) sowie einen Hinweis darauf, ob Sie den Fragebogen bereits ausgefüllt haben, technisch notwendig lokal auf Ihrem Gerät (kein Cookie, kein Tracking, keine Übertragung an Dritte). Diese Daten können Sie jederzeit über die Einstellungen Ihres Browsers löschen.</p>
-    <p><strong>Freiwilligkeit &amp; Widerruf:</strong> Die Teilnahme ist freiwillig. Solange Ihre Angaben über den zufälligen Kennwert noch zuordenbar sind, können Sie deren Löschung jederzeit formlos bei der oben genannten Ansprechperson verlangen.</p>
-    <button type="button" onclick="closeLegalModal('datenschutz')">Schließen</button>
+    <h1 data-i18n="dp.title">Datenschutzerklärung</h1>
+    <div class="legal-modal-text" data-i18n-html="dp.html"></div>
+    <button type="button" onclick="closeLegalModal('datenschutz')" data-i18n="common.close">Schließen</button>
   </div>
 </div>
 
 <div id="quellen-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Quellenangaben</h1>
-    <p>Satellitenbilder: Enthalten modifizierte Copernicus-Sentinel-Daten, Sentinel-2 L2A, Copernicus Data Space Ecosystem. Rechtsgrundlage: Legal notice on the use of Copernicus Sentinel Data and Service Information (VO (EU) 377/2014, Delegierte VO (EU) 1159/2013).</p>
-    <p>Hintergrundbild Startbildschirm: mit OpenAI GPT-Image-2 erstellt (KI-generiertes Bild, keine reale Aufnahme).</p>
-    <button type="button" onclick="closeLegalModal('quellen')">Schließen</button>
+    <h1 data-i18n="src.title">Quellenangaben</h1>
+    <div data-i18n-html="src.html"></div>
+    <button type="button" onclick="closeLegalModal('quellen')" data-i18n="common.close">Schließen</button>
   </div>
 </div>
 
@@ -116,30 +104,30 @@
 <div id="fullscreen-hint-modal" class="legal-modal">
   <div class="legal-modal-card">
     <div id="fs-hint-main-view">
-      <h1>Vollbildmodus empfohlen</h1>
-      <p>Auf Handy und Tablet steht mehr Platz für das Satellitenbild zur Verfügung, wenn die Browserleisten ausgeblendet sind.</p>
+      <h1 data-i18n="fs.title">Vollbildmodus empfohlen</h1>
+      <p data-i18n="fs.text">Auf Handy und Tablet steht mehr Platz für das Satellitenbild zur Verfügung, wenn die Browserleisten ausgeblendet sind.</p>
       <div class="fs-hint-actions">
-        <button type="button" onclick="activateFullscreenMode_()">Vollbildmodus aktivieren</button>
-        <button type="button" class="secondary" onclick="showIosFullscreenGuide_()">Anleitung für iPhone anzeigen</button>
+        <button type="button" onclick="activateFullscreenMode_()" data-i18n="fs.activate">Vollbildmodus aktivieren</button>
+        <button type="button" class="secondary" onclick="showIosFullscreenGuide_()" data-i18n="fs.guide">Anleitung für iPhone anzeigen</button>
       </div>
-      <p class="fs-hint-note">Der Button funktioniert auf Android- und Desktop-Browsern. Auf dem iPhone bitte die Anleitung nutzen.</p>
-      <button type="button" class="fs-hint-skip" onclick="dismissFullscreenHint_()">Weiter ohne Vollbildmodus ›</button>
+      <p class="fs-hint-note" data-i18n="fs.note">Der Button funktioniert auf Android- und Desktop-Browsern. Auf dem iPhone bitte die Anleitung nutzen.</p>
+      <button type="button" class="fs-hint-skip" onclick="dismissFullscreenHint_()" data-i18n="fs.skip">Weiter ohne Vollbildmodus ›</button>
     </div>
     <div id="fs-hint-ios-view" style="display:none">
-      <h1>Vollbildmodus auf dem iPhone</h1>
+      <h1 data-i18n="fs.ios.title">Vollbildmodus auf dem iPhone</h1>
       <div class="fs-hint-steps">
         <div class="fs-hint-step">
-          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt1.jpg" alt="Symbolleisten-Symbol links neben der Adresszeile antippen">
-          <p><strong>1.</strong> Tippe links neben der Adresszeile auf dieses Symbol.</p>
+          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt1.jpg" alt="" data-i18n-alt="fs.ios.alt1">
+          <p data-i18n-html="fs.ios.step1"><strong>1.</strong> Tippe links neben der Adresszeile auf dieses Symbol.</p>
         </div>
         <div class="fs-hint-step">
-          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt2.jpg" alt="Im Menü „Symbolleiste ausblenden“ antippen">
-          <p><strong>2.</strong> Im Menü auf „Symbolleiste ausblenden“ tippen.</p>
+          <img src="./Bilder/Deko_und_UI/vollbild_ios_schritt2.jpg" alt="" data-i18n-alt="fs.ios.alt2">
+          <p data-i18n-html="fs.ios.step2"><strong>2.</strong> Im Menü auf „Symbolleiste ausblenden“ tippen.</p>
         </div>
       </div>
       <div class="fs-hint-actions">
-        <button type="button" class="secondary" onclick="backToFullscreenHintMain_()">‹ Zurück</button>
-        <button type="button" onclick="dismissFullscreenHint_()">Fertig</button>
+        <button type="button" class="secondary" onclick="backToFullscreenHintMain_()" data-i18n="fs.back">‹ Zurück</button>
+        <button type="button" onclick="dismissFullscreenHint_()" data-i18n="fs.done">Fertig</button>
       </div>
     </div>
   </div>
@@ -155,8 +143,8 @@
     <div id="progress-bar"><div id="progress-fill"></div></div>
   </div>
   <div id="stats">
-    <div class="stat"><div class="stat-val" id="stat-time">0.00</div><div class="stat-label">Sekunden</div></div>
-    <div class="stat" id="stat-errors"><div class="stat-val" id="stat-err-val">0</div><div class="stat-label">Fehler</div></div>
+    <div class="stat"><div class="stat-val" id="stat-time">0.00</div><div class="stat-label" data-i18n="stat.seconds">Sekunden</div></div>
+    <div class="stat" id="stat-errors"><div class="stat-val" id="stat-err-val">0</div><div class="stat-label" data-i18n="stat.errors">Fehler</div></div>
   </div>
 </div>
 
@@ -171,12 +159,12 @@
       <div id="ready-level-tag"></div>
       <!-- Ready button -->
       <div id="ready-btn-wrap">
-        <button id="ready-btn" onclick="onReadyClick()">Bereit ›</button>
+        <button id="ready-btn" onclick="onReadyClick()" data-i18n="ready.btn">Bereit ›</button>
       </div>
       <!-- Countdown (shown after Bereit) -->
       <div id="countdown-wrap">
         <div id="countdown-num">3</div>
-        <div id="countdown-label">EXPERIMENT STARTET …</div>
+        <div id="countdown-label" data-i18n="ready.countdown">EXPERIMENT STARTET …</div>
       </div>
     </div>
 
@@ -216,7 +204,7 @@
     <!-- Ebenenumschaltung fuer den Hinweis-Button (schlanke Variante des
          Debug-Panels, keine QA-Steuerung) -->
     <div id="hint-layers-panel">
-      <div id="hint-layers-title" onclick="toggleHintLayersPanelCollapsed()">SICHTBARE EBENEN
+      <div id="hint-layers-title" onclick="toggleHintLayersPanelCollapsed()"><span data-i18n="hint.layers">SICHTBARE EBENEN</span>
         <span id="hint-layers-collapse-btn" title="Ein-/Ausklappen">▾</span>
       </div>
       <div id="hint-layers-checks"></div>
@@ -239,29 +227,29 @@
   </div><!-- /stage-outer -->
 
   <div id="bottom">
-    <div id="label-bar"><span id="label-bar-title">LABELS ZIEHEN ›</span></div>
+    <div id="label-bar"><span id="label-bar-title" data-i18n="labelbar.title">KATEGORIEN ZIEHEN ›</span></div>
     <div id="trash">
       <div style="font-size:20px">🗑</div>
-      <div>Nicht vorhanden</div>
+      <div data-i18n="trash.absent">Nicht vorhanden</div>
       <div id="trash-count"></div>
     </div>
   </div>
 </div>
 
 <div id="float-chip"></div>
-<button id="btn-hint" onclick="showHint()">Ich komme nicht weiter ›</button>
-<button id="btn-next" onclick="nextLevel()">WEITER ›</button>
+<button id="btn-hint" onclick="showHint()" data-i18n="hint.btn">Ich komme nicht weiter ›</button>
+<button id="btn-next" onclick="nextLevel()" data-i18n="next.btn">WEITER ›</button>
 <div id="feedback"></div>
 
 <div id="results-screen">
-  <h1>Experiment abgeschlossen</h1>
+  <h1 data-i18n="res.title">Experiment abgeschlossen</h1>
 
   <div id="results-tables-row">
     <div class="results-col">
-      <h2>Deine Ergebnisse</h2>
+      <h2 data-i18n="res.yours">Deine Ergebnisse</h2>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Bild</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th><th class="num">Perzentil</th></tr></thead>
+          <thead><tr><th data-i18n="res.th.image">Bild</th><th class="num" data-i18n-html="res.th.time">Zeit&nbsp;(s)</th><th class="num" data-i18n="res.th.errors">Fehler</th><th class="num" data-i18n="res.th.percentile">Perzentil</th></tr></thead>
           <tbody id="results-body"></tbody>
         </table>
       </div>
@@ -269,24 +257,26 @@
 
     <!-- Bestenliste (seit 2026-08-26) -->
     <div class="results-col" id="leaderboard-panel">
-      <h2>Bestenliste</h2>
-      <p id="leaderboard-disqualified-note" style="display:none">Dieser Durchlauf hat mehr als 10 Fehler und erscheint daher nicht in der Bestenliste.</p>
+      <h2 data-i18n="lb.title">Bestenliste</h2>
+      <p id="leaderboard-disqualified-note" style="display:none" data-i18n="lb.disq">Dieser Durchlauf hat mehr als 10 Fehler und erscheint daher nicht in der Bestenliste.</p>
       <p id="leaderboard-own-rank"></p>
       <div class="table-scroll">
         <table id="leaderboard-table">
-          <thead><tr><th class="num">#</th><th>Name</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th></tr></thead>
+          <thead><tr><th class="num">#</th><th data-i18n="lb.th.name">Name</th><th class="num" data-i18n-html="res.th.time">Zeit&nbsp;(s)</th><th class="num" data-i18n="res.th.errors">Fehler</th></tr></thead>
           <tbody id="leaderboard-body"></tbody>
         </table>
       </div>
-      <button type="button" class="secondary" id="leaderboard-full-btn" onclick="openFullLeaderboard()">Vollständige Liste anzeigen ›</button>
+      <button type="button" class="secondary" id="leaderboard-full-btn" onclick="openFullLeaderboard()" data-i18n="lb.full">Vollständige Liste anzeigen ›</button>
     </div>
   </div>
 
-  <p id="results-thankyou">Vielen Dank für Ihre Teilnahme! Ihre Ergebnisse wurden automatisch übermittelt.</p>
+  <!-- Endcard-Spruch (seit 2026-10-15): ergebnisabhaengig, 10 Varianten je Gruppe, siehe i18n.js/app.js -->
+  <p id="results-spruch"></p>
+  <p id="results-thankyou" data-i18n="res.thanks">Vielen Dank für deine Teilnahme! Deine Ergebnisse wurden automatisch übermittelt.</p>
   <div class="results-actions">
-    <button class="secondary" onclick="openFeedbackModal()">Feedback geben ›</button>
-    <button class="secondary" onclick="shareChallenge()">Freund*in herausfordern ›</button>
-    <button class="primary" onclick="location.reload()">Neustart</button>
+    <button class="secondary" onclick="openFeedbackModal()" data-i18n="res.feedback">Feedback geben ›</button>
+    <button class="secondary" onclick="shareChallenge()" data-i18n="res.share">Freund*in herausfordern ›</button>
+    <button class="primary primary-big" onclick="location.reload()" data-i18n="res.again">Nochmal spielen ›</button>
   </div>
 </div>
 
@@ -295,7 +285,7 @@
      navigator.share(), oeffnet dieses Modal nur als Fallback. -->
 <div id="share-fallback-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Freund*in herausfordern</h1>
+    <h1 data-i18n="share.title">Freund*in herausfordern</h1>
     <p id="share-fallback-text"></p>
     <div class="share-platform-row">
       <a id="share-whatsapp" class="share-platform-btn" target="_blank" rel="noopener">WhatsApp</a>
@@ -304,20 +294,20 @@
       <button type="button" id="share-instagram" class="share-platform-btn">Instagram</button>
       <button type="button" id="share-tiktok" class="share-platform-btn">TikTok</button>
     </div>
-    <p id="share-copy-hint" class="share-copy-hint" style="display:none">Text in die Zwischenablage kopiert – beim Einfügen in {PLATTFORM} bereit.</p>
-    <button type="button" onclick="closeShareFallbackModal()">Schließen</button>
+    <p id="share-copy-hint" class="share-copy-hint" style="display:none"></p>
+    <button type="button" onclick="closeShareFallbackModal()" data-i18n="common.close">Schließen</button>
   </div>
 </div>
 
 <!-- Vollstaendige Bestenliste (Modal) -->
 <div id="leaderboard-full-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Vollständige Bestenliste</h1>
+    <h1 data-i18n="lb.fullTitle">Vollständige Bestenliste</h1>
     <table id="leaderboard-full-table">
-      <thead><tr><th class="num">#</th><th>Name</th><th class="num">Zeit&nbsp;(s)</th><th class="num">Fehler</th></tr></thead>
+      <thead><tr><th class="num">#</th><th data-i18n="lb.th.name">Name</th><th class="num" data-i18n-html="res.th.time">Zeit&nbsp;(s)</th><th class="num" data-i18n="res.th.errors">Fehler</th></tr></thead>
       <tbody id="leaderboard-full-body"></tbody>
     </table>
-    <button type="button" onclick="closeFullLeaderboard()">Schließen</button>
+    <button type="button" onclick="closeFullLeaderboard()" data-i18n="common.close">Schließen</button>
   </div>
 </div>
 
@@ -325,7 +315,7 @@
 <div id="image-preview-modal">
   <div id="image-preview-toolbar">
     <span id="image-preview-title"></span>
-    <span id="image-preview-hint">Scrollen zum Zoomen · Ziehen zum Verschieben · Doppelklick zum Zurücksetzen</span>
+    <span id="image-preview-hint" data-i18n="preview.hint">Scrollen zum Zoomen · Ziehen zum Verschieben · Doppelklick zum Zurücksetzen</span>
     <button id="image-preview-close" onclick="closeImagePreview()">✕</button>
   </div>
   <div id="image-preview-viewport">
@@ -334,63 +324,64 @@
 </div>
 
 <!-- Post-Abfrage: Konzentration/Ablenkung/Ort/Wachheit + Bekanntheit-Check,
-     nach dem letzten Level, vor dem Abschlusspopup. Die 4 Fragen sind inhaltlich noch
-     nicht literaturbasiert und bewusst austauschbar angelegt (siehe CLAUDE.md) - Fragetexte/Skalen können jederzeit durch
-     literaturbasierte Items ersetzt werden, ohne Markup/Logik drumherum anzufassen. -->
+     nach dem letzten Level, vor dem Abschlusspopup. Die 4 Fragen sind seit
+     2026-10-15 als FINAL festgelegt (Julian, Ethikantrag Anlage 3) - Inhalt
+     nicht ohne Rueckfrage aendern. Texte DE/EN in i18n.js (ps.*). -->
 <div id="familiarity-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Noch ein paar Fragen zum Abschluss</h1>
+    <h1 data-i18n="ps.title">Noch ein paar Fragen zum Abschluss</h1>
 
     <div class="pq-question">
-      <p class="pq-label">Wie konzentriert waren Sie während des Spiels?</p>
+      <p class="pq-label" data-i18n="ps.q.konzentration">Wie konzentriert warst du während des Spiels?</p>
       <div class="likert-row" data-question="konzentration">
-        <span class="likert-end">gar nicht</span>
+        <span class="likert-end" data-i18n="ps.end.nothing">gar nicht</span>
         <label><input type="radio" name="pq-konzentration" value="1">1</label>
         <label><input type="radio" name="pq-konzentration" value="2">2</label>
         <label><input type="radio" name="pq-konzentration" value="3">3</label>
         <label><input type="radio" name="pq-konzentration" value="4">4</label>
         <label><input type="radio" name="pq-konzentration" value="5">5</label>
-        <span class="likert-end">sehr</span>
+        <span class="likert-end" data-i18n="ps.end.very">sehr</span>
       </div>
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wo befanden Sie sich während des Spielens?</p>
-      <input type="text" id="pq-ort" placeholder="z. B. zuhause am Schreibtisch, unterwegs, …">
+      <p class="pq-label" data-i18n="ps.q.ort">Wo warst du, als du gespielt hast?</p>
+      <input type="text" id="pq-ort" placeholder="" data-i18n-ph="ps.ort.ph">
+      <p class="pq-hint" data-i18n="ps.ort.hint">Bitte nur grob, z. B. zu Hause, in der Bahn, im Büro oder im Park – keine genaue Adresse.</p>
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wurden Sie während des Spiels unterbrochen oder abgelenkt (z.&nbsp;B. durch andere Personen, Geräusche, Benachrichtigungen)?</p>
+      <p class="pq-label" data-i18n-html="ps.q.ablenkung">Wurdest du während des Spiels unterbrochen oder abgelenkt (z.&nbsp;B. durch andere Personen, Geräusche, Benachrichtigungen)?</p>
       <div class="likert-row" data-question="ablenkung">
-        <span class="likert-end">gar nicht</span>
+        <span class="likert-end" data-i18n="ps.end.nothing">gar nicht</span>
         <label><input type="radio" name="pq-ablenkung" value="1">1</label>
         <label><input type="radio" name="pq-ablenkung" value="2">2</label>
         <label><input type="radio" name="pq-ablenkung" value="3">3</label>
         <label><input type="radio" name="pq-ablenkung" value="4">4</label>
         <label><input type="radio" name="pq-ablenkung" value="5">5</label>
-        <span class="likert-end">sehr stark</span>
+        <span class="likert-end" data-i18n="ps.end.verystrong">sehr stark</span>
       </div>
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Wie wach/ausgeruht waren Sie beim Spielen?</p>
+      <p class="pq-label" data-i18n="ps.q.wachheit">Wie wach/ausgeruht warst du beim Spielen?</p>
       <div class="likert-row" data-question="wachheit">
-        <span class="likert-end">sehr müde</span>
+        <span class="likert-end" data-i18n="ps.end.tired">sehr müde</span>
         <label><input type="radio" name="pq-wachheit" value="1">1</label>
         <label><input type="radio" name="pq-wachheit" value="2">2</label>
         <label><input type="radio" name="pq-wachheit" value="3">3</label>
         <label><input type="radio" name="pq-wachheit" value="4">4</label>
         <label><input type="radio" name="pq-wachheit" value="5">5</label>
-        <span class="likert-end">hellwach</span>
+        <span class="likert-end" data-i18n="ps.end.awake">hellwach</span>
       </div>
     </div>
 
     <div class="pq-question">
-      <p class="pq-label">Kannten Sie eine oder mehrere der gezeigten Landschaften bereits, z.&nbsp;B. weil Sie den Ort schon einmal besucht oder das Gebiet schon einmal auf einer Karte/einem Foto gesehen haben?</p>
+      <p class="pq-label" data-i18n-html="ps.q.bekannt">Kanntest du eine oder mehrere der gezeigten Landschaften bereits, z.&nbsp;B. weil du den Ort schon einmal besucht oder das Gebiet schon einmal auf einer Karte oder einem Foto gesehen hast?</p>
     </div>
     <div class="familiarity-modal-actions">
-      <button type="button" class="secondary" onclick="familiarityAnswer(false)">Nein</button>
-      <button type="button" class="primary" onclick="familiarityAnswer(true)">Ja</button>
+      <button type="button" class="secondary" onclick="familiarityAnswer(false)" data-i18n="ps.no">Nein</button>
+      <button type="button" class="primary" onclick="familiarityAnswer(true)" data-i18n="ps.yes">Ja</button>
     </div>
   </div>
 </div>
@@ -398,11 +389,11 @@
 <!-- Familiarity-Gallery: alle gezeigten Bilder, Lupe zum Vergrößern, Haken zum Markieren -->
 <div id="familiarity-gallery-screen">
   <div id="familiarity-gallery-card">
-    <h1>Welche Landschaften kannten Sie bereits?</h1>
-    <p>Markieren Sie mit dem Haken jedes Bild, das Ihnen bereits bekannt war. Über die Lupe können Sie ein Bild vergrößern.</p>
+    <h1 data-i18n="fam.title">Welche Landschaften kanntest du bereits?</h1>
+    <p data-i18n="fam.text">Markiere mit dem Haken jedes Bild, das dir bereits bekannt war. Über die Lupe kannst du ein Bild vergrößern.</p>
     <div id="familiarity-gallery-grid"></div>
     <div class="results-actions">
-      <button type="button" class="primary" onclick="finishFamiliarityGallery()">Fertig ›</button>
+      <button type="button" class="primary" onclick="finishFamiliarityGallery()" data-i18n="fam.done">Fertig ›</button>
     </div>
   </div>
 </div>
@@ -410,13 +401,13 @@
 <!-- Namens-Popup nach dem Markieren eines bekannten Bildes -->
 <div id="familiarity-name-modal" class="legal-modal">
   <div class="legal-modal-card">
-    <h1>Region/Ort benennen</h1>
-    <p>Wie heißt die Region oder der Ort, den Sie auf diesem Bild erkannt haben?</p>
-    <input type="text" id="familiarity-name-input" placeholder="z. B. Oberrheingraben">
+    <h1 data-i18n="fam.name.title">Region/Ort benennen</h1>
+    <p data-i18n="fam.name.text">Wie heißt die Region oder der Ort, den du auf diesem Bild erkannt hast?</p>
+    <input type="text" id="familiarity-name-input" placeholder="" data-i18n-ph="fam.name.ph">
     <div class="familiarity-modal-actions">
-      <button type="button" id="familiarity-name-remove" class="warn" onclick="removeFamiliarityMark()">Markierung entfernen</button>
-      <button type="button" class="secondary" onclick="closeFamiliarityNaming()">Abbrechen</button>
-      <button type="button" class="primary" onclick="confirmFamiliarityName()">Bestätigen</button>
+      <button type="button" id="familiarity-name-remove" class="warn" onclick="removeFamiliarityMark()" data-i18n="fam.name.remove">Markierung entfernen</button>
+      <button type="button" class="secondary" onclick="closeFamiliarityNaming()" data-i18n="fam.name.cancel">Abbrechen</button>
+      <button type="button" class="primary" onclick="confirmFamiliarityName()" data-i18n="fam.name.ok">Bestätigen</button>
     </div>
   </div>
 </div>
@@ -425,19 +416,20 @@
 <div id="feedback-modal" class="legal-modal">
   <div class="legal-modal-card">
     <div id="feedback-modal-body">
-      <h1>Feedback</h1>
-      <p>Haben Sie Anmerkungen, Verbesserungsvorschläge oder ist Ihnen etwas aufgefallen? Wir freuen uns über Ihr Feedback.</p>
-      <textarea id="feedback-text" rows="5" placeholder="Ihr Feedback …"></textarea>
+      <h1 data-i18n="fb.title">Feedback</h1>
+      <p data-i18n="fb.text">Hast du Anmerkungen, Verbesserungsvorschläge oder ist dir etwas aufgefallen? Wir freuen uns über dein Feedback.</p>
+      <textarea id="feedback-text" rows="5" placeholder="" data-i18n-ph="fb.ph"></textarea>
+      <p class="pq-hint" data-i18n="fb.hint">Bitte schreibe hier keine persönlichen Angaben (Name, Adresse, Telefonnummer, E-Mail).</p>
       <div class="familiarity-modal-actions">
-        <button type="button" class="secondary" onclick="closeFeedbackModal()">Abbrechen</button>
-        <button type="button" class="primary" onclick="submitFeedbackForm()">Absenden</button>
+        <button type="button" class="secondary" onclick="closeFeedbackModal()" data-i18n="fb.cancel">Abbrechen</button>
+        <button type="button" class="primary" onclick="submitFeedbackForm()" data-i18n="fb.send">Absenden</button>
       </div>
     </div>
     <div id="feedback-modal-thanks" style="display:none">
-      <h1>Danke!</h1>
-      <p>Ihr Feedback wurde übermittelt.</p>
+      <h1 data-i18n="fb.thanksTitle">Danke!</h1>
+      <p data-i18n="fb.thanksText">Dein Feedback wurde übermittelt.</p>
       <div class="familiarity-modal-actions">
-        <button type="button" class="primary" onclick="closeFeedbackModal()">Schließen</button>
+        <button type="button" class="primary" onclick="closeFeedbackModal()" data-i18n="common.close">Schließen</button>
       </div>
     </div>
   </div>
@@ -470,10 +462,11 @@
 <!-- Practice success message -->
 <div id="tut-success-msg"></div>
 
-<script src="assets/js/device.js?v=fs-hint28"></script>
-<script src="assets/js/telemetry.js?v=fs-hint28"></script>
-<script src="assets/js/app.js?v=fs-hint28"></script>
-<script src="assets/js/tutorial.js?v=fs-hint28"></script>
-<script src="assets/js/touch-triggers.js?v=fs-hint28"></script>
+<script src="assets/js/device.js?v=antrag2"></script>
+<script src="assets/js/i18n.js?v=antrag2"></script>
+<script src="assets/js/telemetry.js?v=antrag2"></script>
+<script src="assets/js/app.js?v=antrag2"></script>
+<script src="assets/js/tutorial.js?v=antrag2"></script>
+<script src="assets/js/touch-triggers.js?v=antrag2"></script>
 </body>
 </html>

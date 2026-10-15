@@ -270,3 +270,6 @@
 /* ── Transition ──────────────────────────────────────────── */
 .tut-fade-out{animation:tutFadeOut .4s forwards;}
 @keyframes tutFadeOut{to{opacity:0;pointer-events:none;}}
+
+/* Alias-Hinweis (seit 2026-10-15): Spielnamen fuer eine moegliche Loeschanfrage notieren */
+.alias-hint{font-size:13px;color:var(--muted);text-align:center;margin:0 0 4px;line-height:1.5;}

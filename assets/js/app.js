@@ -102,6 +102,9 @@ async function boot(){
   elDebugCanvas = document.getElementById('debug-canvas');
   elDebugCtx    = elDebugCanvas.getContext('2d');
 
+  // Zweisprachige Oberflaeche (i18n.js): statische Texte (de) setzen
+  applyI18n();
+
   // URL-Parameter-Aktivierung von Test-/Debug-Modus, nur fuer automatisierte
   // Verifikation (siehe telemetry.js: applyUrlActivation_()) - Touch-Geraete
   // haben eigene Tipp-Gesten dafuer (siehe MOBILE_PLAN.md WP1).
@@ -117,7 +120,7 @@ async function boot(){
     CONFIG = await res.json();
   }catch(e){
     document.getElementById('loading-text').textContent =
-      '⚠ config.json nicht gefunden!';
+      t('loading.error');
     console.error(e); return;
   }
 
@@ -213,7 +216,7 @@ async function loadLevel(i){
   const pos  = levelOrder.length ? orderPos+1 : i+1;
   const pct  = Math.round(((pos-1)/tot)*100);
   document.getElementById('progress-fill').style.width=pct+'%';
-  document.getElementById('prog-text').textContent=`LEVEL ${pos} / ${tot}`;
+  document.getElementById('prog-text').textContent=t('prog.level',{pos:pos,tot:tot});
   document.getElementById('prog-pct').textContent=pct+' %';
 
   await new Promise(resolve=>{
@@ -232,7 +235,7 @@ async function loadLevel(i){
       if(!res.ok) throw new Error('HTTP '+res.status);
       geojson=await res.json();
     }catch(e){
-      showFeedback('⚠ GeoJSON nicht geladen: '+lv.geojsonSrc,'err');
+      showFeedback(t('fb.geojson',{src:lv.geojsonSrc}),'err');
       console.error(e); return;
     }
   }
@@ -538,7 +541,7 @@ function showHint(){
   elDebugCanvas.style.display = 'block';
   redrawDebug();
   updateHintLayersVisibility();
-  showFeedback('Lösung wird angezeigt', 'ok');
+  showFeedback(t('hint.shown'), 'ok');
 }
 
 // Gleiches Ein-/Ausklappen wie beim Debug-Panel (Julians Wunsch,
@@ -561,7 +564,7 @@ document.addEventListener('keydown',e=>{
 // ── Render labels ───────────────────────────────────────────
 function renderLabels(lv){
   const bar=document.getElementById('label-bar');
-  bar.innerHTML='<span id="label-bar-title">LABELS ZIEHEN ›</span>';
+  bar.innerHTML='<span id="label-bar-title">'+t('labelbar.title')+'</span>';
   CONFIG.labels.forEach(lb=>{
     const chip=document.createElement('div');
     chip.className='label-chip'; chip.id='chip-'+lb.id;
@@ -574,7 +577,7 @@ function renderLabels(lv){
     // ("...Infrastruktu" / "r") auf einer eigenen Zeile isoliert - Julians
     // Testfund. Nur die Anzeige betrifft das (chip.textContent), lb.text
     // selbst bleibt fuer Telemetrie/Debug-Panel unveraendert.
-    chip.textContent=lb.icon+' '+lb.text.replace(/\//g,'/​');
+    chip.textContent=lb.icon+' '+labelText(lb.id, lb.text).replace(/\//g,'/​');
     chip.addEventListener('pointerdown',e=>{
       if(chip.classList.contains('used')) return;
       // Waehrend ein Drag laeuft, weitere Pointer (z.B. zweiter Finger)
@@ -838,14 +841,14 @@ function showDropConfirm_(p){
   box.className = 'drop-confirm'; box.id = 'drop-confirm';
   const title = document.createElement('div');
   title.className = 'drop-confirm-title';
-  title.textContent = (lbl ? lbl.icon + ' ' + lbl.text : p.id) + ' hier ablegen?';
+  title.textContent = t('drop.question', {label: lbl ? lbl.icon + ' ' + labelText(lbl.id, lbl.text) : p.id});
   const btns = document.createElement('div');
   btns.className = 'drop-confirm-btns';
   const no = document.createElement('button');
-  no.className = 'drop-confirm-btn drop-confirm-no'; no.textContent = '✕ Verwerfen';
+  no.className = 'drop-confirm-btn drop-confirm-no'; no.textContent = t('drop.no');
   no.addEventListener('click', ()=>resolvePendingDrop_(false));
   const ok = document.createElement('button');
-  ok.className = 'drop-confirm-btn drop-confirm-ok'; ok.textContent = '✓ Bestätigen';
+  ok.className = 'drop-confirm-btn drop-confirm-ok'; ok.textContent = t('drop.ok');
   ok.addEventListener('click', ()=>resolvePendingDrop_(true));
   btns.append(no, ok); box.append(title, btns);
   bar.appendChild(box);
@@ -1009,7 +1012,7 @@ function handleStageDrop(fx,fy,localX,localY){
     logDropAttempt(draggingId, 'karte', fx, fy, [], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent=currentErrors;
-    showFeedback('✗ Kein Bereich getroffen – erneut versuchen','err');
+    showFeedback(t('fb.noarea'),'err');
     return;
   }
   if(hitKlassen.has(draggingId)){
@@ -1030,20 +1033,20 @@ function handleStageDrop(fx,fy,localX,localY){
     // Desktop/Tablet bleibt der ausfuehrliche Text (genug Platz, zusaetzlicher
     // Kontext nicht stoerend).
     const isPhone = getDeviceTier() === 'phone';
-    const txt = isPhone ? '✓' : '✓ ' + (lbl ? lbl.icon + ' ' + lbl.text : draggingId);
+    const txt = isPhone ? '✓' : '✓ ' + (lbl ? lbl.icon + ' ' + labelText(lbl.id, lbl.text) : draggingId);
     const ok   = document.createElement('div');
     ok.className = 'zone-ok' + (isPhone ? ' zone-ok-compact' : ''); ok.textContent = txt;
     ok.style.left = localX + 'px'; ok.style.top = localY + 'px';
     elStage.appendChild(ok);
     markChipUsed(draggingId);
-    showFeedback('✓ Korrekt', 'ok');
+    showFeedback(t('fb.correct'), 'ok');
     if(debugMode) redrawDebug();
     checkLevelComplete();
   } else {
     logDropAttempt(draggingId, 'karte', fx, fy, [...hitKlassen], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
-    showFeedback('✗ Falsches Label für diesen Bereich', 'err');
+    showFeedback(t('fb.wrongcat'), 'err');
   }
 }
 
@@ -1056,13 +1059,13 @@ function handleTrashDrop(){
     logDropAttempt(draggingId, 'papierkorb', null, null, [], true);
     trashFilled[draggingId] = true;
     markChipUsed(draggingId);
-    showFeedback('✓ Korrekt entfernt', 'ok');
+    showFeedback(t('fb.removed'), 'ok');
     checkLevelComplete();
   } else {
     logDropAttempt(draggingId, 'papierkorb', null, null, [], false);
     currentErrors++;
     document.getElementById('stat-err-val').textContent = currentErrors;
-    showFeedback('✗ Element ist sichtbar – auf die Karte ziehen', 'err');
+    showFeedback(t('fb.visible'), 'err');
   }
 }
 
@@ -1125,11 +1128,11 @@ function showNextPopup_(){
   }
   const title = document.createElement('div');
   title.className = 'drop-confirm-title';
-  title.textContent = '✓ Level geschafft';
+  title.textContent = t('level.done');
   const btns = document.createElement('div');
   btns.className = 'drop-confirm-btns';
   const go = document.createElement('button');
-  go.className = 'drop-confirm-btn drop-confirm-ok'; go.textContent = 'WEITER ›';
+  go.className = 'drop-confirm-btn drop-confirm-ok'; go.textContent = t('next.btn');
   go.addEventListener('click', ()=>{ box.remove(); nextLevel(); });
   btns.append(go); box.append(title, btns);
   host.appendChild(box);
@@ -1158,6 +1161,7 @@ function submitLevelTelemetry(levelId){
     gesamtMausweg: Math.round(levelTelemetry.mouseDistance),
     debugAusgeloest: levelTelemetry.debugTriggered,
     hinweisGenutzt: levelTelemetry.hintUsed,
+    bildBereitsGesehen: levelTelemetry.bildBereitsGesehen,
     labelResults,
     dropVersuche: levelTelemetry.dropLog,
   });
@@ -1182,17 +1186,66 @@ function nextLevel(){
 const LEVELS_PER_SESSION = 8;
 let _fullShuffledPool = []; // voller Pool in Zufallsreihenfolge, ueber LEVELS_PER_SESSION
                              // hinaus als Ersatzreserve fuer preloadSessionLevels()
-function buildLevelOrder(){
-  const pool = CONFIG.levels.map((_, i) => i).slice(1);
-  for(let i=pool.length-1; i>0; i--){
+// Seit 2026-10-15 (Julian, C16): Bilder, die eine Person schon gespielt hat, werden
+// bevorzugt ausgelassen. "Gesehen" = Level wurde gestartet (auch bei Abbruch),
+// gespeichert lokal im Browser (localStorage, id -> Zeitstempel). Sind weniger als
+// LEVELS_PER_SESSION ungesehene Bilder uebrig, wird mit den am laengsten nicht
+// gesehenen aufgefuellt; sind alle gesehen, beginnt die Liste von vorn. Test-/
+// Interviewmodus (fluechtige Identitaet) und Uebungsrunde bleiben aussen vor.
+// Backend-Abgleich ueber Geraete hinweg folgt mit dem Serverumzug.
+const LS_SEEN_LEVELS = 'geogame_seen_levels';
+function loadSeenLevels_(){
+  try{
+    const o = JSON.parse(localStorage.getItem(LS_SEEN_LEVELS) || '{}');
+    return (o && typeof o === 'object') ? o : {};
+  }catch(e){ return {}; }
+}
+function saveSeenLevels_(o){
+  try{ localStorage.setItem(LS_SEEN_LEVELS, JSON.stringify(o)); }catch(e){ /* ohne Speicher: kein Gedaechtnis */ }
+}
+function shuffleInPlace_(a){
+  for(let i=a.length-1; i>0; i--){
     const j = Math.floor(Math.random()*(i+1));
-    [pool[i],pool[j]] = [pool[j],pool[i]];
+    [a[i],a[j]] = [a[j],a[i]];
   }
+  return a;
+}
+function buildLevelOrder(){
+  const ephemeral = (typeof _usesEphemeralIdentity_ === 'function' && _usesEphemeralIdentity_());
+  let seen = ephemeral ? {} : loadSeenLevels_();
+  const all = shuffleInPlace_(CONFIG.levels.map((_, i) => i).slice(1));
+  let unseen = all.filter(i => !seen[CONFIG.levels[i].id]);
+  if(unseen.length === 0){          // alle durch -> von vorn
+    seen = {};
+    if(!ephemeral) saveSeenLevels_(seen);
+    unseen = all.slice();
+  }
+  const seenList = all.filter(i => seen[CONFIG.levels[i].id])
+                      .sort((a, b) => seen[CONFIG.levels[a].id] - seen[CONFIG.levels[b].id]); // am laengsten nicht gesehen zuerst
+  const pool = unseen.concat(seenList);
   _fullShuffledPool = pool;
-  levelOrder = pool.slice(0, LEVELS_PER_SESSION);
+  levelOrder = shuffleInPlace_(pool.slice(0, LEVELS_PER_SESSION));
   orderPos = 0;
 }
+
+// Wird beim Start der Zeitmessung eines echten Levels aufgerufen (nach dem
+// Countdown): haelt fest, ob das Bild schon einmal gespielt wurde (Spalte
+// bild_bereits_gesehen), und merkt es als gesehen.
+function registerLevelStart_(){
+  if(!levelTelemetry) return;
+  const ephemeral = (typeof _usesEphemeralIdentity_ === 'function' && _usesEphemeralIdentity_());
+  if(ephemeral || debugMode || levelOrder.indexOf(currentLevel) < 0){
+    levelTelemetry.bildBereitsGesehen = null;
+    return;
+  }
+  const id = CONFIG.levels[currentLevel].id;
+  const seen = loadSeenLevels_();
+  levelTelemetry.bildBereitsGesehen = !!seen[id];
+  seen[id] = Date.now();
+  saveSeenLevels_(seen);
+}
 async function startShuffledExperiment(){
+  bumpRunCount_();
   buildLevelOrder();
   await preloadSessionLevels();
   loadLevel(levelOrder[orderPos]);
@@ -1264,7 +1317,7 @@ async function preloadSessionLevels(){
 
 function updatePreloadProgress_(done, total){
   document.getElementById('preload-text').textContent =
-    `Level werden vorbereitet … (${done}/${total})`;
+    t('preload.progress', {done:done, total:total});
   document.getElementById('preload-bar').style.width =
     (total ? Math.round(done/total*100) : 0) + '%';
 }
@@ -1281,7 +1334,7 @@ function showReadyOverlay(lv){
   const tot = levelOrder.length || CONFIG.levels.length;
   const pos = levelOrder.length ? orderPos+1 : currentLevel+1;
   document.getElementById('ready-level-tag').textContent =
-    `LEVEL ${pos} / ${tot}  —  ${lv.id}`;
+    t('ready.tag', {pos:pos, tot:tot, id:lv.id});
 
   // Reset to "Bereit" state (hide countdown, show button)
   document.getElementById('ready-btn-wrap').style.display  = 'flex';
@@ -1310,6 +1363,7 @@ function runCountdown(n){
     document.getElementById('label-bar').style.visibility = 'visible';
     elTrash.style.visibility     = 'visible';
     document.getElementById('btn-hint').style.visibility = 'visible';
+    registerLevelStart_();
     startTimer();
     return;
   }
@@ -1387,13 +1441,13 @@ function openFamiliarityGallery(){
 
     const zoomBtn = document.createElement('button');
     zoomBtn.className = 'familiarity-zoom-btn';
-    zoomBtn.type = 'button'; zoomBtn.title = 'Vergrößern';
+    zoomBtn.type = 'button'; zoomBtn.title = t('preview.zoom');
     zoomBtn.textContent = '🔍';
     zoomBtn.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
 
     const markBtn = document.createElement('button');
     markBtn.className = 'familiarity-mark-btn';
-    markBtn.type = 'button'; markBtn.title = 'Als bekannt markieren';
+    markBtn.type = 'button'; markBtn.title = t('fam.mark');
     markBtn.textContent = '✓';
     markBtn.addEventListener('click', ()=>openFamiliarityNaming(r.image));
 
@@ -1480,19 +1534,22 @@ function showResults(){
     tm+=r.time; te+=r.errors;
     const tr=document.createElement('tr');
     tr.className='results-row';
-    tr.title='Klicken für Bildvorschau';
+    tr.title=t('row.title');
     tr.innerHTML=`<td>${r.image}</td><td class="num">${(r.time/1000).toFixed(2)}</td><td class="num">${r.errors}</td><td class="num percentile-cell">…</td>`;
     tr.addEventListener('click', ()=>openImagePreview(r.imgSrc, r.image));
     body.appendChild(tr);
     percentileCells[r.image] = tr.querySelector('.percentile-cell');
   });
   const s=document.createElement('tr');
-  s.innerHTML=`<td>GESAMT</td><td class="num">${(tm/1000).toFixed(2)}</td><td class="num">${te}</td><td></td>`;
+  s.innerHTML=`<td>${t('res.total')}</td><td class="num">${(tm/1000).toFixed(2)}</td><td class="num">${te}</td><td></td>`;
   body.appendChild(s);
   document.getElementById('results-screen').classList.add('active');
 
+  document.getElementById('results-spruch').textContent = '';
   submitRunSummary(tm, te);
   loadLeaderboard_(percentileCells, te);
+  // Disqualifizierte Durchlaeufe brauchen keinen Rang - Spruch sofort zeigen
+  if(te > DISQUALIFY_ERROR_THRESHOLD) showEndcardSpruch_(te, null);
 }
 
 // ── Bestenliste (seit 2026-08-26) ───────────────────────────────
@@ -1504,16 +1561,17 @@ function loadLeaderboard_(percentileCells, totalErrors){
   // 2026-08-26: die Bestenliste laedt spuerbar nach - Apps-Script-Latenz
   // laesst sich nicht wegzaubern, aber ohne Hinweis wirkt das wie ein Fehler).
   const ownRankEl = document.getElementById('leaderboard-own-rank');
-  ownRankEl.textContent = disqualified ? '' : 'Bestenliste wird geladen …';
+  ownRankEl.textContent = disqualified ? '' : t('lb.loading');
   document.getElementById('leaderboard-body').innerHTML =
-    '<tr><td colspan="4" class="leaderboard-loading">Lädt …</td></tr>';
+    '<tr><td colspan="4" class="leaderboard-loading">'+t('lb.loadingRow')+'</td></tr>';
 
   const levelTimes = results.map(r => ({level: r.image, timeMs: r.time}));
   fetchLeaderboard(levelTimes).then(data => {
     if(!data || !data.ok){
       document.getElementById('leaderboard-body').innerHTML =
-        '<tr><td colspan="4" class="leaderboard-loading">Bestenliste konnte nicht geladen werden.</td></tr>';
+        '<tr><td colspan="4" class="leaderboard-loading">'+t('lb.failed')+'</td></tr>';
       if(!disqualified) ownRankEl.textContent = '';
+      showEndcardSpruch_(totalErrors, null);
       return;
     }
 
@@ -1521,7 +1579,7 @@ function loadLeaderboard_(percentileCells, totalErrors){
       const cell = percentileCells[level];
       if(!cell) return;
       const pct = data.percentiles[level];
-      cell.textContent = (pct == null) ? '–' : `schneller als ${pct}%`;
+      cell.textContent = (pct == null) ? '–' : t('res.faster', {pct:pct});
     });
 
     renderLeaderboardRows_('leaderboard-body', data.top10 || []);
@@ -1529,12 +1587,45 @@ function loadLeaderboard_(percentileCells, totalErrors){
     if(disqualified){
       ownRankEl.textContent = '';
     } else if(data.myRank){
-      ownRankEl.textContent = `Deine Platzierung: ${data.myRank.rank}. von ${data.fullCount} (${(data.myRank.totalTimeMs/1000).toFixed(2)} s, ${data.myRank.totalErrors} Fehler)`;
+      ownRankEl.textContent = t('lb.own', {rank:data.myRank.rank, count:data.fullCount, time:(data.myRank.totalTimeMs/1000).toFixed(2), errors:data.myRank.totalErrors});
       _lastMyRank = data.myRank;
     } else {
       ownRankEl.textContent = '';
     }
+    showEndcardSpruch_(totalErrors, data);
   });
+}
+
+// ── Endcard (seit 2026-10-15) ──────────────────────────────────
+// Ergebnisabhaengiger, zufaellig gewaehlter ermutigender Spruch (10 Varianten je
+// Gruppe, DE+EN, siehe ENDCARD_SPRUECHE in i18n.js). Prioritaet: mehr als 10
+// Fehler > Top 10 % > Wiederholungsspieler (ab 2. Durchgang) > obere Haelfte >
+// untere Haelfte. Ohne Rangdaten (Bestenliste nicht geladen): Wiederholung
+// oder neutral "lower". Keine eigene Gruppe fuer "nicht geladen" (Julian).
+const LS_RUN_COUNT = 'geogame_run_count';
+function getRunCount_(){
+  try{ const n = parseInt(localStorage.getItem(LS_RUN_COUNT), 10); return isNaN(n) ? 0 : n; }catch(e){ return 0; }
+}
+function bumpRunCount_(){
+  if(typeof _usesEphemeralIdentity_ === 'function' && _usesEphemeralIdentity_()) return; // Test-/Interviewmodus
+  try{ localStorage.setItem(LS_RUN_COUNT, String(getRunCount_() + 1)); }catch(e){ /* ohne Speicher einfach kein Zaehler */ }
+}
+function showEndcardSpruch_(totalErrors, data){
+  const el = document.getElementById('results-spruch');
+  if(!el) return;
+  let group = 'lower';
+  if(totalErrors > DISQUALIFY_ERROR_THRESHOLD){
+    group = 'fail';
+  } else if(data && data.ok && data.myRank && data.fullCount){
+    const share = data.myRank.rank / data.fullCount;
+    if(share <= 0.10) group = 'top10';
+    else if(getRunCount_() >= 2) group = 'repeat';
+    else if(share <= 0.5) group = 'upper';
+    else group = 'lower';
+  } else if(getRunCount_() >= 2){
+    group = 'repeat';
+  }
+  el.textContent = pickSpruch_(group);
 }
 
 // ── "Freund herausfordern" (seit 2026-08-26) ────────────────────
@@ -1608,9 +1699,9 @@ function openShareFallbackModal_(text, url){
     'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
   // mailto: kann keine Link-Vorschaukarte zeigen (reiner Text) - Link daher
   // wenigstens klar mit Hinweistext eingerahmt statt "nackt" im Body.
-  const emailIntro = (typeof tutLang !== 'undefined' && tutLang === 'en') ? 'Play here:' : 'Hier geht’s zum Spiel:';
+  const emailIntro = t('share.emailIntro');
   document.getElementById('share-email').href =
-    'mailto:?subject=' + encodeURIComponent('SCOPE – mach mit!') +
+    'mailto:?subject=' + encodeURIComponent(t('share.emailSubject')) +
     '&body=' + encodeURIComponent(text + '\n\n👉 ' + emailIntro + ' ' + url);
 
   // Instagram/TikTok haben keine oeffentliche Web-Share-URL mit vorausgefuelltem
@@ -1628,7 +1719,7 @@ function openShareFallbackModal_(text, url){
 function copyThenOpen_(text, platformUrl, platformName){
   const done = () => {
     const hint = document.getElementById('share-copy-hint');
-    hint.textContent = `Text in die Zwischenablage kopiert – beim Einfügen in ${platformName} bereit.`;
+    hint.textContent = t('share.copied', {platform: platformName});
     hint.style.display = 'block';
     window.open(platformUrl, '_blank', 'noopener');
   };

@@ -101,9 +101,11 @@ function updateDeviceOverrideLink_(){
   const link = document.getElementById('device-override-link');
   if(!link) return;
   const override = getDeviceOverride();
-  if(override === 'touch') link.textContent = '⚙ Mobile-Ansicht erzwungen – automatische Erkennung verwenden';
-  else if(override === 'desktop') link.textContent = '⚙ Desktop-Ansicht erzwungen – automatische Erkennung verwenden';
-  else link.textContent = _activeMode === 'touch' ? 'Desktop-Version verwenden' : 'Mobile-Version verwenden';
+  // Texte zweisprachig ueber i18n.js (device.js wird vorher geladen, t() steht
+  // aber zur Aufrufzeit - DOMContentLoaded - bereits zur Verfuegung).
+  if(override === 'touch') link.textContent = t('device.forcedTouch');
+  else if(override === 'desktop') link.textContent = t('device.forcedDesktop');
+  else link.textContent = _activeMode === 'touch' ? t('device.toDesktop') : t('device.toMobile');
 }
 
 document.addEventListener('devicemodechange', updateDeviceOverrideLink_);

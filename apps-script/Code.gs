@@ -241,6 +241,11 @@ function handleLevel_(data) {
       !!data.hinweisGenutzt,
     ]);
     stampMetaColumns_(levelSheet, data);
+    // Seit 2026-10-15: war das Bild fuer diese Person schon einmal gespielt
+    // (true/false; leer bei Test-/Interviewmodus bzw. aelterem Client).
+    var seenCol = ensureColumn_(levelSheet, "bild_bereits_gesehen");
+    levelSheet.getRange(levelSheet.getLastRow(), seenCol)
+      .setValue(data.bildBereitsGesehen === true || data.bildBereitsGesehen === false ? data.bildBereitsGesehen : "");
   });
 
   var dropSheet = getOrCreateTab_("Drop_Versuche", [

@@ -20,26 +20,26 @@ const TUT_TEXTS = {
         badge:    '02 / Aufgabe',
         title:    'Wie funktioniert das Spiel?',
         subtitle: 'Deine Aufgabe',
-        body:     'Ziehe die angezeigten Labels auf die passenden Stellen im Satellitenbild. Falls ein Objekt im Bild nicht vorhanden ist, lege es in den Papierkorb. Arbeite dabei so genau wie möglich.',
+        body:     'Ziehe die angezeigten Kategorien auf die passenden Stellen im Satellitenbild. Falls eine Kategorie im Bild nicht vorkommt, lege sie in den Papierkorb. Arbeite dabei so genau wie möglich.',
         note:     null,
       },
       {
         badge:    '03 / Messung',
         title:    'Was wird gemessen?',
         subtitle: 'Bearbeitungszeit & Datenschutz',
-        body:     'Während der Bearbeitung werden Zeit und Fehlversuche gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen. Am Ende siehst du deine Zeit im Vergleich zu anderen sowie eine Bestenliste – dort zählt nicht nur Geschwindigkeit, sondern auch Genauigkeit: Durchläufe mit mehr als 10 Fehlern erscheinen nicht in der Bestenliste.',
-        note:     'Die Teilnahme erfolgt anonym: Vor dem ersten Spielen werden einmalig ein paar demografische Angaben erhoben (z. B. Alter, Bildungsabschluss), die sich nicht auf Ihre Identität zurückführen lassen. Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen wissenschaftlichen Zwecken; Gesamtzeit und Alias werden zusätzlich in der Bestenliste für andere Teilnehmende sichtbar.',
+        body:     'Während der Bearbeitung werden Zeit und Fehlversuche gemessen. Bitte bearbeite die Aufgaben ganz natürlich – versuche weder besonders schnell noch absichtlich langsam zu arbeiten. Uns interessiert, wie Menschen solche Aufgaben unter normalen Bedingungen lösen. Am Ende siehst du deine Zeit im Vergleich zu anderen sowie eine Bestenliste – dort zählt nicht nur Geschwindigkeit, sondern auch Genauigkeit: Durchläufe mit mehr als 10 Fehlern erscheinen nicht in der Bestenliste. Ein Durchgang dauert etwa 5 bis 10 Minuten.',
+        note:     'Die Teilnahme ist pseudonym: Vor dem ersten Spielen werden einmalig ein paar Angaben zu dir erhoben (z. B. Alter, Bildungsabschluss). Namen, Adressen oder E-Mail-Adressen werden nicht erfasst. Die Daten dienen wissenschaftlichen Zwecken; deine Gesamtzeit und dein Alias sind zusätzlich in der Bestenliste für andere Teilnehmende sichtbar.',
       },
     ],
     overlay: [
       {
-        title:  'Die Labels',
-        body:   'Hier findest du alle Objekte, die du auf dem Bild markieren sollst. Ziehe ein Label mit gedrückter Maustaste auf den entsprechenden Bereich im Bild.',
+        title:  'Die Kategorien',
+        body:   'Hier findest du alle Kategorien, die du auf dem Bild markieren sollst. Ziehe eine Kategorie mit gedrückter Maustaste auf den entsprechenden Bereich im Bild.',
         target: 'labels',
       },
       {
         title:  'Nicht vorhanden – der Papierkorb',
-        body:   'Ist ein Objekt auf dem Bild nicht sichtbar, ziehe das Label in den Papierkorb rechts unten.',
+        body:   'Kommt eine Kategorie auf dem Bild nicht vor, ziehe sie in den Papierkorb rechts unten.',
         target: 'trash',
       },
       {
@@ -49,40 +49,45 @@ const TUT_TEXTS = {
       },
       {
         title:  'Die Nadel',
-        body:   'Wenn du ein Label aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an – platziere sie präzise im richtigen Bereich.',
+        body:   'Wenn du eine Kategorie aufgenommen hast, erscheint eine Nadel unter dem Cursor. Die Spitze der Nadel zeigt den exakten Ablageort an – platziere sie präzise im richtigen Bereich.',
         target: 'pin',
       },
     ],
     practiceTitle:   'Jetzt bist du dran!',
-    practiceBody:    'Markiere das Wasser auf dem Bild. Ziehe das Label "Wasser" auf einen See oder Fluss.',
-    practiceWrong:   'Versuche es mit dem Label "Wasser".',
+    practiceBody:    'Markiere das Wasser auf dem Bild. Ziehe die Kategorie "Wasser" auf einen See oder Fluss.',
+    practiceWrong:   'Versuche es mit der Kategorie "Wasser".',
     practiceSuccess: 'Sehr gut! Du hast die Spielmechanik verstanden.',
     practiceBtn:     'Weiter zum Experiment',
     nextBtn:         'Weiter',
     skipBtn:         'Tutorial überspringen',
     practiceHint:    'ÜBUNGSRUNDE – Zeit läuft nicht',
-    consentTitle:    'Bevor Sie teilnehmen',
-    consentBody:     'Diese Studie wird im Rahmen einer Promotion an der Pädagogischen Hochschule Heidelberg (Research Group for Earth Observation, rgeo) durchgeführt. Die Teilnahme ist freiwillig und kann jederzeit ohne Angabe von Gründen und ohne Nachteile abgebrochen werden.',
-    consentBody2:    'Erhoben werden: Ihre Angaben aus dem folgenden kurzen Fragebogen (nur beim ersten Spielen), Ihre Interaktionen während des Spiels (u. a. abgelegte Objekte, Zeiten, Fehlversuche) sowie technische Geräte-/Browserdaten. Es werden keine Namen, Adressen, E-Mail-Adressen, IP-Adressen oder Standortdaten erfasst; ein zufällig erzeugter, nicht auf Sie zurückführbarer Kennwert dient lediglich dazu, Ihre Angaben über mehrere Durchläufe hinweg derselben Person zuzuordnen. Zusätzlich werden Ihre Gesamtzeit sowie ein Alias (ersatzweise der genannte anonyme Kennwert) am Ende des Spiels in einer Bestenliste angezeigt, die für andere Teilnehmende sichtbar ist – der Alias wird aus vorgegebenen, unbedenklichen Wortbausteinen zusammengestellt (keine freie Texteingabe) und lässt daher keine Rückschlüsse auf Ihre Identität zu. Alle übrigen Angaben werden ausschließlich in einer Google-Tabelle gespeichert, die nur der Studienleitung zugänglich ist (Details siehe Datenschutzerklärung).',
-    consentCheckbox: 'Ich habe die Hinweise gelesen und stimme der Verarbeitung meiner Angaben wie beschrieben zu.',
+    consentTitle:    'Bevor du mitmachst',
+    consentBody:     'SCOPE ist Teil einer wissenschaftlichen Studie der Pädagogischen Hochschule Heidelberg (Institut für Geographie und Geokommunikation, Research Group for Earth Observation). Deine Teilnahme ist freiwillig. Du kannst jederzeit aufhören, ohne dass dir daraus Nachteile entstehen.',
+    consentBody2:    'Erhoben werden: deine Angaben aus dem kurzen Fragebogen (nur beim ersten Spielen), deine Aktionen im Spiel (z. B. abgelegte Kategorien, Zeiten, Fehlversuche), deine Antworten nach dem Spiel und technische Geräte- und Browserdaten (z. B. Bildschirmgröße, Sprache, Zeitzone, Eingabeart). Dazu kommt ein zufällig erzeugter Code, der deine Durchgänge miteinander verbindet. Namen, Adressen, E-Mail-Adressen und Standortdaten werden nicht erhoben. Am Ende des Spiels sind deine Gesamtzeit und dein Spielname (Alias) für andere in einer Bestenliste sichtbar. Der Alias besteht aus vorgegebenen Wortbausteinen und sagt nichts über dich aus.',
+    consentBody3:    'Du kannst bis zum 31.12.2029 formlos per E-Mail an stolz@ph-heidelberg.de verlangen, dass deine Daten gelöscht werden. Nenne dabei deinen Alias oder den ungefähren Spielzeitpunkt. Danach werden die Daten anonymisiert und zehn Jahre aufbewahrt, ab dann können sie nicht mehr gelöscht werden. In gekürzter, anonymer Form können sie anderen Forschenden zur Verfügung gestellt werden.',
+    consentBody4:    'Bist du jünger als 16? Dann lies diesen Text bitte zusammen mit deinen Eltern oder Erziehungsberechtigten. Sie müssen einverstanden sein, bevor du mitmachst.',
+    consentMore:     'Weitere Informationen findest du in der {link}.',
+    consentLinkText: 'Datenschutzerklärung',
+    consentCheckbox: 'Ich bin mindestens 16 Jahre alt – oder meine Erziehungsberechtigten haben diese Erklärung gelesen und sind mit meiner Teilnahme einverstanden.',
     consentContinue: 'Weiter',
-    formTitle:       'Ein paar Angaben zu Ihnen',
+    formTitle:       'Ein paar Angaben zu dir',
     formIntro:       'Diese Angaben helfen bei der Auswertung der Studie. Sie erscheinen nur beim allerersten Spielen – bei erneutem Spielen auf diesem Gerät werden sie nicht noch einmal abgefragt.',
     formAlter:       'Alter',
     formBildung:     'Höchster Bildungs-/akademischer Abschluss',
     formStudienfach: 'Studienfach (falls zutreffend)',
     formGis:         'Vorerfahrung mit Kartenlesen / GIS / Fernerkundung',
     formGeschlecht:  'Geschlecht',
-    formGeraet:      'Womit nehmen Sie teil?',
+    formGeraet:      'Womit spielst du?',
     formOptionLeer:  'Keine Angabe',
     formContinue:    'Weiter',
-    formRequiredHint: 'Bitte füllen Sie alle mit * markierten Pflichtfelder aus.',
+    formRequiredHint: 'Bitte fülle alle mit * markierten Pflichtfelder aus.',
     formBildungOptions: ['Kein Schulabschluss','Hauptschulabschluss','Realschulabschluss','Abitur/Fachabitur','Berufsausbildung','Bachelor','Master/Diplom/Magister','Promotion'],
     formGisOptions: ['Keine Erfahrung','Grundkenntnisse','Fortgeschritten','Experte'],
     formGeschlechtOptions: ['Männlich','Weiblich','Divers'],
     formGeraetOptions: ['Computer/Laptop','Tablet','Handy'],
     aliasPickerTitle:    'Wähle deinen Spielnamen',
     aliasPickerIntro:    'Stelle deinen Alias für die Bestenliste aus drei Wörtern zusammen – scrolle jedes Rad, bis dir eine Kombination gefällt.',
+    aliasPickerHint:     'Notiere dir deinen Spielnamen. Wenn du später möchtest, dass deine Daten gelöscht werden, brauchen wir ihn.',
     aliasPickerContinue: 'Fertig',
   },
   en: {
@@ -98,51 +103,55 @@ const TUT_TEXTS = {
         badge:    '02 / Task',
         title:    'How does the game work?',
         subtitle: 'Your Task',
-        body:     'Drag the displayed labels onto the matching areas in the satellite image. If an object is not present in the image, drop it into the bin. Please work as accurately as possible.',
+        body:     'Drag the displayed categories onto the matching areas in the satellite image. If a category does not appear in the image, drop it into the bin. Please work as accurately as possible.',
         note:     null,
       },
       {
         badge:    '03 / Measurement',
         title:    'What is being measured?',
         subtitle: 'Processing Time & Privacy',
-        body:     'Your time and mistakes are recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions. At the end you\'ll see your time compared to others and a leaderboard – accuracy counts there too, not just speed: runs with more than 10 mistakes don\'t appear in the leaderboard.',
-        note:     'Participation is anonymous: before your first play, a few demographic details are collected once (e.g. age, educational background) that cannot be traced back to your identity. No names, addresses, or e-mail addresses are collected. Data is used for scientific purposes; total time and alias are additionally shown to other participants in the leaderboard.',
+        body:     'Your time and mistakes are recorded during the task. Please work naturally – do not try to work especially fast or deliberately slow. We are interested in how people solve such tasks under normal conditions. At the end you\'ll see your time compared to others and a leaderboard – accuracy counts there too, not just speed: runs with more than 10 mistakes don\'t appear in the leaderboard. A run takes about 5 to 10 minutes.',
+        note:     'Participation is pseudonymous: before your first play, a few details about you are collected once (e.g. age, educational background). No names, addresses or e-mail addresses are collected. The data is used for scientific purposes; your total time and alias are also visible to other participants in the leaderboard.',
       },
     ],
     overlay: [
       {
-        title:  'The Labels',
-        body:   'Here you find all objects you need to identify in the image. Drag a label with the mouse button held down onto the corresponding area in the image.',
+        title:  'The Categories',
+        body:   'Here you find all categories you need to mark in the image. Drag a category with the mouse button held down onto the corresponding area in the image.',
         target: 'labels',
       },
       {
         title:  'Not Present – the Bin',
-        body:   'If an object is not visible in the image, drag its label into the bin in the bottom right.',
+        body:   'If a category does not appear in the image, drag it into the bin in the bottom right.',
         target: 'trash',
       },
       {
         title:  'The Magnifier',
-        body:   'As you move your mouse over the image, a magnifying glass appears. It shows the area under the cursor enlarged and helps you place labels accurately.',
+        body:   'As you move your mouse over the image, a magnifying glass appears. It shows the area under the cursor enlarged and helps you place categories accurately.',
         target: 'loupe',
       },
       {
         title:  'The Pin',
-        body:   'When you pick up a label, a pin appears under the cursor. The tip of the pin shows the exact drop location – place it precisely in the correct area.',
+        body:   'When you pick up a category, a pin appears under the cursor. The tip of the pin shows the exact drop location – place it precisely in the correct area.',
         target: 'pin',
       },
     ],
     practiceTitle:   'Your turn!',
-    practiceBody:    'Mark the water in the image. Drag the label "Wasser" onto a lake or river.',
-    practiceWrong:   'Try the label "Wasser".',
+    practiceBody:    'Mark the water in the image. Drag the category "Water" onto a lake or river.',
+    practiceWrong:   'Try the category "Water".',
     practiceSuccess: 'Well done! You have understood the game mechanics.',
     practiceBtn:     'Continue to Experiment',
     nextBtn:         'Next',
     skipBtn:         'Skip tutorial',
     practiceHint:    'PRACTICE ROUND – Timer not running',
-    consentTitle:    'Before you participate',
-    consentBody:     'This study is conducted as part of a doctoral thesis at Heidelberg University of Education (Research Group for Earth Observation, rgeo). Participation is voluntary and can be discontinued at any time without giving reasons and without any disadvantages.',
-    consentBody2:    'The following is collected: your answers from the short questionnaire below (only the first time you play), your interactions during the game (e.g. objects placed, timings, incorrect attempts), and technical device/browser data. No names, addresses, e-mail addresses, IP addresses or location data are collected; a randomly generated identifier that cannot be traced back to you is used only to link your data across multiple play sessions. Your total time and an alias (or, failing that, the anonymous identifier mentioned above) will additionally be shown in a leaderboard visible to other participants at the end of the game – the alias is assembled from a set of pre-vetted word building blocks (no free-text entry), so it does not allow conclusions about your identity. All other data is stored exclusively in a Google spreadsheet accessible only to the study lead (see privacy policy for details).',
-    consentCheckbox: 'I have read the information above and agree to the processing of my data as described.',
+    consentTitle:    'Before you take part',
+    consentBody:     'SCOPE is part of a scientific study by Heidelberg University of Education (Pädagogische Hochschule Heidelberg, Institute of Geography and Geocommunication, Research Group for Earth Observation). Taking part is voluntary. You can stop at any time without any disadvantage.',
+    consentBody2:    'The following is collected: your answers from the short questionnaire (only the first time you play), your actions in the game (e.g. categories placed, times, incorrect attempts), your answers after the game and technical device and browser data (e.g. screen size, language, time zone, input type). In addition there is a randomly generated code that links your runs together. Names, addresses, e-mail addresses and location data are not collected. At the end of the game your total time and your player name (alias) are visible to others in a leaderboard. The alias consists of predefined word building blocks and says nothing about you.',
+    consentBody3:    'Until 31 December 2029 you can request, informally by e-mail to stolz@ph-heidelberg.de, that your data be deleted. Please state your alias or the approximate time you played. After that the data is anonymised and kept for ten years, and from then on it can no longer be deleted. In a shortened, anonymous form it may be made available to other researchers.',
+    consentBody4:    'Are you under 16? Then please read this text together with your parents or legal guardians. They must agree before you take part.',
+    consentMore:     'You can find more information in the {link}.',
+    consentLinkText: 'privacy policy',
+    consentCheckbox: 'I am at least 16 years old – or my parents/legal guardians have read this statement and agree to my participation.',
     consentContinue: 'Continue',
     formTitle:       'A few questions about you',
     formIntro:       'These details help with the analysis of the study. They only appear the very first time you play – on repeat plays on this device you will not be asked again.',
@@ -151,7 +160,7 @@ const TUT_TEXTS = {
     formStudienfach: 'Field of study (if applicable)',
     formGis:         'Prior experience with map reading / GIS / remote sensing',
     formGeschlecht:  'Gender',
-    formGeraet:      'What are you using to participate?',
+    formGeraet:      'What are you using to play?',
     formOptionLeer:  'Prefer not to say',
     formContinue:    'Continue',
     formRequiredHint: 'Please fill in all fields marked with * (required).',
@@ -161,6 +170,7 @@ const TUT_TEXTS = {
     formGeraetOptions: ['Computer/Laptop','Tablet','Phone'],
     aliasPickerTitle:    'Choose your player name',
     aliasPickerIntro:    'Put together your leaderboard alias from three words – scroll each wheel until you like the combination.',
+    aliasPickerHint:     'Make a note of your player name. If you later want your data deleted, we will need it.',
     aliasPickerContinue: 'Done',
   },
 };
@@ -194,8 +204,16 @@ function showLangScreen() {
   }
 }
 
+// DE/EN-Umschalter im Footer des Startbildschirms (seit 2026-10-15): setzt die
+// Sprache sofort fuer Startbildschirm, Rechtstexte und alles Folgende.
+function toggleStartLang_() {
+  tutLang = (tutLang === 'de') ? 'en' : 'de';
+  applyI18n();
+}
+
 function selectLang(lang) {
   tutLang = lang;
+  applyI18n();
   const el = document.getElementById('lang-screen');
   if (el) {
     el.style.opacity = '0';
@@ -266,8 +284,10 @@ function showConsentScreen() {
     '<div class="tut-info-panel">' +
       '<h2>' + texts.consentTitle + '</h2>' +
       '<p>' + texts.consentBody + '</p>' +
-      '<p>' + texts.consentBody2 + ' <a href="#" id="consent-datenschutz-link" onclick="openLegalModal(\'datenschutz\');return false;">' +
-        (tutLang === 'de' ? 'Datenschutzerklärung' : 'privacy policy') + '</a></p>' +
+      '<p>' + texts.consentBody2 + '</p>' +
+      '<p>' + texts.consentBody3 + '</p>' +
+      '<p>' + texts.consentBody4 + '</p>' +
+      '<p>' + texts.consentMore.replace('{link}', '<a href="#" id="consent-datenschutz-link" onclick="openLegalModal(\'datenschutz\');return false;">' + texts.consentLinkText + '</a>') + '</p>' +
       '<label class="tut-consent-label">' +
         '<input type="checkbox" id="tut-consent-checkbox" onchange="onConsentCheckboxChange()">' +
         ' ' + texts.consentCheckbox +
@@ -495,6 +515,7 @@ function showAliasPickerScreen() {
       '<div class="tut-info-panel alias-picker">' +
         '<h2>' + texts.aliasPickerTitle + '</h2>' +
         '<p>' + texts.aliasPickerIntro + '</p>' +
+        '<p class="alias-hint">' + texts.aliasPickerHint + '</p>' +
         '<div class="alias-preview" id="alias-preview"></div>' +
         '<div class="alias-wheel-row">' +
           '<div class="alias-wheel-highlight"></div>' +
