@@ -335,8 +335,14 @@ table{border-collapse:collapse;min-width:480px;
 td,th{padding:11px 20px;border-bottom:1px solid var(--line);font-size:13px}
 th{color:var(--muted);font-family:var(--font-ui);font-size:10px;
   letter-spacing:.12em;text-align:left;background:#eef1f4;}
-tr:last-child td{font-weight:700;color:#0a3f70;
+/* Nur die GESAMT-Zeile der eigenen Ergebnisse (letzte Zeile) ist fett. Vorher galt
+   die Regel fuer jede Tabelle und markierte in der Bestenliste faelschlich immer
+   die letzte Zeile (Julians Testfund, 2026-10-19). */
+#results-body tr:last-child td{font-weight:700;color:#0a3f70;
   background:#f4f5f7;}
+/* Eigene Eintraege in der Bestenliste */
+#leaderboard-body tr.lb-mine td,#leaderboard-full-body tr.lb-mine td{
+  font-weight:700;color:#0a3f70;background:rgba(253,195,0,0.28);}
 tr:hover td{background:rgba(12,164,209,0.06);}
 .results-row{cursor:pointer}
 .results-row:hover td{background:rgba(253,195,0,0.12);color:#0a3f70;}
@@ -377,8 +383,9 @@ tr:hover td{background:rgba(12,164,209,0.06);}
 #leaderboard-full-table td,#leaderboard-full-table th{padding:8px 14px;}
 .table-scroll th.num,.table-scroll td.num,
 #leaderboard-full-table th.num,#leaderboard-full-table td.num{text-align:right;font-variant-numeric:tabular-nums;}
-.table-scroll tbody tr:nth-child(even):not(:last-child) td,
-#leaderboard-full-table tbody tr:nth-child(even):not(:last-child) td{background:rgba(10,63,112,0.035);}
+#results-body tr:nth-child(even):not(:last-child) td,
+#leaderboard-body tr:nth-child(even):not(.lb-mine) td,
+#leaderboard-full-body tr:nth-child(even):not(.lb-mine) td{background:rgba(10,63,112,0.035);}
 .table-scroll tbody tr:hover td{background:rgba(12,164,209,0.08);}
 .table-scroll tbody tr.results-row:hover td{background:rgba(253,195,0,0.14);color:#0a3f70;}
 
@@ -707,13 +714,31 @@ html:not([data-tier="phone"]) #sidebar-right .label-chip {
   box-sizing: border-box;
   overflow-wrap: break-word;
 }
-/* Papierkorb, dann Hinweis-Button (DOM-Reihenfolge hat sie umgekehrt). */
+/* Papierkorb, dann Hinweis-Button (DOM-Reihenfolge hat sie umgekehrt).
+   Seit 2026-10-19 (Julian): Papierkorb gleich gross wie die vier Kategorie-
+   Buttons. Die Hoehe teilen sich #label-bar (Gewicht 4) und #trash (Gewicht 1):
+   #label-bar hat als Basis die feste Titelhoehe (14px) plus 4 Abstaende zu je
+   10px = 54px, dazu 16px Ausgleich: #trash hat wegen border-box mindestens
+   4px (2 x 2px Rahmen) als eigene Basisgroesse, was sonst jedes Kategorie-
+   Feld 4px kleiner machen wuerde (Basisdifferenz 4px x Gewicht 4 = 16px). */
+html:not([data-tier="phone"]) #sidebar-right #label-bar {
+  flex: 4 1 70px;
+}
+html:not([data-tier="phone"]) #sidebar-right #label-bar-title {
+  height: 14px;
+  line-height: 14px;
+}
 html:not([data-tier="phone"]) #sidebar-right #trash {
   order: 9;
   width: 100%;
-  min-height: 76px;
+  flex: 1 1 0;
+  min-height: 48px;
   box-sizing: border-box;
-  flex-shrink: 0;
+}
+html:not([data-tier="phone"]) #sidebar-right #trash > div:nth-child(2) {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a3f70;
 }
 html:not([data-tier="phone"]) #sidebar-right #btn-hint {
   order: 10;

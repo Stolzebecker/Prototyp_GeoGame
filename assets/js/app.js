@@ -557,7 +557,9 @@ function isTypingTarget_(target){
 }
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='d'||e.key==='D') toggleDebug();
+  // Nicht beim Tippen in Textfeldern (z. B. "Wo warst du?"): sonst oeffnet jedes
+  // "d" im Hintergrund den Debug-Modus (Julians Testfund, 2026-10-19).
+  if((e.key==='d'||e.key==='D') && !isTypingTarget_(e.target)) toggleDebug();
   if((e.key==='t'||e.key==='T') && !isTypingTarget_(e.target)) toggleTestMode();
 });
 
@@ -1753,8 +1755,14 @@ function closeShareFallbackModal(){
 function renderLeaderboardRows_(tbodyId, rows){
   const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = '';
+  // Eigene Eintraege hervorheben: bevorzugt ueber das Server-Flag "mine"
+  // (participant_id); ein noch nicht aktualisiertes Backend liefert es nicht,
+  // dann hilfsweise ueber den eigenen Alias.
+  const myAlias = (typeof getAlias === 'function') ? getAlias() : null;
   rows.forEach(r=>{
     const tr = document.createElement('tr');
+    const mine = (r.mine !== undefined) ? r.mine : (!!myAlias && r.alias === myAlias);
+    if(mine) tr.className = 'lb-mine';
     tr.innerHTML = `<td class="num">${r.rank}</td><td>${escapeHtml_(r.alias)}</td><td class="num">${(r.totalTimeMs/1000).toFixed(2)}</td><td class="num">${r.totalErrors}</td>`;
     tbody.appendChild(tr);
   });

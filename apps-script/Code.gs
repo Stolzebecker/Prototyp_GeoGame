@@ -394,21 +394,21 @@ function handleLeaderboardRead_(e) {
   // project_paper1_pivot_no_tierlist.
   var qualifying = rows.filter(function (r) { return !r.disqualifiziert && !r.interview_modus; });
 
-  // Bester (schnellster) Lauf je participant_id - NICHT je Alias, da Aliase
-  // nicht eindeutig sein muessen (siehe Memory project_geogame_leaderboard).
-  var bestByParticipant = {};
-  qualifying.forEach(function (r) {
-    var pid = r.participant_id;
-    if (!bestByParticipant[pid] || r.total_time_ms < bestByParticipant[pid].total_time_ms) {
-      bestByParticipant[pid] = r;
-    }
+  // Seit 2026-10-19 (Julian): ALLE qualifizierenden Durchlaeufe stehen in der
+  // Bestenliste, auch mehrere derselben Person - vorher nur der beste Lauf je
+  // participant_id. "mine" markiert die Eintraege der anfragenden Person
+  // (participantId-Parameter), damit der Client sie hervorheben kann, ohne
+  // sich auf den (nicht eindeutigen) Alias zu verlassen.
+  var requesterId = e.parameter.participantId || "";
+  var sorted = qualifying.slice().sort(function (a, b) {
+    return a.total_time_ms - b.total_time_ms;
   });
-  var sorted = Object.keys(bestByParticipant)
-    .map(function (pid) { return bestByParticipant[pid]; })
-    .sort(function (a, b) { return a.total_time_ms - b.total_time_ms; });
 
   function toEntry(r, i) {
-    return { rank: i + 1, alias: r.alias, totalTimeMs: r.total_time_ms, totalErrors: r.total_errors };
+    return {
+      rank: i + 1, alias: r.alias, totalTimeMs: r.total_time_ms, totalErrors: r.total_errors,
+      mine: !!requesterId && r.participant_id === requesterId,
+    };
   }
 
   var result = { ok: true, top10: sorted.slice(0, 10).map(toEntry), fullCount: sorted.length };
@@ -424,7 +424,7 @@ function handleLeaderboardRead_(e) {
       return r.participant_id === participantId && Number(r.lauf_id) === run.laufId;
     })[0];
     if (myRow) {
-      var idx = sorted.indexOf(bestByParticipant[participantId]);
+      var idx = sorted.indexOf(myRow); // Platz des soeben gespielten Durchlaufs
       result.myRank = { rank: idx + 1, alias: myRow.alias, totalTimeMs: myRow.total_time_ms, totalErrors: myRow.total_errors };
     } else {
       result.myRank = null; // nicht in der Bestenliste (disqualifiziert oder noch nicht abgeschickt)

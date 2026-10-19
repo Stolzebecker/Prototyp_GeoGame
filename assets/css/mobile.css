@@ -805,13 +805,30 @@ html[data-tier="phone"] #sidebar-right .label-chip {
   overflow-wrap: break-word;
   word-break: break-word;
 }
+/* Papierkorb so hoch wie eine Chip-Reihe (Julian, 2026-10-19): #label-bar
+   (Titel 12px + 2 Reihen, 2 Abstaende je 5px = Basis 22px, Gewicht 2) und
+   #trash (Gewicht 1) teilen sich die Resthoehe, dadurch ist jede der drei
+   Reihen (2 Chip-Reihen + Papierkorb) gleich hoch. Basis 38px = 22px + 16px
+   Ausgleich fuer die Mindest-Basisgroesse des Papierkorbs (Rahmen 2x2px +
+   Innenabstand 2x2px = 8px, mal Gewicht 2). */
+html[data-tier="phone"] #sidebar-right #label-bar {
+  flex: 2 1 38px;
+}
+html[data-tier="phone"] #sidebar-right #label-bar-title {
+  height: 12px;
+  line-height: 12px;
+}
 html[data-tier="phone"] #sidebar-right #trash {
-  margin-top: auto;
+  margin-top: 0;
+  flex: 1 1 0;
   width: 100%;
   box-sizing: border-box;
-  min-height: 44px;
+  min-height: 40px;
   gap: 1px;
   padding: 2px;
+}
+html[data-tier="phone"] #sidebar-right #trash #trash-count {
+  min-height: 0;
 }
 html[data-tier="phone"] #sidebar-right #trash > div:first-child {
   font-size: 15px;
