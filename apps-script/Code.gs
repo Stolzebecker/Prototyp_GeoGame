@@ -143,9 +143,12 @@ function getOrCreateTab_(name, header) {
 function stampMetaColumns_(sheet, data) {
   var versionCol = ensureColumn_(sheet, "app_version");
   var interviewCol = ensureColumn_(sheet, "interview_modus");
+  var klasseCol = ensureColumn_(sheet, "klasse");
   var row = sheet.getLastRow();
   sheet.getRange(row, versionCol).setValue(data.appVersion || "");
   sheet.getRange(row, interviewCol).setValue(!!data.interviewModus);
+  // Klassenbezeichnung aus dem Klassenmodus (seit 2026-10-19), leer ausserhalb
+  sheet.getRange(row, klasseCol).setValue(data.klasse || "");
 }
 
 // ── Personendaten (einmalig pro participant_id) ────────────────────────────

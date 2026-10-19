@@ -107,6 +107,58 @@ function showTestModeBanner_(){
     cbLabel.appendChild(document.createTextNode('Interviewmodus'));
     _testModeBannerEl.appendChild(cbLabel);
 
+    // Klassenmodus (seit 2026-10-19): zweite Checkbox direkt unter dem
+    // Interviewmodus. Anhaken blendet ein Freifeld fuer die Klassenbezeichnung
+    // samt OK-Knopf ein; erst mit einer nicht-leeren Bezeichnung und OK wird
+    // der Klassenmodus aktiv (und der Testmodus ausgeschaltet), damit nie
+    // Daten ohne Kennung fliessen. Siehe activateClassMode_().
+    const classLabelEl = document.createElement('label');
+    Object.assign(classLabelEl.style, {
+      display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '400',
+      letterSpacing: 'normal', textTransform: 'none', cursor: 'pointer',
+      pointerEvents: 'auto', padding: '12px 4px', margin: '-6px -4px', minHeight: '20px',
+    });
+    const classCb = document.createElement('input');
+    classCb.type = 'checkbox';
+    Object.assign(classCb.style, { width: '20px', height: '20px', margin: '0', flexShrink: '0' });
+    classLabelEl.appendChild(classCb);
+    classLabelEl.appendChild(document.createTextNode('Klassenmodus'));
+    _testModeBannerEl.appendChild(classLabelEl);
+
+    const classRow = document.createElement('div');
+    Object.assign(classRow.style, {
+      display: 'none', gap: '6px', alignItems: 'stretch', pointerEvents: 'auto', marginTop: '4px',
+    });
+    const classInput = document.createElement('input');
+    classInput.type = 'text';
+    classInput.maxLength = 40;
+    classInput.placeholder = 'Klassenbezeichnung';
+    classInput.autocomplete = 'off';
+    Object.assign(classInput.style, {
+      width: '150px', minHeight: '36px', padding: '4px 8px', fontSize: '16px',
+      border: '1px solid #fff', borderRadius: '4px', boxSizing: 'border-box',
+    });
+    const classOk = document.createElement('button');
+    classOk.type = 'button';
+    classOk.textContent = 'OK';
+    Object.assign(classOk.style, {
+      minWidth: '44px', minHeight: '36px', border: 'none', borderRadius: '4px',
+      background: '#fdc300', color: '#0a3f70', fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+    });
+    const confirmClass = () => {
+      const v = classInput.value.trim();
+      if(v) activateClassMode_(v);
+    };
+    classOk.addEventListener('click', confirmClass);
+    classInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); confirmClass(); } });
+    classRow.appendChild(classInput);
+    classRow.appendChild(classOk);
+    _testModeBannerEl.appendChild(classRow);
+    classCb.addEventListener('change', () => {
+      classRow.style.display = classCb.checked ? 'flex' : 'none';
+      if(classCb.checked) classInput.focus();
+    });
+
     document.body.appendChild(_testModeBannerEl);
   }
   _testModeBannerEl.style.display = 'flex';
@@ -130,6 +182,7 @@ function isInterviewModeActive(){
 
 function activateInterviewMode_(){
   if(_testModeActive) deactivateTestMode_();
+  endClassMode_();   // Interview- und Klassenmodus schliessen sich aus
   _interviewModeActive = true;
   _testParticipantId = 'int_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
   _testAlias = null;
@@ -153,6 +206,85 @@ function showInterviewModeBanner_(){
   _interviewModeBannerEl.style.display = 'block';
 }
 
+// ── Klassenmodus (seit 2026-10-19) ─────────────────────────────
+// Fuer betreute Schulrunden: jede Uebertragung traegt eine frei eingegebene
+// Klassenbezeichnung (Spalte `klasse` ueber stampMetaColumns_ in jedem Tab), so
+// lassen sich zusammengehoerige Personen spaeter identifizieren. Anders als der
+// Interviewmodus bleibt die Identitaet NORMAL (Einwilligung, Formular, Alias,
+// Profil, "Wer spielt?"): die Bezeichnung ist ein Merkmal des Durchgangs, nicht
+// der Person. Aktivierung nur ueber die Testmodus-Checkbox. Die Bezeichnung
+// liegt im sessionStorage, damit sie ein Neuladen ("Nochmal spielen", "Andere
+// Person spielt") im selben Tab uebersteht, aber mit dem Tab endet; der Banner
+// hat ein "x" zum Beenden. Klassenlaeufe stehen auch in der Bestenliste.
+// Schliesst sich mit Interview- und Testmodus aus.
+const SS_CLASS_LABEL = "geogame_class_label";
+let _classLabel = null;          // null = Klassenmodus aus
+let _classModeBannerEl = null;
+
+function isClassModeActive(){
+  return _classLabel !== null;
+}
+
+function activateClassMode_(label){
+  const clean = String(label || '').trim().slice(0, 40);
+  if(!clean) return;
+  if(_testModeActive) deactivateTestMode_();   // sonst wuerde nichts uebertragen
+  _interviewModeActive = false;
+  if(_interviewModeBannerEl) _interviewModeBannerEl.style.display = 'none';
+  _classLabel = clean;
+  try{ sessionStorage.setItem(SS_CLASS_LABEL, clean); }catch(e){ /* ohne sessionStorage nur bis zum Neuladen */ }
+  showClassModeBanner_();
+}
+
+function endClassMode_(){
+  if(_classLabel === null) return;
+  _classLabel = null;
+  try{ sessionStorage.removeItem(SS_CLASS_LABEL); }catch(e){}
+  if(_classModeBannerEl) _classModeBannerEl.style.display = 'none';
+}
+
+function showClassModeBanner_(){
+  hideTestModeBanner_();
+  if(!_classModeBannerEl){
+    _classModeBannerEl = document.createElement('div');
+    Object.assign(_classModeBannerEl.style, {
+      position: 'fixed', top: '8px', right: '8px', zIndex: 99999,
+      background: '#fdc300', color: '#0a3f70', fontFamily: "'Segoe UI', sans-serif",
+      fontWeight: '700', fontSize: '11px', letterSpacing: '.08em',
+      padding: '4px 4px 4px 10px', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      display: 'flex', alignItems: 'center', gap: '6px', maxWidth: '60vw',
+    });
+    const text = document.createElement('span');
+    text.className = 'class-mode-text';
+    Object.assign(text.style, { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' });
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.textContent = '×';
+    x.title = 'Klassenmodus beenden';
+    x.setAttribute('aria-label', 'Klassenmodus beenden');
+    Object.assign(x.style, {
+      minWidth: '36px', minHeight: '36px', border: 'none', borderRadius: '4px',
+      background: 'rgba(10,63,112,.12)', color: '#0a3f70', fontSize: '20px', lineHeight: '1', cursor: 'pointer',
+    });
+    x.addEventListener('click', endClassMode_);
+    _classModeBannerEl.appendChild(text);
+    _classModeBannerEl.appendChild(x);
+    document.body.appendChild(_classModeBannerEl);
+  }
+  _classModeBannerEl.querySelector('.class-mode-text').textContent = 'KLASSENMODUS: ' + _classLabel;
+  _classModeBannerEl.style.display = 'flex';
+}
+
+// Nach dem Neuladen im selben Tab wiederherstellen
+(function restoreClassMode_(){
+  let saved = null;
+  try{ saved = sessionStorage.getItem(SS_CLASS_LABEL); }catch(e){}
+  if(!saved) return;
+  _classLabel = saved;
+  if(document.body) showClassModeBanner_();
+  else document.addEventListener('DOMContentLoaded', showClassModeBanner_);
+})();
+
 // Deaktivierungslogik als eigene Funktion (statt wie zuvor inline in
 // toggleTestMode()) - activateInterviewMode_() oben muss den Testmodus
 // ebenfalls deaktivieren koennen, sonst wuerde weiterhin jede Uebertragung
@@ -168,6 +300,7 @@ function deactivateTestMode_(){
 // Touch-Geste, oder URL-Parameter fuer automatisierte Verifikation).
 function activateTestModeWithPassword_(input){
   if(input !== TEST_MODE_PASSWORD) return false;
+  endClassMode_();   // Testen beendet einen laufenden Klassenmodus (sauberer Zustand)
   _testModeActive = true;
   _testParticipantId = 'test_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
   showTestModeBanner_();
@@ -380,6 +513,7 @@ function sendToBackend_(payload){
   payload.timestampClient = new Date().toISOString();
   payload.appVersion = APP_VERSION;
   payload.interviewModus = _interviewModeActive;
+  payload.klasse = _classLabel || '';
   fetch(SUBMIT_URL, {
     method: 'POST',
     mode: 'no-cors',
