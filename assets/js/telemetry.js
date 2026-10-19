@@ -39,7 +39,7 @@ const LS_ALIAS = "geogame_alias";
 // filtern/als Kovariate kontrollieren statt sie verwerfen zu muessen (siehe
 // Memory project_paper1_pivot_no_tierlist). Von Hand hochzaehlen bei
 // inhaltlich relevanten Aenderungen am Spiel, nicht bei jedem Commit.
-const APP_VERSION = "antrag-v1";
+const APP_VERSION = "antrag-v2";
 
 // ── Testmodus (geheim, per Taste T + Passwort) ────────────────
 // Unterdrueckt jede Uebertragung ans Backend, damit QA-/Testlaeufe nicht in

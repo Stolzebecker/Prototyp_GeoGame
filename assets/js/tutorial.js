@@ -53,6 +53,65 @@ const TUT_TEXTS = {
         target: 'pin',
       },
     ],
+    // Kategorie-Erklaerung (seit 2026-10-19): laeuft nach den Overlay-Schritten
+    // und vor der Uebungsrunde, eine Karte pro Eintrag. catId -> Titel kommt aus
+    // labelText() (i18n.js), damit er mit den Spielchips identisch bleibt.
+    // Bilder: Bilder/Tutorial/ (Gold-Rahmen, 4:3). scalebar.pct = 1 km als
+    // Anteil der Bildbreite (Poolbild = 7000 m breit -> 100/7 %).
+    cats: [
+      {
+        badge: 'Die Bilder',
+        title: 'So sehen die Bilder aus',
+        body:  'Du siehst Satellitenbilder in Echtfarben. Ein Pixel ist etwa 10 × 10 Meter groß, ein Bild zeigt etwa 7 × 5 Kilometer. Einzelne Häuser sind deshalb kaum zu erkennen, achte besser auf größere Flächen. Kommt eine Kategorie mehrfach vor, genügt eine passende Stelle. Gleich lernst du die vier Kategorien kennen.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/intro.jpg', alt: 'Beispiel eines Satellitenbilds mit Maßstabsbalken', caption: 'Beispielbild, der Balken zeigt 1 km', scalebar: { pct: 100 / 7, label: '1 km' } },
+        ],
+      },
+      {
+        badge: 'Kategorie 1 / 4',
+        catId: 'Wald',
+        title: 'Wald',
+        body:  'Wald erkennst du oft an seiner dunkelgrünen Farbe (je nach Jahreszeit) und an der rauen Oberfläche, die die Baumkronen bilden.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/wald.jpg', alt: 'Waldfläche im gelben Rahmen', caption: 'Wald (im gelben Rahmen)' },
+        ],
+      },
+      {
+        badge: 'Kategorie 2 / 4',
+        catId: 'Acker',
+        title: 'Grünland/Landwirtschaft',
+        body:  'Dazu zählen alle Flächen ohne Wald, die bewachsen oder landwirtschaftlich genutzt sind: Äcker, Felder, Wiesen und Weiden. Du erkennst sie an ihren klaren Formen und an Farben, die heller grün oder braun wirken als Wald. Manchmal ist es schwieriger (rechts, die Linien zeigen, was zur Kategorie zählt).',
+        tip:   'Bist du sicher, dass es weder Wald, Wasser noch Bebauung ist, ist es meist Grünland/Landwirtschaft.',
+        images: [
+          { src: 'Bilder/Tutorial/gruen_leicht.jpg', alt: 'Felder und Wiesen im gelben Rahmen', caption: 'Grünland/Landwirtschaft, leicht zu erkennen' },
+          { src: 'Bilder/Tutorial/gruen_schwer.jpg', alt: 'Schwieriger Fall mit eingezeichneten Linien', caption: 'Schwieriger: Die Linien zeigen, was zur Kategorie zählt' },
+        ],
+      },
+      {
+        badge: 'Kategorie 3 / 4',
+        catId: 'Gebäude',
+        title: 'Gebäude/Infrastruktur',
+        body:  'Suche nicht nach einzelnen Häusern, sondern nach größeren zusammenhängenden Flächen. Durch verschiedene Formen, Materialien und Farben wirken sie oft bunt und unruhig. Auch Straßen und andere versiegelte Flächen wie Parkplätze gehören dazu.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/gebaeude.jpg', alt: 'Ortschaft im gelben Rahmen', caption: 'Siedlung mit Straßen' },
+        ],
+      },
+      {
+        badge: 'Kategorie 4 / 4',
+        catId: 'Wasser',
+        title: 'Wasser',
+        body:  'Dazu zählen Küsten, Seen und Flüsse. Am leichtesten erkennst du größere, ruhige Gewässer wie Seen (links). Flüsse sind schmal und deutlich schwerer zu finden (rechts). Kommt Wasser im Bild nicht vor, lege die Kategorie in den Papierkorb.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/see.jpg', alt: 'See im gelben Rahmen', caption: 'See' },
+          { src: 'Bilder/Tutorial/fluss.jpg', alt: 'Flusslauf im gelben Rahmen', caption: 'Fluss' },
+        ],
+      },
+    ],
+    tipLabel:        'Tipp:',
     practiceTitle:   'Jetzt bist du dran!',
     practiceBody:    'Markiere das Wasser auf dem Bild. Ziehe die Kategorie "Wasser" auf einen See oder Fluss.',
     practiceWrong:   'Versuche es mit der Kategorie "Wasser".',
@@ -136,6 +195,60 @@ const TUT_TEXTS = {
         target: 'pin',
       },
     ],
+    cats: [
+      {
+        badge: 'The images',
+        title: 'What the images look like',
+        body:  'You will see satellite images in true colour. One pixel is about 10 × 10 metres, and one image shows an area of roughly 7 × 5 kilometres. Individual houses are therefore hard to make out, so look for larger areas instead. If a category appears more than once, one matching spot is enough. You are about to get to know the four categories.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/intro.jpg', alt: 'Example of a satellite image with a scale bar', caption: 'Example image, the bar shows 1 km', scalebar: { pct: 100 / 7, label: '1 km' } },
+        ],
+      },
+      {
+        badge: 'Category 1 / 4',
+        catId: 'Wald',
+        title: 'Forest',
+        body:  'You can often recognise forest by its dark green colour (depending on the season) and by the rough surface that the treetops create.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/wald.jpg', alt: 'Forest area inside the yellow frame', caption: 'Forest (inside the yellow frame)' },
+        ],
+      },
+      {
+        badge: 'Category 2 / 4',
+        catId: 'Acker',
+        title: 'Grassland/Agriculture',
+        body:  'This covers all areas without forest that are covered in vegetation or used for farming: arable fields, meadows and pastures. You can usually recognise them by their clear shapes and by colours that look lighter green or brown than forest. Sometimes it is harder (right image, the lines show what counts as this category).',
+        tip:   'If you are sure it is neither forest, water nor built-up area, it is most likely grassland/agriculture.',
+        images: [
+          { src: 'Bilder/Tutorial/gruen_leicht.jpg', alt: 'Fields and meadows inside the yellow frame', caption: 'Grassland/Agriculture, easy to recognise' },
+          { src: 'Bilder/Tutorial/gruen_schwer.jpg', alt: 'Harder case with outlines drawn in', caption: 'Harder: the lines show what counts as this category' },
+        ],
+      },
+      {
+        badge: 'Category 3 / 4',
+        catId: 'Gebäude',
+        title: 'Buildings/Infrastructure',
+        body:  'Do not look for single houses, look for larger connected areas. Because of their different shapes, materials and colours they often look colourful and busy. Roads and other sealed surfaces such as car parks belong here, too.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/gebaeude.jpg', alt: 'Settlement inside the yellow frame', caption: 'Settlement with roads' },
+        ],
+      },
+      {
+        badge: 'Category 4 / 4',
+        catId: 'Wasser',
+        title: 'Water',
+        body:  'This includes coasts, lakes and rivers. Large, calm bodies of water such as lakes are the easiest to spot (left). Rivers are narrow and much harder to find (right). If water does not appear in the image, drop the category into the bin.',
+        tip:   null,
+        images: [
+          { src: 'Bilder/Tutorial/see.jpg', alt: 'Lake inside the yellow frame', caption: 'Lake' },
+          { src: 'Bilder/Tutorial/fluss.jpg', alt: 'River course inside the yellow frame', caption: 'River' },
+        ],
+      },
+    ],
+    tipLabel:        'Tip:',
     practiceTitle:   'Your turn!',
     practiceBody:    'Mark the water in the image. Drag the category "Water" onto a lake or river.',
     practiceWrong:   'Try the category "Water".',
@@ -701,6 +814,82 @@ function nextOverlayStep() {
   if (tutOverStep < texts.overlay.length - 1) {
     showOverlayStep(tutOverStep + 1);
   } else {
+    showCategoryCard(0);
+  }
+}
+
+// ── 3b. Kategorie-Erklaerung (seit 2026-10-19) ────────────────────────────────
+// Eine Karte pro Eintrag in TUT_TEXTS[..].cats (Einstieg + 4 Kategorien), nach
+// den Overlay-Schritten und vor der Uebungsrunde. Nutzt wie die Info-/Consent-
+// Screens #tutorial-info-screen (Vollbild); das Overlay samt Spotlight wird
+// dafuer ausgeblendet. "Ueberspringen" ruft skipTutorial() auf (direkt ins
+// Spiel), wie der Skip im Overlay.
+let tutCatStep = 0;
+
+function showCategoryCard(step) {
+  tutCatStep = step;
+  var texts = TUT_TEXTS[tutLang];
+  var cards = texts.cats;
+  var c     = cards[step];
+
+  var overlay = document.getElementById('tutorial-overlay');
+  if (overlay) { overlay.classList.remove('active'); }
+  if (tutArrow)     { tutArrow.remove();     tutArrow = null; }
+  if (tutSpotlight) { tutSpotlight.remove(); tutSpotlight = null; }
+
+  var screen = document.getElementById('tutorial-info-screen');
+  screen.classList.add('active');
+
+  var dots = '';
+  for (var i = 0; i < cards.length; i++) {
+    dots += '<div class="tut-progress-dot' + (i === step ? ' active' : '') + '"></div>';
+  }
+
+  var title = c.catId ? labelText(c.catId, c.title) : c.title;
+  var figs = '';
+  for (var j = 0; j < c.images.length; j++) {
+    var im = c.images[j];
+    var bar = im.scalebar
+      ? '<span class="tut-scalebar" style="width:' + im.scalebar.pct.toFixed(4) + '%"><i>' + im.scalebar.label + '</i></span>'
+      : '';
+    figs +=
+      '<figure class="tut-cat-fig">' +
+        '<div class="tut-cat-imgwrap"><img src="' + im.src + '" alt="' + im.alt + '" draggable="false">' + bar + '</div>' +
+        '<figcaption>' + im.caption + '</figcaption>' +
+      '</figure>';
+  }
+
+  screen.innerHTML =
+    '<div class="tut-info-panel tut-cat-panel">' +
+      '<div class="tut-step-badge">' + c.badge + '</div>' +
+      '<h2>' + title + '</h2>' +
+      '<div class="tut-cat-main">' +
+        '<div class="tut-cat-imgs">' + figs + '</div>' +
+        '<div class="tut-cat-text">' +
+          '<p>' + c.body + '</p>' +
+          (c.tip ? '<div class="tut-cat-tip"><strong>' + texts.tipLabel + '</strong> ' + c.tip + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="tut-progress">' + dots + '</div>' +
+      '<div class="tut-btn-row">' +
+        '<button class="tut-btn-skip" onclick="skipTutorial()">' + texts.skipBtn + '</button>' +
+        '<button class="tut-btn" onclick="nextCategoryCard()">' + texts.nextBtn + '</button>' +
+      '</div>' +
+    '</div>';
+  screen.scrollTop = 0;
+
+  // Bilder der naechsten Karte vorladen, damit der Wechsel ohne Aufblitzen klappt
+  if (step + 1 < cards.length) {
+    cards[step + 1].images.forEach(function(n) { var p = new Image(); p.src = n.src; });
+  }
+}
+
+function nextCategoryCard() {
+  var texts = TUT_TEXTS[tutLang];
+  if (tutCatStep < texts.cats.length - 1) {
+    showCategoryCard(tutCatStep + 1);
+  } else {
+    document.getElementById('tutorial-info-screen').classList.remove('active');
     startPracticeRound();
   }
 }

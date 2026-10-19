@@ -279,6 +279,48 @@ html[data-device="touch"] .tut-info-panel .tut-note {
 html[data-device="touch"] .tut-info-panel .tut-btn-row {
   margin-top: 2px;
 }
+/* Kategorie-Erklaerung (2026-10-19): Panel breiter, Bildbreite aus der
+   verfuegbaren Querformat-Hoehe abgeleitet (~240px fuer Titel, Text, Tipp,
+   Fortschritt, Buttons), mit Untergrenze; der margin:auto-Fix in
+   tutorial.css haelt den Rest per Scroll erreichbar. */
+html[data-device="touch"] .tut-cat-panel {
+  width: min(720px, calc(var(--landscape-w) * 0.92));
+}
+/* Handy/Tablet im Querformat: Bilder links, Text rechts (spart Hoehe). Bei
+   zwei Bildern liegen sie nebeneinander in der linken Spalte. */
+html[data-device="touch"] .tut-cat-main {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+html[data-device="touch"] .tut-cat-imgs {
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: flex-start;
+}
+html[data-device="touch"] .tut-cat-text {
+  flex: 1 1 0;
+  gap: 6px;
+}
+html[data-device="touch"] .tut-cat-fig {
+  width: clamp(96px, calc((var(--landscape-h) - 230px) * 1.333), 150px);
+}
+html[data-device="touch"] .tut-cat-imgs .tut-cat-fig:only-child {
+  width: clamp(120px, calc((var(--landscape-h) - 230px) * 1.333 * 1.15), 190px);
+}
+html[data-device="touch"] .tut-cat-fig figcaption {
+  font-size: 10px;
+  margin-top: 2px;
+}
+html[data-device="touch"] .tut-cat-tip {
+  font-size: 11.5px;
+  line-height: 1.35;
+  padding: 5px 8px;
+}
+html[data-device="touch"] .tut-scalebar i {
+  font-size: 9px;
+  bottom: 8px;
+}
 html[data-device="touch"] .tut-btn {
   padding: 9px 20px;
   font-size: 13px;

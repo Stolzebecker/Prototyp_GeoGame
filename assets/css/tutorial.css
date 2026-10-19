@@ -87,6 +87,47 @@
   border-left:2px solid var(--border);padding-left:12px;
   line-height:1.6;
 }
+/* ── Kategorie-Erklaerung (Karten nach dem Overlay-Tutorial) ──────────────
+   Bilder oben in einer Reihe, darunter Text. Bildbreite ueber die Viewport-
+   Hoehe begrenzt (4:3 -> Hoehe = 0.75*Breite), damit Panel auch auf flachen
+   Fenstern ohne Scrollen auskommt. Touch-Variante siehe mobile.css. */
+.tut-cat-panel{width:min(760px,92vw);}
+.tut-cat-main{display:flex;flex-direction:column;gap:12px;}
+.tut-cat-text{display:flex;flex-direction:column;gap:10px;min-width:0;}
+.tut-cat-imgs{display:flex;justify-content:center;gap:14px;}
+.tut-cat-fig{
+  margin:0;flex:0 1 auto;
+  width:min(330px,38vh*1.333,100%);
+  min-width:0;
+}
+.tut-cat-imgs .tut-cat-fig:only-child{width:min(400px,44vh*1.333,100%);}
+.tut-cat-imgwrap{
+  position:relative;border-radius:6px;overflow:hidden;
+  border:1px solid var(--line);background:#e6e9ec;line-height:0;
+}
+.tut-cat-imgwrap img{
+  display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;
+  user-select:none;-webkit-user-select:none;
+}
+.tut-cat-fig figcaption{
+  font-size:12px;color:var(--muted);line-height:1.35;margin-top:5px;text-align:center;
+}
+/* Massstabsbalken: Breite = 1 km als Anteil der Bildbreite (inline gesetzt).
+   Aussenkontur per box-shadow, damit die Balkenbreite exakt bleibt. */
+.tut-scalebar{
+  position:absolute;left:10px;bottom:10px;height:6px;
+  background:#fff;box-shadow:0 0 0 1.5px #0a3f70;
+}
+.tut-scalebar i{
+  position:absolute;left:0;bottom:9px;font-style:normal;font-family:var(--font-ui);
+  font-size:11px;font-weight:700;line-height:1;color:#fff;
+  text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;white-space:nowrap;
+}
+.tut-cat-tip{
+  font-size:13px;color:#2a2a2a;line-height:1.55;
+  background:rgba(253,195,0,.16);border-left:3px solid var(--accent2);
+  border-radius:0 6px 6px 0;padding:8px 12px;
+}
 .tut-progress{
   display:flex;gap:6px;align-items:center;margin-top:4px;
 }
