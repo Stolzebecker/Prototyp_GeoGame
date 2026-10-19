@@ -737,6 +737,12 @@ html:not([data-tier="phone"]) #sidebar-right #btn-hint {
 .results-actions button.primary-big{padding:16px 44px;font-size:17px;letter-spacing:.04em;
   animation:pulse 2.4s ease-out infinite;}
 .pq-hint{font-size:.82rem;color:var(--muted);margin:6px 0 0;line-height:1.4;}
+/* Link "Andere Person spielt eine neue Runde" unter den Endcard-Knoepfen (seit 2026-10-19) */
+#play-other-link{
+  background:none;border:none;padding:10px 12px;margin-top:2px;cursor:pointer;
+  color:var(--muted);font-size:.85rem;text-decoration:underline;font-family:inherit;
+}
+#play-other-link:hover{color:#8a6500;}
 .legal-modal-card h2{font-size:1rem;color:#0a3f70;margin:18px 0 6px;}
 .legal-modal-card h2:first-child{margin-top:0;}
 #datenschutz-modal .legal-modal-card{max-width:760px;max-height:88vh;overflow-y:auto;}

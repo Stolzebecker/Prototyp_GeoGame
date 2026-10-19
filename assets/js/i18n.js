@@ -104,6 +104,7 @@ const UI_TEXTS = {
     'res.feedback':       'Feedback geben ›',
     'res.share':          'Freund*in herausfordern ›',
     'res.again':          'Nochmal spielen ›',
+    'res.other':          'Andere Person spielt eine neue Runde',
     'common.close':       'Schließen',
     'share.title':        'Freund*in herausfordern',
     'share.copied':       'Text in die Zwischenablage kopiert – beim Einfügen in {platform} bereit.',
@@ -208,7 +209,7 @@ const UI_TEXTS = {
       <p>Eine ausschließlich automatisierte Entscheidung mit rechtlicher Wirkung findet nicht statt.</p>
 
       <h2>Lokale Speicherung im Browser</h2>
-      <p>Dein Browser speichert technisch notwendig lokal auf deinem Gerät: den zufälligen Code, deinen Alias, einen Hinweis, dass der Fragebogen schon ausgefüllt wurde, die Spielsprache, die Zahl deiner Durchgänge und die Kennungen der Bilder, die du schon gesehen hast (damit du bevorzugt neue Bilder bekommst). Es werden keine Cookies gesetzt und nichts davon wird zu Werbe- oder Trackingzwecken genutzt. Du kannst diese Daten jederzeit in den Einstellungen deines Browsers löschen.</p>
+      <p>Dein Browser speichert technisch notwendig lokal auf deinem Gerät: für jedes Profil einen zufällig erzeugten Code, den Alias, die Version der Einwilligung, die Kennungen der Bilder, die du schon gesehen hast (damit du bevorzugt neue Bilder bekommst) und die Zahl deiner Durchgänge, außerdem kleine Anzeigeeinstellungen (z. B. gewählte Ansicht, zuletzt angezeigter Spruch am Ende). Diese Einträge bleiben, bis du das Profil im Spiel entfernst oder die Browserdaten löschst. Sie werden nicht automatisch an uns übertragen; nur der Code, der deine Durchgänge verbindet, wird bei jedem Durchgang mitgesendet. Es werden keine Cookies gesetzt und nichts davon wird zu Werbe- oder Trackingzwecken genutzt.</p>
 
       <h2>Minderjährige</h2>
       <p>Wenn du unter 16 Jahre alt bist, lies diese Hinweise bitte gemeinsam mit deinen Eltern oder Erziehungsberechtigten. Sie müssen mit deiner Teilnahme einverstanden sein.</p>
@@ -301,6 +302,7 @@ const UI_TEXTS = {
     'res.feedback':       'Give feedback ›',
     'res.share':          'Challenge a friend ›',
     'res.again':          'Play again ›',
+    'res.other':          'Someone else plays a new round',
     'common.close':       'Close',
     'share.title':        'Challenge a friend',
     'share.copied':       'Text copied to the clipboard – ready to paste into {platform}.',
@@ -398,7 +400,7 @@ const UI_TEXTS = {
       <p>There is no decision based solely on automated processing that has legal effect.</p>
 
       <h2>Local storage in the browser</h2>
-      <p>Your browser stores, as technically necessary, locally on your device: the random code, your alias, a note that the questionnaire has already been completed, the game language, the number of your runs and the identifiers of images you have already seen (so that you preferably get new images). No cookies are set and none of this is used for advertising or tracking. You can delete this data at any time in your browser settings.</p>
+      <p>Your browser stores, as technically necessary, locally on your device: for each profile a randomly generated code, the alias, the version of the consent, the identifiers of the images you have already seen (so that you preferably get new images) and the number of your runs, plus small display settings (e.g. the chosen view, the last closing message shown). These entries stay until you remove the profile in the game or delete your browser data. They are not transmitted to us automatically; only the code that links your runs is sent along with each run. No cookies are set and none of this is used for advertising or tracking.</p>
 
       <h2>Minors</h2>
       <p>If you are under 16, please read this information together with your parents or legal guardians. They must agree to your participation.</p>

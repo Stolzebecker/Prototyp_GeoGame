@@ -279,6 +279,19 @@ html[data-device="touch"] .tut-info-panel .tut-note {
 html[data-device="touch"] .tut-info-panel .tut-btn-row {
   margin-top: 2px;
 }
+/* Profilwahl (2026-10-19): kompakter, Liste scrollt innerhalb der sichtbaren
+   Querformat-Hoehe; Tap-Ziele bleiben >= 44px (siehe tutorial.css .who-pick). */
+html[data-device="touch"] .who-panel {
+  width: min(520px, calc(var(--landscape-w) * 0.8));
+}
+html[data-device="touch"] .who-list {
+  max-height: calc(var(--landscape-h) - 225px);
+}
+html[data-device="touch"] .who-pick {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
 /* Kategorie-Erklaerung (2026-10-19): Panel breiter, Bildbreite aus der
    verfuegbaren Querformat-Hoehe abgeleitet (~240px fuer Titel, Text, Tipp,
    Fortschritt, Buttons), mit Untergrenze; der margin:auto-Fix in

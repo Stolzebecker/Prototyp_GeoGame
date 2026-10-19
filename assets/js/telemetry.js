@@ -29,9 +29,6 @@ const SUBMIT_TOKEN = "gg_5f2a9c14e8b6d0317f4a2c9e6b8d1053";
 // nie Rohdaten - siehe Code.gs-Kommentar.
 const LEADERBOARD_TOKEN = "gg_board_71cf3e0a4d8b26f5913c6e0a8d4b2f17";
 
-const LS_PARTICIPANT_ID = "geogame_participant_id";
-const LS_ALIAS = "geogame_alias";
-
 // ── App-Version (seit 2026-09-01) ──────────────────────────────
 // Wird bei JEDER Uebertragung mitgeloggt (siehe sendToBackend_), unabhaengig
 // vom Modus - falls sich durch die parallelen Interviews Anpassungsbedarf am
@@ -39,7 +36,7 @@ const LS_ALIAS = "geogame_alias";
 // filtern/als Kovariate kontrollieren statt sie verwerfen zu muessen (siehe
 // Memory project_paper1_pivot_no_tierlist). Von Hand hochzaehlen bei
 // inhaltlich relevanten Aenderungen am Spiel, nicht bei jedem Commit.
-const APP_VERSION = "antrag-v2";
+const APP_VERSION = "antrag-v3";
 
 // ── Testmodus (geheim, per Taste T + Passwort) ────────────────
 // Unterdrueckt jede Uebertragung ans Backend, damit QA-/Testlaeufe nicht in
@@ -198,33 +195,143 @@ function applyUrlActivation_(){
   return params.get('debug') === '1';
 }
 
-// ── Teilnehmer-Identitaet ────────────────────────────────────
+// ── Teilnehmer-Identitaet: Profile pro Geraet (seit 2026-10-19) ──────
+// Statt einer einzelnen geraeteweiten participant_id gibt es eine Liste von
+// Profilen im localStorage (Schluessel LS_PROFILES): {id, alias, consentV,
+// runCount, seen{levelId:ts}, last}. Auf einem bekannten Geraet fragt ein
+// Popup ("Wer spielt?"), mit welchem Profil gespielt wird, oder ob jemand
+// Neues spielt (siehe tutorial.js proceedAfterLanguage_()). Das aktive Profil
+// liegt nur im Speicher (_activeProfileId); "Nochmal spielen" merkt es ueber
+// einen Eintrag im sessionStorage fuer den naechsten Seitenaufruf.
+// Die frueheren Einzel-Schluessel (participant_id/alias/seen_levels/
+// run_count) werden NICHT migriert, sondern einmalig geloescht (Julian: keine
+// Migration alter Daten, der neue Server kennt diese Personen nicht).
+// Test-/Interviewmodus bleiben fluechtig (_usesEphemeralIdentity_).
+const LS_PROFILES = "geogame_profiles_v2";
+const SS_CONTINUE_PROFILE = "geogame_continue_profile";
+const MAX_PROFILES = 20;
+// Hochzaehlen, wenn sich der Einwilligungstext inhaltlich aendert: dann wird
+// die Einwilligung bei allen Profilen erneut eingeholt.
+const CONSENT_VERSION = "v1";
+
+let _activeProfileId = null;   // null = neue Person (noch kein Profil)
+let _pendingId = null;         // vorlaeufige ID einer neuen Person bis zur Alias-Wahl
+let _memProfiles = null;       // Rueckfall, falls localStorage nicht nutzbar ist
+
+(function dropLegacyIdentityKeys_(){
+  try{
+    ["geogame_participant_id","geogame_alias","geogame_seen_levels","geogame_run_count"]
+      .forEach(k => localStorage.removeItem(k));
+  }catch(e){ /* localStorage gesperrt: nichts zu tun */ }
+})();
+
+function loadProfiles_(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(LS_PROFILES) || "[]");
+    if(Array.isArray(arr)) return arr.filter(p => p && p.id && p.alias);
+    return [];
+  }catch(e){
+    return _memProfiles ? _memProfiles.slice() : [];
+  }
+}
+function saveProfiles_(arr){
+  _memProfiles = arr.slice();
+  try{ localStorage.setItem(LS_PROFILES, JSON.stringify(arr)); }catch(e){ /* nur im Speicher */ }
+}
+function getActiveProfile_(){
+  if(_usesEphemeralIdentity_() || !_activeProfileId) return null;
+  return loadProfiles_().find(p => p.id === _activeProfileId) || null;
+}
+// Fuer das Popup: Profile, zuletzt gespielt zuerst.
+function listProfiles_(){
+  return loadProfiles_().sort((a,b) => (b.last||0) - (a.last||0));
+}
+function setActiveProfile_(id){
+  _activeProfileId = id;
+  _pendingId = null;
+}
+function setActiveProfileNew_(){
+  _activeProfileId = null;
+  _pendingId = null;
+}
+function removeProfile_(id){
+  saveProfiles_(loadProfiles_().filter(p => p.id !== id));
+  if(_activeProfileId === id) _activeProfileId = null;
+}
+function updateActiveProfile_(mutate){
+  if(_usesEphemeralIdentity_() || !_activeProfileId) return;
+  const arr = loadProfiles_();
+  const p = arr.find(x => x.id === _activeProfileId);
+  if(!p) return;
+  mutate(p);
+  saveProfiles_(arr);
+}
+// Pro-Profil-Zaehler und Bildhistorie (app.js nutzt sie statt eigener localStorage-Keys).
+function getProfileRunCount_(){
+  const p = getActiveProfile_();
+  return p ? (p.runCount || 0) : 0;
+}
+function bumpProfileRunCount_(){
+  updateActiveProfile_(p => { p.runCount = (p.runCount || 0) + 1; p.last = Date.now(); });
+}
+function getProfileSeen_(){
+  const p = getActiveProfile_();
+  return (p && p.seen && typeof p.seen === "object") ? p.seen : {};
+}
+function setProfileSeen_(o){
+  updateActiveProfile_(p => { p.seen = o; });
+}
+// Einwilligungsstand des aktiven Profils
+function profileConsentOk_(id){
+  const p = loadProfiles_().find(x => x.id === id);
+  return !!p && p.consentV === CONSENT_VERSION;
+}
+function markActiveProfileConsent_(){
+  updateActiveProfile_(p => { p.consentV = CONSENT_VERSION; });
+}
+
 function getParticipantId(){
   if(_usesEphemeralIdentity_()) return _testParticipantId;
-  let id = localStorage.getItem(LS_PARTICIPANT_ID);
-  if(!id){
-    id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
-    localStorage.setItem(LS_PARTICIPANT_ID, id);
+  if(_activeProfileId) return _activeProfileId;
+  if(!_pendingId){
+    _pendingId = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
   }
-  return id;
+  return _pendingId;
 }
+// true = es spielt eine neue Person (noch kein Profil): Einwilligung, Formular,
+// Alias-Wahl und Tutorial laufen komplett.
 function isFirstEverVisit(){
   if(_usesEphemeralIdentity_()) return true;
-  return localStorage.getItem(LS_PARTICIPANT_ID) === null;
+  return _activeProfileId === null;
 }
 
 // ── Alias (Bestenliste, seit 2026-08-26) ──────────────────────
-// Wird einmalig im Personendaten-Formular vergeben (optional) und lokal
-// gespeichert, damit er bei Wiederholungsbesuchen automatisch wieder
-// angezeigt wird - kein neuer "ist das ein erneuter Durchlauf?"-Dialog
-// noetig, das haengt sich an die bestehende isFirstEverVisit()-Logik.
+// Wird beim Anlegen eines Profils vergeben (Wortpool-Raeder) und gehoert zum
+// Profil. setAlias() legt das Profil an: ab hier existiert die Person lokal.
 function getAlias(){
   if(_usesEphemeralIdentity_()) return _testAlias;
-  return localStorage.getItem(LS_ALIAS);
+  const p = getActiveProfile_();
+  return p ? p.alias : null;
 }
 function setAlias(alias){
   if(_usesEphemeralIdentity_()){ _testAlias = alias || null; return; }
-  if(alias) localStorage.setItem(LS_ALIAS, alias);
+  if(!alias) return;
+  const arr = loadProfiles_();
+  const id = getParticipantId();
+  let p = arr.find(x => x.id === id);
+  if(!p){
+    p = { id: id, alias: alias, consentV: CONSENT_VERSION, runCount: 0, seen: {}, last: Date.now() };
+    arr.push(p);
+    // Obergrenze: das am laengsten nicht genutzte Profil faellt weg
+    while(arr.length > MAX_PROFILES){
+      arr.sort((a,b) => (a.last||0) - (b.last||0));
+      arr.shift();
+    }
+  }else{
+    p.alias = alias;
+  }
+  saveProfiles_(arr);
+  setActiveProfile_(id);
 }
 
 let _runToken = null;

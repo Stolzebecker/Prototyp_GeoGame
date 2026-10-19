@@ -111,6 +111,16 @@ const TUT_TEXTS = {
         ],
       },
     ],
+    // Profilwahl auf bekannten Geraeten (seit 2026-10-19), siehe proceedAfterLanguage_()
+    whoTitle:        'Wer spielt?',
+    whoIntro:        'Wähle dein Profil, um direkt weiterzuspielen.',
+    whoNew:          'Ich bin jemand Neues',
+    whoNewHint:      'Neu hier? Dann richten wir kurz dein Profil ein. Dein Profil ist nur auf diesem Gerät gespeichert.',
+    removeAria:      'Profil entfernen',
+    removeTitle:     'Profil entfernen?',
+    removeBody:      '„{alias}" wird nur von diesem Gerät entfernt. Deine bereits gespielten Ergebnisse bleiben für die Studie gespeichert. Danach kannst du auf diesem Gerät nicht mehr als „{alias}" weiterspielen.',
+    removeConfirm:   'Entfernen',
+    removeCancel:    'Abbrechen',
     tipLabel:        'Tipp:',
     practiceTitle:   'Jetzt bist du dran!',
     practiceBody:    'Markiere das Wasser auf dem Bild. Ziehe die Kategorie "Wasser" auf einen See oder Fluss.',
@@ -248,6 +258,15 @@ const TUT_TEXTS = {
         ],
       },
     ],
+    whoTitle:        'Who is playing?',
+    whoIntro:        'Choose your profile to carry on right away.',
+    whoNew:          "I'm someone new",
+    whoNewHint:      'New here? Then we will set up your profile quickly. Your profile is only stored on this device.',
+    removeAria:      'Remove profile',
+    removeTitle:     'Remove profile?',
+    removeBody:      '"{alias}" will only be removed from this device. Results you have already played stay stored for the study. After that you can no longer continue as "{alias}" on this device.',
+    removeConfirm:   'Remove',
+    removeCancel:    'Cancel',
     tipLabel:        'Tip:',
     practiceTitle:   'Your turn!',
     practiceBody:    'Mark the water in the image. Drag the category "Water" onto a lake or river.',
@@ -330,9 +349,118 @@ function selectLang(lang) {
   const el = document.getElementById('lang-screen');
   if (el) {
     el.style.opacity = '0';
-    setTimeout(function() { el.remove(); showInfoScreen(0); }, 320);
+    setTimeout(function() { el.remove(); proceedAfterLanguage_(); }, 320);
   } else {
+    proceedAfterLanguage_();
+  }
+}
+
+// ── 1b. Profilwahl auf bekannten Geraeten (seit 2026-10-19) ──────────────────
+// Nach der Sprachwahl: Gibt es auf dem Geraet schon Profile (telemetry.js),
+// fragt ein Popup "Wer spielt?". Wer sein Profil waehlt, springt direkt ins
+// erste Level (kein Formular, kein Tutorial; Einwilligung nur, wenn sich ihre
+// Version geaendert hat). "Ich bin jemand Neues" = normaler Erstbesuch mit
+// Info-Screens, Einwilligung, Formular, Alias-Wahl und komplettem Tutorial.
+// Kein Popup bei Test-/Interviewmodus (fluechtige Identitaet) und wenn noch
+// kein Profil existiert. "Nochmal spielen" auf der Endcard merkt das aktive
+// Profil im sessionStorage vor und ueberspringt das Popup einmalig.
+function escHtml_(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function proceedAfterLanguage_() {
+  if (_usesEphemeralIdentity_()) { showInfoScreen(0); return; }
+  var profiles = listProfiles_();
+  if (profiles.length === 0) {
+    setActiveProfileNew_();
     showInfoScreen(0);
+    return;
+  }
+  var cont = null;
+  try {
+    cont = sessionStorage.getItem(SS_CONTINUE_PROFILE);
+    sessionStorage.removeItem(SS_CONTINUE_PROFILE);
+  } catch (e) { /* ohne sessionStorage fragt das Popup eben nach */ }
+  if (cont && profiles.some(function (p) { return p.id === cont; })) {
+    continueAsProfile_(cont);
+    return;
+  }
+  showWhoPlaysScreen_();
+}
+
+function continueAsProfile_(id) {
+  setActiveProfile_(id);
+  if (profileConsentOk_(id)) {
+    beginRunReturning_();
+  } else {
+    showConsentScreen();   // Einwilligungstext hat sich geaendert -> erneut einholen
+  }
+}
+
+// Neuer Durchlauf eines bekannten Profils: direkt in Level 1 (skipTutorial()
+// raeumt die Info-/Overlay-Elemente weg und ruft startShuffledExperiment()).
+function beginRunReturning_() {
+  newRunToken();
+  submitLaufStart();
+  skipTutorial();
+}
+
+function showWhoPlaysScreen_() {
+  var texts  = TUT_TEXTS[tutLang];
+  var screen = document.getElementById('tutorial-info-screen');
+  screen.classList.add('active');
+  var rows = listProfiles_().map(function (p) {
+    return '<div class="who-item">' +
+             '<button type="button" class="who-pick" onclick="continueAsProfile_(\'' + p.id + '\')">' + escHtml_(p.alias) + '</button>' +
+             '<button type="button" class="who-remove" aria-label="' + texts.removeAria + '" title="' + texts.removeAria + '" onclick="askRemoveProfile_(\'' + p.id + '\')">×</button>' +
+           '</div>';
+  }).join('');
+  screen.innerHTML =
+    '<div class="tut-info-panel who-panel">' +
+      '<h2>' + texts.whoTitle + '</h2>' +
+      '<p>' + texts.whoIntro + '</p>' +
+      '<div class="who-list">' + rows + '</div>' +
+      '<button type="button" class="tut-btn who-new" onclick="onNewPerson_()">' + texts.whoNew + '</button>' +
+      '<div class="tut-note">' + texts.whoNewHint + '</div>' +
+    '</div>';
+  screen.scrollTop = 0;
+}
+
+function onNewPerson_() {
+  setActiveProfileNew_();
+  document.getElementById('tutorial-info-screen').classList.remove('active');
+  showInfoScreen(0);
+}
+
+function askRemoveProfile_(id) {
+  var texts = TUT_TEXTS[tutLang];
+  var p = listProfiles_().filter(function (x) { return x.id === id; })[0];
+  if (!p) { showWhoPlaysScreen_(); return; }
+  var alias = escHtml_(p.alias);
+  document.getElementById('tutorial-info-screen').innerHTML =
+    '<div class="tut-info-panel who-panel">' +
+      '<h2>' + texts.removeTitle + '</h2>' +
+      '<p>' + texts.removeBody.replace(/\{alias\}/g, alias) + '</p>' +
+      '<div class="tut-btn-row">' +
+        '<button type="button" class="tut-btn-skip" onclick="showWhoPlaysScreen_()">' + texts.removeCancel + '</button>' +
+        '<button type="button" class="tut-btn" onclick="confirmRemoveProfile_(\'' + id + '\')">' + texts.removeConfirm + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function confirmRemoveProfile_(id) {
+  removeProfile_(id);
+  try {
+    if (sessionStorage.getItem(SS_CONTINUE_PROFILE) === id) { sessionStorage.removeItem(SS_CONTINUE_PROFILE); }
+  } catch (e) { /* egal */ }
+  if (listProfiles_().length === 0) {
+    setActiveProfileNew_();
+    document.getElementById('tutorial-info-screen').classList.remove('active');
+    showInfoScreen(0);
+  } else {
+    showWhoPlaysScreen_();
   }
 }
 
@@ -432,7 +560,11 @@ function onConsentContinue() {
   if (firstVisit) {
     showPersonFormScreen();
   } else {
-    startOverlayTutorial();
+    // Bekanntes Profil mit geaenderter Einwilligungsversion: nach erneuter
+    // Zustimmung direkt ins Spiel (seit 2026-10-19 kein Tutorial mehr fuer
+    // Wiederholer).
+    markActiveProfileConsent_();
+    skipTutorial();
   }
 }
 

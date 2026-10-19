@@ -1193,15 +1193,14 @@ let _fullShuffledPool = []; // voller Pool in Zufallsreihenfolge, ueber LEVELS_P
 // gesehenen aufgefuellt; sind alle gesehen, beginnt die Liste von vorn. Test-/
 // Interviewmodus (fluechtige Identitaet) und Uebungsrunde bleiben aussen vor.
 // Backend-Abgleich ueber Geraete hinweg folgt mit dem Serverumzug.
-const LS_SEEN_LEVELS = 'geogame_seen_levels';
+// Seit 2026-10-19 pro Profil (telemetry.js getProfileSeen_/setProfileSeen_),
+// nicht mehr geraeteweit: eine neue Person auf demselben Geraet erbt die
+// Bildhistorie der vorherigen nicht.
 function loadSeenLevels_(){
-  try{
-    const o = JSON.parse(localStorage.getItem(LS_SEEN_LEVELS) || '{}');
-    return (o && typeof o === 'object') ? o : {};
-  }catch(e){ return {}; }
+  return getProfileSeen_();
 }
 function saveSeenLevels_(o){
-  try{ localStorage.setItem(LS_SEEN_LEVELS, JSON.stringify(o)); }catch(e){ /* ohne Speicher: kein Gedaechtnis */ }
+  setProfileSeen_(o);
 }
 function shuffleInPlace_(a){
   for(let i=a.length-1; i>0; i--){
@@ -1602,13 +1601,31 @@ function loadLeaderboard_(percentileCells, totalErrors){
 // Fehler > Top 10 % > Wiederholungsspieler (ab 2. Durchgang) > obere Haelfte >
 // untere Haelfte. Ohne Rangdaten (Bestenliste nicht geladen): Wiederholung
 // oder neutral "lower". Keine eigene Gruppe fuer "nicht geladen" (Julian).
-const LS_RUN_COUNT = 'geogame_run_count';
+// Durchgangszaehler pro Profil (seit 2026-10-19, telemetry.js); Test-/Interview-
+// modus zaehlen nicht (kein aktives Profil).
 function getRunCount_(){
-  try{ const n = parseInt(localStorage.getItem(LS_RUN_COUNT), 10); return isNaN(n) ? 0 : n; }catch(e){ return 0; }
+  return getProfileRunCount_();
 }
 function bumpRunCount_(){
-  if(typeof _usesEphemeralIdentity_ === 'function' && _usesEphemeralIdentity_()) return; // Test-/Interviewmodus
-  try{ localStorage.setItem(LS_RUN_COUNT, String(getRunCount_() + 1)); }catch(e){ /* ohne Speicher einfach kein Zaehler */ }
+  bumpProfileRunCount_();
+}
+
+// ── Neustart auf der Endcard (seit 2026-10-19) ────────────────────
+// "Nochmal spielen": dieselbe Person - das aktive Profil wird fuer den
+// naechsten Seitenaufruf im sessionStorage vorgemerkt, dort wird das Popup
+// "Wer spielt?" uebersprungen (tutorial.js proceedAfterLanguage_()).
+// "Andere Person spielt eine neue Runde": kein Merkzeichen, das Popup erscheint.
+function playAgainSameProfile_(){
+  try{
+    if(typeof _activeProfileId !== 'undefined' && _activeProfileId){
+      sessionStorage.setItem(SS_CONTINUE_PROFILE, _activeProfileId);
+    }
+  }catch(e){ /* ohne sessionStorage fragt das Popup eben nach */ }
+  location.reload();
+}
+function playAgainOtherPerson_(){
+  try{ sessionStorage.removeItem(SS_CONTINUE_PROFILE); }catch(e){}
+  location.reload();
 }
 function showEndcardSpruch_(totalErrors, data){
   const el = document.getElementById('results-spruch');
