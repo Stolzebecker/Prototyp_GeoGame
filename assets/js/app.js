@@ -1547,6 +1547,7 @@ function showResults(){
   document.getElementById('results-screen').classList.add('active');
 
   document.getElementById('results-spruch').textContent = '';
+  _currentRun = { timeMs: tm, errors: te };   // fuer die Hervorhebung in der Bestenliste
   submitRunSummary(tm, te);
   loadLeaderboard_(percentileCells, te);
   // Disqualifizierte Durchlaeufe brauchen keinen Rang - Spruch sofort zeigen
@@ -1752,17 +1753,23 @@ function closeShareFallbackModal(){
   document.getElementById('share-fallback-modal').classList.remove('active');
 }
 
+let _currentRun = null;   // {timeMs, errors} des zuletzt beendeten Durchlaufs
 function renderLeaderboardRows_(tbodyId, rows){
   const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = '';
-  // Eigene Eintraege hervorheben: bevorzugt ueber das Server-Flag "mine"
-  // (participant_id); ein noch nicht aktualisiertes Backend liefert es nicht,
-  // dann hilfsweise ueber den eigenen Alias.
+  // Hervorgehoben wird nur der AKTUELLE Lauf (Julian, 2026-10-19), nicht alle
+  // Eintraege desselben Alias: eigener Eintrag (Server-Flag "mine" ueber
+  // participant_id, hilfsweise Alias-Vergleich bei einem noch nicht
+  // aktualisierten Backend) UND dieselbe Gesamtzeit + Fehlerzahl wie der
+  // soeben gespielte Lauf (_currentRun, exakt der Wert, den submitRunSummary
+  // an den Server geschickt hat).
   const myAlias = (typeof getAlias === 'function') ? getAlias() : null;
   rows.forEach(r=>{
     const tr = document.createElement('tr');
     const mine = (r.mine !== undefined) ? r.mine : (!!myAlias && r.alias === myAlias);
-    if(mine) tr.className = 'lb-mine';
+    const isCurrent = mine && _currentRun
+      && r.totalTimeMs === _currentRun.timeMs && r.totalErrors === _currentRun.errors;
+    if(isCurrent) tr.className = 'lb-mine';
     tr.innerHTML = `<td class="num">${r.rank}</td><td>${escapeHtml_(r.alias)}</td><td class="num">${(r.totalTimeMs/1000).toFixed(2)}</td><td class="num">${r.totalErrors}</td>`;
     tbody.appendChild(tr);
   });
